@@ -1,0 +1,186 @@
+/* =========================================================================
+   FlowArena — Community & Post Cards (Modul 4)
+   Genutzt von community.html (Feed + Rangliste) und profile.html ("Meine Posts").
+   ========================================================================= */
+
+.community-page {
+  padding-top: var(--sp-8);
+  padding-bottom: var(--sp-16);
+  max-width: 760px;
+}
+
+.community-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: var(--sp-6);
+}
+
+.community-tabs__opt {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.6em 1.3em;
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.community-tabs__opt.is-active {
+  color: #fff;
+  background: var(--gradient-accent);
+  box-shadow: var(--glow-purple);
+}
+
+.feed-list,
+.own-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* ---------- Post Card ---------- */
+.post-card {
+  padding: var(--sp-5);
+  display: flex;
+  gap: var(--sp-4);
+}
+
+.post-card__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.post-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-2);
+}
+
+.post-card__author {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.post-card__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.post-card__excerpt {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: var(--sp-3);
+}
+
+.post-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.post-card__score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: var(--neon-blue);
+}
+
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: var(--r-pill);
+  padding: 5px 12px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-spring);
+}
+
+.like-btn:hover {
+  transform: scale(1.06);
+  border-color: var(--border-strong);
+}
+
+.like-btn.is-liked {
+  color: #ff6b8a;
+  border-color: rgba(255, 107, 138, 0.4);
+  background: rgba(255, 107, 138, 0.08);
+}
+
+/* ---------- Leaderboard ---------- */
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin-bottom: var(--sp-2);
+}
+
+.leaderboard-row.is-you {
+  border-color: var(--neon-purple);
+  background: linear-gradient(90deg, rgba(181, 55, 245, 0.14), rgba(41, 211, 255, 0.06));
+  box-shadow: var(--glow-purple);
+}
+
+.leaderboard-row__rank {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-dim);
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.leaderboard-row__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.leaderboard-row__name {
+  flex: 1;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.leaderboard-row__score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--neon-blue);
+}

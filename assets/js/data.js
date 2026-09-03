@@ -22,6 +22,7 @@
     beatsPerLine: 4, // musikalisches Timing: 1 Takt (4 Beats) pro Zeile
     minStanzas: 1,
     maxStanzas: 10,
+    freeMaxStanzas: 5, // Modul 4: ohne Premium bei 5 Strophen gedeckelt
   };
 
   // audioUrl: Pfad zur Beat-Audiodatei (z.B. "/beats/dark-trap.mp3").
@@ -30,13 +31,16 @@
   // Klick-Track (assets/js/beat-clock.js + sound.js). Sobald ein Beat
   // eine echte Datei bekommt, spielt genau diese ab — ohne Änderungen an
   // der Gameplay-Logik (siehe docs/AI_ARCHITECTURE.md / GAMEPLAY.md).
+  // premiumOnly + unlockCost: Modul 4 (Credits/Premium). Ohne Premium-Status
+  // ist ein premiumOnly-Beat gesperrt, bis er einmalig für `unlockCost`
+  // Credits freigeschaltet wird (siehe assets/js/profile-data.js).
   const BEATS = [
-    { id: "b1", name: "Dark Trap Wave", category: "Trap", bpm: 150, audioUrl: null },
+    { id: "b1", name: "Dark Trap Wave", category: "Trap", bpm: 150, audioUrl: null, premiumOnly: true, unlockCost: 60 },
     { id: "b2", name: "Boom Bap Classic", category: "Boom Bap", bpm: 90, audioUrl: null },
     { id: "b3", name: "Cloud Drift", category: "Lo-Fi", bpm: 75, audioUrl: null },
     { id: "b4", name: "Neon Drive", category: "Synth", bpm: 120, audioUrl: null },
     { id: "b5", name: "Street Anthem", category: "Hip-Hop", bpm: 100, audioUrl: null },
-    { id: "b6", name: "Midnight Cypher", category: "Boom Bap", bpm: 86, audioUrl: null },
+    { id: "b6", name: "Midnight Cypher", category: "Boom Bap", bpm: 86, audioUrl: null, premiumOnly: true, unlockCost: 45 },
   ];
 
   const TOPICS = [

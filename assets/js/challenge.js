@@ -25,6 +25,8 @@
   const { loadSettings, findBeat, findTopicLabel, GAMEPLAY_CONFIG } = window.FlowData;
   const settings = loadSettings();
   const beat = findBeat(settings.beatId);
+  const profile = window.FlowProfile.load();
+  let lastResult = null; // für den Publish-Handler (Modul 4)
 
   const LINES_PER_STANZA = GAMEPLAY_CONFIG.linesPerStanza;
   const BEATS_PER_LINE = GAMEPLAY_CONFIG.beatsPerLine;
@@ -63,6 +65,8 @@
     scoreBurst: $("#scoreBurst"),
     scoreBreakdown: $("#scoreBreakdown"),
     engineBadge: $("#engineBadge"),
+    creditsEarnedBadge: $("#creditsEarnedBadge"),
+    badgeUnlockBanner: $("#badgeUnlockBanner"),
     resultsHeadline: $("#resultsHeadline"),
     resultsSub: $("#resultsSub"),
     aiCommentText: $("#aiCommentText"),
@@ -434,8 +438,19 @@
         roastMode: settings.roastMode,
       });
 
+      lastResult = result;
+
+      // Modul 4: Credits/Stats/Badges aus dieser Challenge fortschreiben
+      const progress = window.FlowProfile.recordChallengeResult(profile, {
+        overall: result.overall,
+        scores: result.scores,
+        stanzaCount: totalStanzas,
+        roastMode: settings.roastMode,
+        topic: settings.topic,
+      });
+
       showScreen("results");
-      renderResults(result);
+      renderResults(result, progress);
     }, 2700);
   }
 
@@ -511,12 +526,24 @@
     });
   }
 
-  function renderResults(result) {
+  function renderResults(result, progress) {
     els.scoreRing.style.setProperty("--score", 0);
     els.scoreValue.textContent = "0";
     els.resultsHeadline.textContent = result.headline;
     els.resultsSub.textContent = `${difficultyLabel} · ${findTopicLabel(settings.topic)} · ${totalStanzas} ${totalStanzas === 1 ? "Strophe" : "Strophen"} · ${beat.name}${settings.roastMode ? " · Roast-Modus" : ""}`;
     if (els.engineBadge) els.engineBadge.textContent = `🧠 KI-Engine: ${result.engineLabel}`;
+
+    if (els.creditsEarnedBadge && progress) {
+      els.creditsEarnedBadge.hidden = false;
+      els.creditsEarnedBadge.textContent = `💎 +${progress.creditsEarned} Credits`;
+    }
+
+    if (els.badgeUnlockBanner && progress?.newBadges?.length) {
+      els.badgeUnlockBanner.hidden = false;
+      els.badgeUnlockBanner.innerHTML = progress.newBadges.map((b) =>
+        `<span style="font-size:1.6rem;">${b.icon}</span><span><strong>Neues Abzeichen:</strong> ${b.name} — <span style="color:var(--text-dim);">${b.desc}</span></span>`
+      ).join("<br>");
+    }
 
     renderScoreBreakdown(result.scores);
     animateScoreRing(result.overall, result.bracket);
@@ -574,9 +601,26 @@
   });
 
   els.publishBtn?.addEventListener("click", () => {
+    if (!lastResult) return;
     playIfEnabled(window.FlowSound?.playConfirm);
-    // Modul 5 (Publish-Flow) hängt sich hier an: POST /api/posts { recordingId, ... }
-    showToast("📤 Würde jetzt veröffentlicht (Modul 5: Publish-Flow folgt).");
+
+    // Modul 4: landet im lokalen Community-Store (siehe community-data.js).
+    // Ein echtes Backend (POST /api/posts) kommt mit Modul 5.
+    window.FlowCommunity.addPost({
+      authorName: profile.displayName,
+      authorAvatar: profile.avatar,
+      topic: settings.topic,
+      beatName: beat.name,
+      bpm: beat.bpm,
+      overall: lastResult.overall,
+      excerpt: lastResult.transcript
+        ? `„${lastResult.transcript.slice(0, 120)}${lastResult.transcript.length > 120 ? "…" : ""}"`
+        : "„(kein Transkript verfügbar — Take live gerappt)\"",
+    });
+    window.FlowProfile.addCredits(profile, 15);
+    els.publishBtn.disabled = true;
+    els.publishBtn.textContent = "✓ Veröffentlicht";
+    showToast("📤 Veröffentlicht! +15 💎 Credits — schau in der Community vorbei.");
   });
 
   els.retryBtn?.addEventListener("click", () => {

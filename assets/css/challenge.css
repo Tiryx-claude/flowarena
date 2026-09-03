@@ -394,6 +394,34 @@
   border-radius: var(--r-pill);
 }
 
+.credits-earned-badge {
+  display: inline-block;
+  margin-top: var(--sp-2);
+  margin-left: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: #a8e6cf;
+  background: rgba(80, 220, 160, 0.1);
+  border: 1px solid rgba(80, 220, 160, 0.35);
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+}
+
+.badge-unlock-banner {
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  border-color: var(--neon-purple) !important;
+  font-size: var(--fs-sm);
+  animation: badge-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-glow-pulse {
+  0%, 100% { box-shadow: var(--glow-purple); }
+  50% { box-shadow: var(--glow-mixed); }
+}
+
 .punchline-badge {
   display: inline-block;
   margin-top: var(--sp-2);

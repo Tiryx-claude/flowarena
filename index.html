@@ -29,15 +29,16 @@
     </div>
 
     <nav class="nav__links" aria-label="Hauptnavigation">
-      <a class="nav__link" href="#">Home</a>
+      <a class="nav__link" href="index.html">Home</a>
       <a class="nav__link" href="#">Challenges</a>
       <a class="nav__link" href="#">Beats</a>
-      <a class="nav__link" href="#">Rangliste</a>
+      <a class="nav__link" href="community.html">Community</a>
     </nav>
 
     <div class="nav__actions">
+      <a class="chip" href="profile.html" style="text-decoration:none; cursor:pointer;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></a>
       <button class="btn-icon js-open-settings" type="button" aria-label="Einstellungen öffnen" title="Einstellungen">⚙️</button>
-      <button class="btn btn-glass btn-sm" type="button">Anmelden</button>
+      <a class="btn-icon" href="profile.html" aria-label="Profil öffnen" title="Profil" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
     </div>
   </header>
 
@@ -143,6 +144,7 @@
           <span class="stepper__value" id="versesValue">2</span>
           <button class="stepper__btn" id="versesPlus" type="button" aria-label="Mehr Strophen">+</button>
         </div>
+        <span class="field__hint">Bis 5 Strophen kostenlos, mehr (bis 10) mit Premium.</span>
       </div>
 
       <div class="field">
@@ -201,6 +203,7 @@
 
   <script src="assets/js/sound.js"></script>
   <script src="assets/js/data.js"></script>
+  <script src="assets/js/profile-data.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

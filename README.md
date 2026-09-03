@@ -7,9 +7,9 @@ Posts und werden bewertet.
 Der Name **FlowArena** ist ein Platzhalter — leicht austauschbar (Branding
 lebt zentral in `assets/css/tokens.css` + `index.html`-Titel/Logo).
 
-## Aktueller Stand: Modul 1–3 — Design-System, Spielablauf & KI-Architektur
+## Aktueller Stand: Modul 1–4 — Design-System, Spielablauf, KI, Community
 
-Alle drei Module sind als eigenständiger **HTML/CSS/JS-Prototyp ohne
+Alle vier Module sind als eigenständiger **HTML/CSS/JS-Prototyp ohne
 Build-Tooling** umgesetzt, weil auf dieser Maschine kein Node.js installiert
 ist. Läuft direkt im Browser, voll interaktiv (Einstellungen in
 `localStorage`, Aufnahme über die native `MediaRecorder`/`SpeechRecognition`-API,
@@ -29,11 +29,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/serve.ps1
 ```
 index.html                    Startseite (Hero, Quick-Settings, Settings-Drawer)
 challenge.html                 Challenge-Bühne (Countdown, Strophen, Auswertung)
+profile.html                    Profil (Credits, Premium, Abzeichen, eigene Posts)
+community.html                  Community-Feed + Rangliste
 assets/css/tokens.css          Design-Tokens (Farben, Radien, Schatten, Motion)
 assets/css/base.css            Reset + globale Styles
 assets/css/components.css      Buttons, Cards, Toggles, Drawer, …
 assets/css/layout.css          Nav, Hero, Beat-Animation, Footer
-assets/css/challenge.css       Countdown, Reimwort-Reveal, Ergebnis-Screen
+assets/css/challenge.css       Countdown, Word-Rack, Ergebnis-Screen
+assets/css/profile.css          Profil-Layout (Avatar, Stats, Badges, Premium)
+assets/css/community.css        Post-Karten, Feed, Rangliste
 assets/js/data.js              Gemeinsame Daten (Beats, Themen, Settings, GAMEPLAY_CONFIG)
 assets/js/app.js               Startseiten-State, Rendering, Event-Handling
 assets/js/beat-clock.js         BeatClock: drift-freie BPM-Uhr (AudioContext-basiert)
@@ -41,19 +45,25 @@ assets/js/challenge.js         Spielablauf-State-Machine, Word-Rack, Aufnahme, E
 assets/js/rhyme-engine.js       Kuratierte Reimwort-Datenbank (Daten für den lokalen Provider)
 assets/js/ai/registry.js        KI-Provider-Interfaces (RhymeProvider, EvaluationProvider, SpeechProvider)
 assets/js/ai/rhyme-provider.local.js       Reimwörter — lokale Heuristik
-assets/js/ai/evaluation-provider.local.js  Bewertung (7 Dimensionen) — lokale Heuristik
+assets/js/ai/evaluation-provider.local.js  Bewertung (8 Dimensionen) — lokale Heuristik
 assets/js/ai/speech-provider.web.js        Speech-to-Text via Web Speech API
+assets/js/profile-data.js       Profil-Store: Credits, Premium (Demo), Badges, Stats
+assets/js/community-data.js     Community-Store: Feed-Posts, Likes (lokal)
+assets/js/profile.js            Profilseiten-Logik
+assets/js/community.js          Community-Seiten-Logik (Feed/Rangliste)
 assets/js/sound.js             Web-Audio Klicksound-, Beat- & Reveal-Engine
 docs/DESIGN_SYSTEM.md          UI-Richtlinien
 docs/GAMEPLAY.md               Spielregeln, Timing, Strophen-/Reimlogik
 docs/AI_ARCHITECTURE.md        KI-Provider-Verträge, Upgrade-Pfad, Content-Policy
+docs/COMMUNITY.md               Profil/Credits/Premium/Community — Mechanik & Grenzen
 scripts/serve.ps1              Minimaler statischer Dev-Server (PowerShell)
 ```
 
 Siehe [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) für die UI-Richtlinien,
-[`docs/GAMEPLAY.md`](docs/GAMEPLAY.md) für Spielregeln/Timing und
+[`docs/GAMEPLAY.md`](docs/GAMEPLAY.md) für Spielregeln/Timing,
 [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) für die austauschbare
-KI-Provider-Architektur (Reimwörter, Bewertung, Speech-to-Text).
+KI-Provider-Architektur und [`docs/COMMUNITY.md`](docs/COMMUNITY.md) für
+Profil/Credits/Premium/Community (inkl. ehrlicher Grenzen dieses Prototyps).
 
 ## Geplante Architektur (nächste Module)
 
@@ -106,10 +116,10 @@ Die Tailwind-Migration der Design-Tokens ist bereits in
 
 1. ✅ Design-System & UI (Startseite, Einstellungen, Sound, Animation)
 2. ✅ Spielablauf & Reimlogik (Countdown, Strophen/Zeilen, Aufnahme, Platzhalter-Bewertung)
-3. ✅ KI-Architektur (Reimwörter, 7-dimensionale Bewertung, STT, Roast-Modus — austauschbare Provider, aktuell lokale Heuristiken)
-4. ⏭️ Community, Profile, Premium & Credits
-5. ⏳ Datenbank/Prisma-Setup + Auth
+3. ✅ KI-Architektur (Reimwörter, 8-dimensionale Bewertung, STT, Roast-Modus — austauschbare Provider, aktuell lokale Heuristiken)
+4. ✅ Community, Profile, Premium & Credits (lokal — kein echtes Backend, siehe docs/COMMUNITY.md)
+5. ⏭️ Datenbank/Prisma-Setup + Auth (macht Profile/Posts/Payments echt statt lokal)
 6. ⏳ Recording-Upload & Bewertung (persistent)
-7. ⏳ Publish-Flow, Feed, Likes/Comments
+7. ⏳ Publish-Flow, Feed, Likes/Comments (echtes Backend statt localStorage)
 8. ⏳ Admin-Bereich (Beat-Management)
 9. ⏳ Turniere / weitere Spielmodi (andockbar)

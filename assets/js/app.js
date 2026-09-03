@@ -13,8 +13,14 @@
   "use strict";
 
   const { BEATS, TOPICS, GAMEPLAY_CONFIG, loadSettings, saveSettings } = window.FlowData;
+  const FlowProfile = window.FlowProfile;
 
   let state = loadSettings();
+  let profile = FlowProfile.load();
+
+  function maxStanzasAllowed() {
+    return profile.premium ? GAMEPLAY_CONFIG.maxStanzas : GAMEPLAY_CONFIG.freeMaxStanzas;
+  }
 
   function playIfEnabled(fn) {
     if (state.soundEnabled && typeof fn === "function") fn();
@@ -45,6 +51,8 @@
     quickChips: $("#quickSettingsChips"),
     toast: $("#toast"),
     beatFigures: $("#beatFigures"),
+    creditsValue: $("#creditsValue"),
+    profileAvatarLink: $("#profileAvatarLink"),
   };
 
   /* ---------------------------------------------------------------------
@@ -62,21 +70,35 @@
 
   function renderBeatList() {
     if (!els.beatList) return;
-    els.beatList.innerHTML = BEATS.map((beat) => `
-      <div class="beat-card ${beat.id === state.beatId ? "is-active" : ""}" data-beat-id="${beat.id}" role="button" tabindex="0">
+    els.beatList.innerHTML = BEATS.map((beat) => {
+      const locked = !FlowProfile.isBeatUnlocked(profile, beat);
+      return `
+      <div class="beat-card ${beat.id === state.beatId ? "is-active" : ""} ${locked ? "is-locked" : ""}" data-beat-id="${beat.id}" role="button" tabindex="0">
         <div class="beat-card__info">
           <span class="beat-card__name">${beat.name}</span>
           <span class="beat-card__meta">${beat.category}</span>
         </div>
-        <span class="beat-card__bpm">${beat.bpm} BPM</span>
+        ${locked
+          ? `<span class="beat-card__lock">🔒 ${beat.unlockCost} 💎</span>`
+          : `<span class="beat-card__bpm">${beat.bpm} BPM</span>`}
       </div>
-    `).join("");
+    `;
+    }).join("");
   }
 
   function renderVerses() {
+    const max = maxStanzasAllowed();
+    if (state.verses > max) state.verses = max;
     if (els.versesValue) els.versesValue.textContent = String(state.verses);
     if (els.versesMinus) els.versesMinus.disabled = state.verses <= GAMEPLAY_CONFIG.minStanzas;
+    // Am absoluten Maximum (auch für Premium) wirklich deaktivieren; am
+    // Free-Deckel bleibt "+" klickbar, damit der Premium-Hinweis erscheint.
     if (els.versesPlus) els.versesPlus.disabled = state.verses >= GAMEPLAY_CONFIG.maxStanzas;
+  }
+
+  function renderProfileBits() {
+    if (els.creditsValue) els.creditsValue.textContent = String(profile.credits);
+    if (els.profileAvatarLink) els.profileAvatarLink.textContent = profile.avatar;
   }
 
   function renderTopic() {
@@ -127,6 +149,7 @@
     renderToggles();
     renderBeatAnimation();
     renderQuickChips();
+    renderProfileBits();
   }
 
   /* ---------------------------------------------------------------------
@@ -172,7 +195,23 @@
   els.beatList?.addEventListener("click", (e) => {
     const card = e.target.closest(".beat-card");
     if (!card) return;
-    state.beatId = card.dataset.beatId;
+    const beat = BEATS.find((b) => b.id === card.dataset.beatId);
+    if (!beat) return;
+
+    if (!FlowProfile.isBeatUnlocked(profile, beat)) {
+      const unlocked = FlowProfile.unlockBeat(profile, beat);
+      if (unlocked) {
+        playIfEnabled(window.FlowSound?.playConfirm);
+        showToast(`✓ „${beat.name}" freigeschaltet! (−${beat.unlockCost} 💎)`);
+        renderProfileBits();
+      } else {
+        playIfEnabled(window.FlowSound?.playClick);
+        showToast(`🔒 Nicht genug Credits (${profile.credits}/${beat.unlockCost} 💎) — Challenges bringen mehr, oder Premium in deinem Profil.`);
+        return; // Beat bleibt gesperrt, nicht auswählen
+      }
+    }
+
+    state.beatId = beat.id;
     playIfEnabled(window.FlowSound?.playSelect);
     renderBeatList();
     renderBeatAnimation();
@@ -188,7 +227,13 @@
   });
 
   els.versesPlus?.addEventListener("click", () => {
-    if (state.verses >= GAMEPLAY_CONFIG.maxStanzas) return;
+    const max = maxStanzasAllowed();
+    if (state.verses >= max) {
+      if (!profile.premium && max < GAMEPLAY_CONFIG.maxStanzas) {
+        showToast(`🔒 Ab ${GAMEPLAY_CONFIG.freeMaxStanzas + 1} Strophen brauchst du Premium — siehe dein Profil.`);
+      }
+      return;
+    }
     state.verses += 1;
     playIfEnabled(window.FlowSound?.playClick);
     renderVerses();

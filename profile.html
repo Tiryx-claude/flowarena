@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FlowArena — Dein Profil</title>
+  <meta name="description" content="Dein FlowArena-Profil: Credits, Abzeichen, Premium und Statistiken." />
+  <meta name="theme-color" content="#06060a" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23b537f5'/%3E%3Cstop offset='1' stop-color='%2329d3ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2306060a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='url(%23g)'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/tokens.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/community.css" />
+  <link rel="stylesheet" href="assets/css/profile.css" />
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="nav__brand">
+      <span class="nav__logo" aria-hidden="true">🎤</span>
+      <span>Flow<span class="nav__brand-name">Arena</span></span>
+    </div>
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a class="nav__link" href="index.html">Home</a>
+      <a class="nav__link" href="#">Challenges</a>
+      <a class="nav__link" href="#">Beats</a>
+      <a class="nav__link" href="community.html">Community</a>
+    </nav>
+    <div class="nav__actions">
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
+    </div>
+  </header>
+
+  <main class="page profile-page">
+    <!-- ============ PROFILE HEADER ============ -->
+    <section class="card-glass profile-header">
+      <div class="profile-avatar-wrap">
+        <button class="profile-avatar" id="avatarBtn" type="button" aria-label="Avatar ändern" title="Avatar ändern">🎤</button>
+        <div class="avatar-picker" id="avatarPicker" hidden></div>
+      </div>
+      <div class="profile-header__body">
+        <input class="profile-name-input" id="displayNameInput" type="text" maxlength="24" value="Anonymer MC" aria-label="Anzeigename" />
+        <div class="profile-header__badges" id="profileStatusBadges"></div>
+        <p class="profile-header__hint">Dieses Profil lebt nur in diesem Browser — es gibt (noch) keine echten Accounts. Name und Avatar werden lokal gespeichert.</p>
+      </div>
+    </section>
+
+    <!-- ============ STATS ============ -->
+    <section class="stat-grid" id="statGrid"></section>
+
+    <!-- ============ PREMIUM ============ -->
+    <section class="card-glass premium-card" id="premiumCard">
+      <!-- per JS befüllt: Upsell ODER "Premium aktiv" -->
+    </section>
+
+    <!-- ============ BADGES ============ -->
+    <section class="card-glass">
+      <h2 class="section-title">🏅 Abzeichen</h2>
+      <div class="badge-grid" id="badgeGrid"></div>
+    </section>
+
+    <!-- ============ MEINE POSTS ============ -->
+    <section class="card-glass">
+      <h2 class="section-title">📤 Meine veröffentlichten Takes</h2>
+      <div id="ownPosts"><p class="empty-hint">Noch nichts veröffentlicht — nach einer Challenge kannst du deinen Take mit „Veröffentlichen" in die Community stellen.</p></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/sound.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/profile-data.js"></script>
+  <script src="assets/js/community-data.js"></script>
+  <script src="assets/js/profile.js"></script>
+</body>
+</html>
