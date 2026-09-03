@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FlowArena — Reim dich an die Spitze</title>
+  <meta name="description" content="FlowArena: Rap-Challenges für Streamer und Creator. Beat wählen, Schwierigkeit einstellen, Bars droppen." />
+  <meta name="theme-color" content="#06060a" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23b537f5'/%3E%3Cstop offset='1' stop-color='%2329d3ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2306060a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='url(%23g)'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/tokens.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav">
+    <div class="nav__brand">
+      <span class="nav__logo" aria-hidden="true">🎤</span>
+      <span>Flow<span class="nav__brand-name">Arena</span></span>
+    </div>
+
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a class="nav__link" href="#">Home</a>
+      <a class="nav__link" href="#">Challenges</a>
+      <a class="nav__link" href="#">Beats</a>
+      <a class="nav__link" href="#">Rangliste</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button class="btn-icon js-open-settings" type="button" aria-label="Einstellungen öffnen" title="Einstellungen">⚙️</button>
+      <button class="btn btn-glass btn-sm" type="button">Anmelden</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <span class="badge"><span class="badge__pulse"></span> Live für Streamer & Creator</span>
+
+      <h1 class="hero__title">Reim dich an die <span class="accent">Spitze.</span></h1>
+      <p class="hero__subtitle">
+        Wähle einen Beat, stell deine Schwierigkeit ein und droppe deine Bars —
+        live vor deinem Chat oder ganz für dich allein.
+      </p>
+
+      <div class="beat-figures" id="beatFigures" aria-hidden="true">
+        <span class="beat-figure">
+          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#b537f5"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#b537f5"/></svg>
+        </span>
+        <span class="beat-figure">
+          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#8b5cf6"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#8b5cf6"/></svg>
+        </span>
+        <span class="beat-figure">
+          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#7a6cf0"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#7a6cf0"/></svg>
+        </span>
+        <span class="beat-figure">
+          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#3ba7ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#3ba7ff"/></svg>
+        </span>
+        <span class="beat-figure">
+          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#29d3ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#29d3ff"/></svg>
+        </span>
+      </div>
+
+      <div class="hero__cta">
+        <button class="btn btn-primary btn-hero" id="startChallengeBtn" type="button">🎤 Challenge starten</button>
+        <button class="btn btn-glass js-open-settings" type="button">Einstellungen</button>
+      </div>
+    </section>
+
+    <!-- ============ QUICK SETTINGS PREVIEW ============ -->
+    <section class="quick-settings" id="quickSettingsChips" aria-label="Aktuelle Einstellungen">
+      <!-- wird per JS befüllt -->
+    </section>
+
+    <!-- ============ FEATURE PREVIEW (kommende Module) ============ -->
+    <section class="features">
+      <div class="card-glass feature-card">
+        <div class="feature-card__icon">🎯</div>
+        <h3>Schwierigkeitsgrade</h3>
+        <p>Leicht, Mittel oder Schwer — die Reimlogik passt sich deinem Skill-Level an. (Modul 2)</p>
+      </div>
+      <div class="card-glass feature-card">
+        <div class="feature-card__icon">🏆</div>
+        <h3>Turniere & Ranglisten</h3>
+        <p>Tritt gegen andere an, sammle Abzeichen und klettere die Charts hoch. (später andockbar)</p>
+      </div>
+      <div class="card-glass feature-card">
+        <div class="feature-card__icon">📡</div>
+        <h3>Streamer-Modus</h3>
+        <p>Großformatige Anzeige, Chat-Interaktion und Overlay-freundliches Layout.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>FlowArena · Modul 1 — Design-System &amp; UI-Richtlinien · Prototyp</p>
+  </footer>
+
+  <!-- ============ SETTINGS DRAWER ============ -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="settings-drawer glass" id="settingsDrawer" aria-hidden="true" aria-label="Einstellungen">
+    <div class="settings-drawer__head">
+      <h2 style="font-size: var(--fs-lg);">Einstellungen</h2>
+      <button class="btn-icon" id="closeSettingsBtn" type="button" aria-label="Schließen">✕</button>
+    </div>
+
+    <div class="settings-drawer__body">
+      <div class="field">
+        <div class="field__head">
+          <span class="field__label">Schwierigkeitsgrad</span>
+        </div>
+        <div class="segmented" role="group" aria-label="Schwierigkeitsgrad">
+          <button class="segmented__opt js-difficulty-opt" data-value="leicht" type="button">Leicht</button>
+          <button class="segmented__opt js-difficulty-opt" data-value="mittel" type="button">Mittel</button>
+          <button class="segmented__opt js-difficulty-opt" data-value="schwer" type="button">Schwer</button>
+        </div>
+        <span class="field__hint">Bestimmt Reimzeit, Wortschatz-Vorgaben und Bewertungsmaßstab.</span>
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <span class="field__label">Beat-Auswahl</span>
+        </div>
+        <div class="beat-list" id="beatList"></div>
+        <span class="field__hint">BPM bestimmt exakt das Timing der Challenge — Ball und Zeilenwechsel laufen synchron zum Beat.</span>
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <span class="field__label">Strophenanzahl</span>
+        </div>
+        <div class="stepper">
+          <button class="stepper__btn" id="versesMinus" type="button" aria-label="Weniger Strophen">−</button>
+          <span class="stepper__value" id="versesValue">2</span>
+          <button class="stepper__btn" id="versesPlus" type="button" aria-label="Mehr Strophen">+</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <span class="field__label">Themenfeld</span>
+        </div>
+        <select class="select" id="topicSelect">
+          <option value="freestyle">Freestyle (offen)</option>
+          <option value="love">Liebe &amp; Beziehungen</option>
+          <option value="money">Money &amp; Grind</option>
+          <option value="street">Streetlife</option>
+          <option value="motivation">Motivation &amp; Aufstieg</option>
+          <option value="battle">Battle / Diss</option>
+          <option value="random">Zufällig</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <label class="toggle" id="streamerToggle" role="switch" aria-checked="false">
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
+            <span class="toggle__label">Streamer-Modus</span>
+          </label>
+        </div>
+        <span class="field__hint">Großer Text, Overlay-Layout &amp; Chat-freundliche Ansicht.</span>
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <label class="toggle" id="roastToggle" role="switch" aria-checked="false">
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
+            <span class="toggle__label">Roast-Modus</span>
+          </label>
+        </div>
+        <span class="field__hint">Der KI-Kommentar nach der Challenge wird frecher — bleibt aber immer respektvoll und bezieht sich nur auf deine Performance.</span>
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <div class="field__head">
+          <label class="toggle" id="soundToggle" role="switch" aria-checked="true">
+            <span class="toggle__track"><span class="toggle__thumb"></span></span>
+            <span class="toggle__label">Klick-Sounds</span>
+          </label>
+        </div>
+        <span class="field__hint">Dezente UI-Sounds beim Klicken &amp; Auswählen.</span>
+      </div>
+    </div>
+
+    <div class="settings-drawer__foot">
+      <button class="btn btn-primary" id="saveSettingsBtn" type="button">Speichern &amp; schließen</button>
+    </div>
+  </aside>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/sound.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

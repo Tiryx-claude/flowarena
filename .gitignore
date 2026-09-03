@@ -1,0 +1,11 @@
+# OS/Editor
+.DS_Store
+Thumbs.db
+
+# Unbekannte, nicht von diesem Projekt erzeugte Datei — bewusst ausgeschlossen
+local.db
+
+# Node (für spätere Module, falls hier gebaut wird)
+node_modules/
+.env
+.env.local

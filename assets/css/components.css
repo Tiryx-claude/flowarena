@@ -1,0 +1,528 @@
+/* =========================================================================
+   FlowArena — Komponenten
+   Buttons, Glas-Karten, Toggles, Segmented Controls, Chips, Drawer …
+   ========================================================================= */
+
+/* ---------- Glas-Effekt Basisklasse ---------- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  border: none;
+  cursor: pointer;
+  border-radius: var(--r-pill);
+  padding: 0.85em 1.6em;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  transition: transform var(--dur-fast) var(--ease-spring),
+              box-shadow var(--dur-med) var(--ease-out),
+              background var(--dur-med) var(--ease-out),
+              border-color var(--dur-med) var(--ease-out);
+  will-change: transform;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.045);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 80ms;
+}
+
+.btn-primary {
+  background: var(--gradient-accent);
+  box-shadow: var(--glow-mixed), var(--shadow-soft);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 34px rgba(181, 55, 245, 0.6), 0 0 70px rgba(41, 211, 255, 0.32), var(--shadow-soft);
+}
+
+.btn-glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.btn-glass:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  box-shadow: var(--glow-blue);
+}
+
+.btn-icon {
+  padding: 0.7em;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  width: 44px;
+  height: 44px;
+}
+
+.btn-icon:hover {
+  background: var(--surface-hover);
+  box-shadow: var(--glow-purple);
+}
+
+.btn-hero {
+  padding: 1.05em 2.4em;
+  font-size: var(--fs-lg);
+}
+
+.btn-sm {
+  padding: 0.55em 1.1em;
+  font-size: var(--fs-sm);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Karten ---------- */
+.card {
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+}
+
+.card-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-6);
+  transition: transform var(--dur-med) var(--ease-out), border-color var(--dur-med), box-shadow var(--dur-med);
+}
+
+/* ---------- Chips (Quick-Settings-Vorschau) ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: var(--glow-purple);
+}
+
+.chip__label {
+  color: var(--text-dim);
+}
+
+.chip__value {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  box-shadow: 0 0 8px rgba(181, 55, 245, 0.8);
+}
+
+/* ---------- Badge ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--gradient-accent-soft);
+  border: 1px solid rgba(181, 55, 245, 0.35);
+  color: #e9d9ff;
+}
+
+.badge__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--neon-blue);
+  box-shadow: 0 0 8px var(--neon-blue);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ---------- Segmented Control (z.B. Schwierigkeitsgrad) ---------- */
+.segmented {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.segmented__opt {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.6em 1.2em;
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.segmented__opt:hover {
+  color: var(--text);
+}
+
+.segmented__opt.is-active {
+  color: #fff;
+  background: var(--gradient-accent);
+  box-shadow: var(--glow-purple);
+}
+
+/* ---------- Toggle Switch ---------- */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle__track {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border-radius: var(--r-pill);
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  transition: background var(--dur-med) var(--ease-out), box-shadow var(--dur-med);
+  flex-shrink: 0;
+}
+
+.toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform var(--dur-med) var(--ease-spring);
+}
+
+.toggle.is-on .toggle__track {
+  background: var(--gradient-accent);
+  box-shadow: var(--glow-purple);
+  border-color: transparent;
+}
+
+.toggle.is-on .toggle__thumb {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+.toggle__label {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.toggle.is-on .toggle__label {
+  color: var(--text);
+}
+
+/* ---------- Stepper (z.B. Strophenanzahl) ---------- */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: var(--sp-1);
+}
+
+.stepper__btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--dur-fast) var(--ease-spring);
+}
+
+.stepper__btn:hover {
+  transform: scale(1.12);
+  box-shadow: var(--glow-blue);
+}
+
+.stepper__value {
+  min-width: 1.6ch;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-lg);
+}
+
+/* ---------- Select ---------- */
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: 0.8em 2.4em 0.8em 1.1em;
+  border-radius: var(--r-md);
+  background: var(--surface) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%239d9aab"><path d="M5.5 7.5l4.5 4.5 4.5-4.5" stroke="%239d9aab" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 1em center;
+  background-size: 16px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.select:hover, .select:focus-visible {
+  border-color: var(--border-strong);
+}
+
+/* ---------- Beat-Auswahl Karten ---------- */
+.beat-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: var(--sp-1);
+}
+
+.beat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.beat-card:hover {
+  border-color: var(--border-strong);
+  transform: translateX(2px);
+}
+
+.beat-card.is-active {
+  border-color: var(--neon-purple);
+  background: linear-gradient(90deg, rgba(181, 55, 245, 0.14), rgba(41, 211, 255, 0.08));
+  box-shadow: var(--glow-purple);
+}
+
+.beat-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.beat-card__name {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.beat-card__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.beat-card__bpm {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--neon-blue);
+  background: rgba(41, 211, 255, 0.1);
+  border: 1px solid rgba(41, 211, 255, 0.3);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
+/* ---------- Form Gruppen ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-6);
+}
+
+.field__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field__label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.field__hint {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+/* ---------- Overlay + Drawer ---------- */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 3, 8, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-med) var(--ease-out);
+}
+
+.drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.settings-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px, 100%);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-elevated);
+  z-index: var(--z-drawer);
+  transform: translateX(100%);
+  transition: transform var(--dur-slow) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-drawer.is-open {
+  transform: translateX(0);
+}
+
+.settings-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-6);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.settings-drawer__body {
+  padding: var(--sp-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.settings-drawer__foot {
+  padding: var(--sp-5) var(--sp-6);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.settings-drawer__foot .btn {
+  width: 100%;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-8);
+  transform: translate(-50%, 20px);
+  padding: var(--sp-3) var(--sp-6);
+  border-radius: var(--r-pill);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--glow-mixed), var(--shadow-elevated);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  z-index: var(--z-toast);
+  opacity: 0;
+  pointer-events: none;
+  transition: all var(--dur-med) var(--ease-spring);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- Responsive Anpassungen für Drawer ---------- */
+@media (max-width: 640px) {
+  .settings-drawer {
+    width: 100%;
+    top: auto;
+    bottom: 0;
+    height: min(88svh, 720px);
+    right: 0;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translateY(100%);
+  }
+  .settings-drawer.is-open {
+    transform: translateY(0);
+  }
+}

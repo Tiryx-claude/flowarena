@@ -1,0 +1,590 @@
+/* =========================================================================
+   FlowArena — Challenge Stage Logic (Modul 2: Spielablauf, Modul 3: KI)
+   -------------------------------------------------------------------------
+   KERNMECHANIK (siehe docs/GAMEPLAY.md für Details):
+   - Jede Strophe hat GAMEPLAY_CONFIG.linesPerStanza Zeilen (Standard 5).
+   - JEDE Zeile bekommt ein eigenes, vorgegebenes Endwort — nicht nur die
+     letzte. Die KI liefert NUR diese Endwörter, nie Text/Zeilen/Strophen.
+   - Der Spieler tippt nichts — es gibt kein Texteingabefeld. Er rappt live
+     ins Mikrofon; die Website zeigt nur die Endwörter an.
+   - Zeilenwechsel, Ball-/Männchen-Animation und Beat-Klick-Track laufen
+     alle auf DERSELBEN Uhr (assets/js/beat-clock.js, AudioContext-Zeit) —
+     kein setInterval/CSS-Timing, kein Drift über die Challenge hinweg.
+   - Jede neue Strophe bekommt eine neue Reim-Familie (nie dieselbe wie eine
+     vorherige Strophe in dieser Challenge, bis der Vorrat erschöpft ist).
+
+   State machine: intro -> countdown -> live (Strophen/Zeilen, beat-getaktet)
+   -> evaluating -> results. Reimwörter, Live-Transkript und Bewertung laufen
+   über die austauschbare KI-Architektur in window.FlowAI.* (siehe
+   assets/js/ai/registry.js + docs/AI_ARCHITECTURE.md).
+   ========================================================================= */
+
+(function () {
+  "use strict";
+
+  const { loadSettings, findBeat, findTopicLabel, GAMEPLAY_CONFIG } = window.FlowData;
+  const settings = loadSettings();
+  const beat = findBeat(settings.beatId);
+
+  const LINES_PER_STANZA = GAMEPLAY_CONFIG.linesPerStanza;
+  const BEATS_PER_LINE = GAMEPLAY_CONFIG.beatsPerLine;
+  const totalStanzas = Math.min(Math.max(settings.verses || 1, GAMEPLAY_CONFIG.minStanzas), GAMEPLAY_CONFIG.maxStanzas);
+  const totalLines = totalStanzas * LINES_PER_STANZA;
+
+  /* ---------------------------------------------------------------------
+     DOM
+     --------------------------------------------------------------------- */
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  const screens = {
+    intro: $("#screenIntro"),
+    countdown: $("#screenCountdown"),
+    live: $("#screenLive"),
+    evaluating: $("#screenEvaluating"),
+    results: $("#screenResults"),
+  };
+
+  const els = {
+    introSummary: $("#introSummary"),
+    beginBtn: $("#beginBtn"),
+    countdownNumber: $("#countdownNumber"),
+    countdownLabel: $("#countdownLabel"),
+    verseBadge: $("#verseBadge"),
+    verseChipValue: $("#verseChipValue"),
+    wordRack: $("#wordRack"),
+    lineTimerFill: $("#lineTimerFill"),
+    abortBtn: $("#abortBtn"),
+    recIndicator: $("#recIndicator"),
+    recLabel: $("#recLabel"),
+    evaluatingStatus: $("#evaluatingStatus"),
+    scoreRing: $("#scoreRing"),
+    scoreValue: $("#scoreValue"),
+    scoreBurst: $("#scoreBurst"),
+    scoreBreakdown: $("#scoreBreakdown"),
+    engineBadge: $("#engineBadge"),
+    resultsHeadline: $("#resultsHeadline"),
+    resultsSub: $("#resultsSub"),
+    aiCommentText: $("#aiCommentText"),
+    punchlineBadge: $("#punchlineBadge"),
+    transcriptText: $("#transcriptText"),
+    audioPanel: $("#audioPanel"),
+    audioPlayback: $("#audioPlayback"),
+    downloadBtn: $("#downloadBtn"),
+    publishBtn: $("#publishBtn"),
+    retryBtn: $("#retryBtn"),
+    toast: $("#toast"),
+  };
+
+  const figureEls = $$("#beatFigures .beat-figure");
+  const barEls = $$("#beatVisualizer .beat-visualizer__bar");
+
+  function playIfEnabled(fn) {
+    if (settings.soundEnabled && typeof fn === "function") fn();
+  }
+
+  function showScreen(name) {
+    // Setzt display direkt (statt nur [hidden]), damit kein inline/CSS-Style
+    // auf einzelnen Screens die Sichtbarkeitssteuerung überschreiben kann.
+    Object.entries(screens).forEach(([key, el]) => {
+      if (!el) return;
+      const visible = key === name;
+      el.hidden = !visible;
+      el.style.display = visible ? (el.dataset.display || "") : "none";
+    });
+  }
+
+  let toastTimer = null;
+  function showToast(message) {
+    if (!els.toast) return;
+    els.toast.textContent = message;
+    els.toast.classList.add("is-visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => els.toast.classList.remove("is-visible"), 2800);
+  }
+
+  /* ---------------------------------------------------------------------
+     Intro-Zusammenfassung
+     --------------------------------------------------------------------- */
+  const difficultyLabel = { leicht: "Leicht", mittel: "Mittel", schwer: "Schwer" }[settings.difficulty] || settings.difficulty;
+
+  function renderIntroSummary() {
+    if (!els.introSummary) return;
+    els.introSummary.innerHTML = `
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Schwierigkeit</span><span class="chip__value">${difficultyLabel}</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Beat</span><span class="chip__value">${beat.name} · ${beat.bpm} BPM</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Strophen</span><span class="chip__value">${totalStanzas}</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Thema</span><span class="chip__value">${findTopicLabel(settings.topic)}</span></span>
+      ${settings.roastMode ? `<span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Modus</span><span class="chip__value">🔥 Roast</span></span>` : ""}
+    `;
+  }
+  renderIntroSummary();
+
+  /* ---------------------------------------------------------------------
+     Mikrofon & Aufnahme (MediaRecorder — separat von der Live-Transkription)
+     --------------------------------------------------------------------- */
+  let micStream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordedBlobUrl = null;
+  let micGranted = false;
+
+  async function requestMic() {
+    if (!navigator.mediaDevices?.getUserMedia) return false;
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micGranted = true;
+      return true;
+    } catch (e) {
+      micGranted = false;
+      return false;
+    }
+  }
+
+  function setupRecorder() {
+    if (!micStream || typeof MediaRecorder === "undefined") return;
+    try {
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(micStream);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.start();
+    } catch (e) {
+      mediaRecorder = null;
+    }
+  }
+
+  function stopCapture() {
+    window.FlowAI.speech?.stop();
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+    }
+    micStream?.getTracks().forEach((t) => t.stop());
+  }
+
+  /* ---------------------------------------------------------------------
+     BeatClock — EINE Uhr für Beat-Klicks, Ball-/Männchen-Animation UND
+     Zeilenwechsel. Siehe assets/js/beat-clock.js für die Drift-Begründung.
+     --------------------------------------------------------------------- */
+  let clock = null;
+  let rafId = null;
+
+  function startBeatClock() {
+    const audioCtx = window.FlowSound.getAudioContext();
+    clock = new window.FlowBeatClock({ bpm: beat.bpm, beatsPerLine: BEATS_PER_LINE, audioCtx });
+
+    // Beat-Klick-Track: immer hörbar (das IST der Beat, kein optionaler
+    // UI-Sound) — sample-genau über die BeatClock-Uhr eingeplant.
+    clock.onBeat = (beatIndex, time) => {
+      window.FlowSound.playBeatTick(beatIndex % 4 === 0, time);
+    };
+
+    clock.start();
+    startFrameLoop();
+  }
+
+  function stopBeatClock() {
+    clock?.stop();
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  /* ---------------------------------------------------------------------
+     Visuelle Beat-Synchronisation: Ball/Männchen + Balken, direkt aus der
+     BeatClock-Phase berechnet (kein CSS-Keyframe-Timer, siehe challenge.css).
+     --------------------------------------------------------------------- */
+  function updateFigures(phase) {
+    figureEls.forEach((el, i) => {
+      const local = phase - i * 0.14;
+      const frac = ((local % 1) + 1) % 1;
+      const bounce = Math.sin(frac * Math.PI);
+      el.style.transform = `translateY(${(-22 * bounce).toFixed(1)}px) scaleY(${(1 + 0.08 * bounce).toFixed(3)})`;
+    });
+  }
+
+  function updateBeatBars(phase) {
+    barEls.forEach((el, i) => {
+      const local = phase - i * 0.09;
+      const frac = ((local % 1) + 1) % 1;
+      const bounce = Math.sin(frac * Math.PI);
+      el.style.height = `${(14 + 24 * bounce).toFixed(1)}px`;
+      el.style.opacity = (0.5 + 0.4 * bounce).toFixed(2);
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     Strophen-Wörter — vorausschauend & sequenziell über die austauschbare
+     KI-Architektur geladen (window.FlowAI.rhyme), damit beim Erreichen einer
+     Strophe die Wörter garantiert schon bereitstehen (kein Warten mitten im
+     Beat). Sequenziell verkettet, weil excludeFamilyIds von der Reihenfolge
+     abhängt (Strophe n+1 muss wissen, welche Familie Strophe n bekam).
+     --------------------------------------------------------------------- */
+  const usedFamilyIds = [];
+  const resolvedStanzas = {}; // stanzaIndex -> { words, ending, familyId }
+  let stanzaChain = Promise.resolve();
+
+  function requestStanza(stanzaIndex) {
+    if (stanzaIndex >= totalStanzas || stanzaIndex in resolvedStanzas) return;
+    stanzaChain = stanzaChain
+      .then(() => window.FlowAI.rhyme.generateStanza({
+        difficulty: settings.difficulty,
+        topic: settings.topic,
+        excludeFamilyIds: usedFamilyIds,
+        count: LINES_PER_STANZA,
+      }))
+      .then((result) => {
+        usedFamilyIds.push(result.familyId);
+        resolvedStanzas[stanzaIndex] = result;
+      })
+      .catch(() => {
+        // Defensive Degradierung: sollte bei der lokalen Heuristik nie
+        // passieren, aber ein echter API-Provider könnte fehlschlagen.
+        resolvedStanzas[stanzaIndex] = { words: ["Flow", "Show", "Go", "Pro", "Bro"], ending: "-o(w)", familyId: `fallback-${stanzaIndex}` };
+      });
+    return stanzaChain;
+  }
+
+  /* ---------------------------------------------------------------------
+     Word-Rack Rendering
+     --------------------------------------------------------------------- */
+  function renderVerseBadge(stanzaIndex) {
+    const ending = resolvedStanzas[stanzaIndex]?.ending || "…";
+    els.verseBadge.textContent = `Strophe ${stanzaIndex + 1} von ${totalStanzas} · Reimschema ${ending}`;
+    els.verseChipValue.textContent = `${stanzaIndex + 1}/${totalStanzas}`;
+  }
+
+  function renderWordRack(stanzaIndex, lineInStanza) {
+    const stanza = resolvedStanzas[stanzaIndex];
+    if (!stanza) return; // noch nicht geladen (sollte praktisch nie sichtbar werden)
+    els.wordRack.innerHTML = stanza.words.map((word, i) => {
+      const state = i < lineInStanza ? "is-done" : i === lineInStanza ? "is-active" : "is-upcoming";
+      return `
+        <div class="word-slot ${state}">
+          <span class="word-slot__index">${i + 1}</span>
+          <span class="word-slot__word">${word.toUpperCase()}</span>
+        </div>
+      `;
+    }).join("");
+  }
+
+  let verseBannerEl = null;
+  function flashVerseBanner(text) {
+    if (!verseBannerEl) {
+      verseBannerEl = document.createElement("div");
+      verseBannerEl.className = "verse-banner glass";
+      document.body.appendChild(verseBannerEl);
+    }
+    verseBannerEl.textContent = text;
+    verseBannerEl.classList.add("is-visible");
+    setTimeout(() => verseBannerEl.classList.remove("is-visible"), 1300);
+  }
+
+  /* ---------------------------------------------------------------------
+     Haupt-Frame-Loop: liest JEDEN Frame die BeatClock-Uhr, treibt Animation,
+     Timer-Leiste UND Zeilenwechsel — alles aus derselben Zeitbasis, daher
+     kein gegenseitiges Wegdriften über die Challenge hinweg.
+     --------------------------------------------------------------------- */
+  let globalLineIndex = 0; // 0-basiert, über die GESAMTE Challenge gezählt
+  let displayedLineIndex = -1; // zuletzt gerenderte Zeile (vermeidet Doppel-Renders)
+  let finished = false;
+
+  function startFrameLoop() {
+    function frame() {
+      if (!clock || !clock.running) return;
+      const phase = clock.currentBeatPhase();
+      updateFigures(phase);
+      updateBeatBars(phase);
+
+      const lineStart = clock.lineTime(globalLineIndex);
+      const lineEnd = clock.lineTime(globalLineIndex + 1);
+      const pct = Math.min(100, Math.max(0, ((clock.now() - lineStart) / (lineEnd - lineStart)) * 100));
+      if (els.lineTimerFill) els.lineTimerFill.style.width = pct + "%";
+
+      const stanzaIndex = Math.floor(globalLineIndex / LINES_PER_STANZA);
+      const lineInStanza = globalLineIndex % LINES_PER_STANZA;
+
+      if (displayedLineIndex !== globalLineIndex && resolvedStanzas[stanzaIndex]) {
+        renderVerseBadge(stanzaIndex);
+        renderWordRack(stanzaIndex, lineInStanza);
+        displayedLineIndex = globalLineIndex;
+      }
+
+      if (!finished && clock.now() >= lineEnd) {
+        advancePastLine(stanzaIndex, lineInStanza);
+      }
+
+      rafId = requestAnimationFrame(frame);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function advancePastLine(finishedStanzaIndex, finishedLineInStanza) {
+    globalLineIndex++;
+
+    if (globalLineIndex >= totalLines) {
+      finished = true;
+      finishChallenge();
+      return;
+    }
+
+    const crossedIntoNewStanza = finishedLineInStanza === LINES_PER_STANZA - 1;
+    if (crossedIntoNewStanza) {
+      const nextStanzaIndex = finishedStanzaIndex + 1;
+      playIfEnabled(window.FlowSound?.playConfirm);
+      const ending = resolvedStanzas[nextStanzaIndex]?.ending;
+      flashVerseBanner(`✓ Strophe ${finishedStanzaIndex + 1} geschafft${ending ? ` — neues Reimschema „${ending}“` : ""}`);
+      // Strophe übernächst schon mal anfordern, damit sie garantiert
+      // rechtzeitig bereitsteht, bevor sie gebraucht wird.
+      requestStanza(nextStanzaIndex + 1);
+    } else {
+      playIfEnabled(window.FlowSound?.playSelect);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Countdown
+     --------------------------------------------------------------------- */
+  function runCountdown(onDone) {
+    showScreen("countdown");
+    const sequence = ["3", "2", "1", "Los!"];
+    let i = 0;
+
+    function step() {
+      const value = sequence[i];
+      els.countdownNumber.textContent = value;
+      els.countdownNumber.style.animation = "none";
+      void els.countdownNumber.offsetWidth; // reflow, damit die Pop-Animation jedes Mal neu triggert
+      els.countdownNumber.style.animation = "";
+      playIfEnabled(() => window.FlowSound?.playCountdown(value === "Los!"));
+      els.countdownLabel.textContent = value === "Los!" ? "Beat läuft — rock die Bühne!" : "Mikro checken, Beat kommt gleich …";
+
+      i++;
+      if (i < sequence.length) {
+        setTimeout(step, 800);
+      } else {
+        setTimeout(onDone, 550);
+      }
+    }
+    step();
+  }
+
+  async function startLiveStage() {
+    // Strophe 0 MUSS bereitstehen, bevor der Beat losläuft.
+    await requestStanza(0);
+    requestStanza(1); // vorausschauend, blockiert nicht
+
+    globalLineIndex = 0;
+    displayedLineIndex = -1;
+    finished = false;
+
+    showScreen("live");
+    renderVerseBadge(0);
+    renderWordRack(0, 0);
+    startBeatClock();
+
+    if (micGranted) {
+      els.recIndicator.classList.add("is-live");
+      els.recLabel.textContent = "Aufnahme läuft";
+    } else {
+      els.recLabel.textContent = "Ohne Aufnahme";
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Ende der Challenge → Auswertung
+     --------------------------------------------------------------------- */
+  function finishChallenge() {
+    stopBeatClock();
+    stopCapture();
+    els.recIndicator.classList.remove("is-live");
+    els.recLabel.textContent = "Fertig";
+
+    showScreen("evaluating");
+    const statusSteps = [
+      "Transkribiere deine Aufnahme …",
+      "Analysiere Reimtreue …",
+      "Prüfe Flow & Timing …",
+      "KI schreibt den Kommentar …",
+    ];
+    let s = 0;
+    els.evaluatingStatus.textContent = statusSteps[0];
+    const statusTimer = setInterval(() => {
+      s++;
+      if (s < statusSteps.length) els.evaluatingStatus.textContent = statusSteps[s];
+    }, 650);
+
+    // MediaRecorder braucht einen Moment, um den finalen Blob zu liefern
+    setTimeout(async () => {
+      clearInterval(statusTimer);
+      finalizeRecordingBlob();
+
+      const transcript = window.FlowAI.speech?.getTranscript() || "";
+      const allEndWords = Object.values(resolvedStanzas).flatMap((s) => s.words);
+
+      // Läuft über die austauschbare KI-Architektur (Modul 3) — aktuell die
+      // lokale Heuristik, später 1:1 durch einen echten Modell-Call ersetzbar.
+      const result = await window.FlowAI.evaluation.evaluate({
+        transcript,
+        difficulty: settings.difficulty,
+        topic: settings.topic,
+        totalVerses: totalStanzas,
+        usedFamilyIds,
+        allEndWords,
+        roastMode: settings.roastMode,
+      });
+
+      showScreen("results");
+      renderResults(result);
+    }, 2700);
+  }
+
+  function finalizeRecordingBlob() {
+    if (recordedChunks.length === 0) return;
+    const blob = new Blob(recordedChunks, { type: recordedChunks[0].type || "audio/webm" });
+    recordedBlobUrl = URL.createObjectURL(blob);
+    els.audioPlayback.src = recordedBlobUrl;
+    els.audioPanel.hidden = false;
+  }
+
+  /* ---------------------------------------------------------------------
+     Ergebnis-Inszenierung: Score-Count-up, Partikel-Burst, Sound,
+     gestaffelte Bewertungs-Zeilen. Die eigentliche Bewertung kommt bereits
+     fertig von window.FlowAI.evaluation (siehe assets/js/ai/*).
+     --------------------------------------------------------------------- */
+  const DIMENSION_LABELS = {
+    reim: "Reimqualität",
+    endwortNutzung: "Endwort-Nutzung",
+    flow: "Flow",
+    kreativitaet: "Kreativität",
+    originalitaet: "Originalität",
+    themenbezug: "Themenbezug",
+    punchlines: "Punchlines",
+    unterhaltung: "Unterhaltungswert",
+  };
+
+  function spawnScoreBurst() {
+    if (!els.scoreBurst) return;
+    els.scoreBurst.innerHTML = "";
+    const count = 12;
+    for (let i = 0; i < count; i++) {
+      const spark = document.createElement("span");
+      spark.className = "spark";
+      spark.style.setProperty("--spark-angle", `${(360 / count) * i + (Math.random() * 12 - 6)}deg`);
+      spark.style.setProperty("--spark-delay", `${Math.random() * 120}ms`);
+      els.scoreBurst.appendChild(spark);
+    }
+  }
+
+  function animateScoreRing(target, bracket) {
+    const duration = 900;
+    const start = performance.now();
+    playIfEnabled(() => window.FlowSound?.playReveal(bracket));
+    spawnScoreBurst();
+
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const value = Math.round(target * eased);
+      els.scoreRing.style.setProperty("--score", value);
+      els.scoreValue.textContent = value;
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function renderScoreBreakdown(scores) {
+    if (!els.scoreBreakdown) return;
+    els.scoreBreakdown.innerHTML = Object.entries(DIMENSION_LABELS).map(([key, label], i) => `
+      <div class="score-row" style="--row-delay:${i * 80}ms;">
+        <span class="score-row__label">${label}</span>
+        <span class="score-row__track"><span class="score-row__fill" id="fill-${key}"></span></span>
+        <span class="score-row__value">${scores[key]}</span>
+      </div>
+    `).join("");
+
+    requestAnimationFrame(() => {
+      Object.entries(scores).forEach(([key, value]) => {
+        const fill = document.getElementById(`fill-${key}`);
+        if (fill) fill.style.width = `${value}%`;
+      });
+    });
+  }
+
+  function renderResults(result) {
+    els.scoreRing.style.setProperty("--score", 0);
+    els.scoreValue.textContent = "0";
+    els.resultsHeadline.textContent = result.headline;
+    els.resultsSub.textContent = `${difficultyLabel} · ${findTopicLabel(settings.topic)} · ${totalStanzas} ${totalStanzas === 1 ? "Strophe" : "Strophen"} · ${beat.name}${settings.roastMode ? " · Roast-Modus" : ""}`;
+    if (els.engineBadge) els.engineBadge.textContent = `🧠 KI-Engine: ${result.engineLabel}`;
+
+    renderScoreBreakdown(result.scores);
+    animateScoreRing(result.overall, result.bracket);
+
+    els.aiCommentText.textContent = result.comment;
+    if (els.punchlineBadge) els.punchlineBadge.hidden = !result.punchlineDetected;
+
+    els.transcriptText.textContent = result.transcript
+      || "Kein Live-Transkript verfügbar — dein Browser unterstützt keine Spracherkennung oder das Mikrofon war nicht freigegeben. Deine Audio-Aufnahme ist trotzdem unten verfügbar (falls das Mikro erlaubt war).";
+  }
+
+  /* ---------------------------------------------------------------------
+     Events
+     --------------------------------------------------------------------- */
+  els.beginBtn?.addEventListener("click", async () => {
+    els.beginBtn.disabled = true;
+    els.beginBtn.textContent = "Mikrofon wird angefragt …";
+
+    // AudioContext JETZT (im Klick-Handler = User-Geste) erzeugen/resumen,
+    // unabhängig vom "Klick-Sounds"-Setting — der Beat-Klick-Track ist
+    // Gameplay-Audio, kein optionaler UI-Sound.
+    window.FlowSound.getAudioContext();
+    playIfEnabled(window.FlowSound?.playClick);
+
+    const granted = await requestMic();
+    if (granted) {
+      setupRecorder();
+      if (window.FlowAI.speech?.isSupported) {
+        window.FlowAI.speech.start();
+      } else {
+        showToast("ℹ️ Live-Transkript wird von diesem Browser nicht unterstützt — Aufnahme läuft trotzdem.");
+      }
+    } else {
+      showToast("🎙️ Kein Mikrofonzugriff — du kannst trotzdem freestylen, nur ohne Aufnahme/Bewertung.");
+    }
+
+    runCountdown(startLiveStage);
+  });
+
+  els.abortBtn?.addEventListener("click", () => {
+    stopBeatClock();
+    stopCapture();
+    window.location.href = "index.html";
+  });
+
+  els.downloadBtn?.addEventListener("click", () => {
+    if (!recordedBlobUrl) return;
+    const a = document.createElement("a");
+    a.href = recordedBlobUrl;
+    a.download = `flowarena-take-${Date.now()}.webm`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    playIfEnabled(window.FlowSound?.playClick);
+  });
+
+  els.publishBtn?.addEventListener("click", () => {
+    playIfEnabled(window.FlowSound?.playConfirm);
+    // Modul 5 (Publish-Flow) hängt sich hier an: POST /api/posts { recordingId, ... }
+    showToast("📤 Würde jetzt veröffentlicht (Modul 5: Publish-Flow folgt).");
+  });
+
+  els.retryBtn?.addEventListener("click", () => {
+    window.location.reload();
+  });
+
+  window.addEventListener("beforeunload", () => {
+    stopBeatClock();
+    stopCapture();
+  });
+})();

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FlowArena — Challenge läuft</title>
+  <meta name="description" content="Live-Rap-Challenge: Beat, Countdown, Reimwörter und Bewertung." />
+  <meta name="theme-color" content="#06060a" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23b537f5'/%3E%3Cstop offset='1' stop-color='%2329d3ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2306060a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='url(%23g)'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/tokens.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/challenge.css" />
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"></div>
+
+  <div class="stage">
+    <header class="stage-topbar">
+      <a class="nav__brand" href="index.html" style="font-size: var(--fs-md);">
+        <span class="nav__logo" aria-hidden="true" style="width:28px;height:28px;font-size:.9rem;">🎤</span>
+        <span>Flow<span class="nav__brand-name">Arena</span></span>
+      </a>
+      <div class="stage-topbar__group">
+        <span class="rec-indicator" id="recIndicator"><span class="rec-dot"></span><span id="recLabel">Bereit</span></span>
+        <span class="chip" id="verseChip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Strophe</span><span class="chip__value" id="verseChipValue">–</span></span>
+      </div>
+    </header>
+
+    <main class="stage-main">
+      <!-- ============ SCREEN: INTRO ============ -->
+      <section id="screenIntro">
+        <span class="badge">🎯 Deine Einstellungen</span>
+        <h1 style="font-size:var(--fs-2xl); margin:var(--sp-4) 0;">Bereit für deine Challenge?</h1>
+        <div class="stage-summary" id="introSummary"></div>
+        <button class="btn btn-primary btn-hero" id="beginBtn" type="button">🎤 Los geht's</button>
+        <p class="mic-hint">
+          Wir fragen kurz nach Mikrofonzugriff, damit Aufnahme, Live-Transkript und
+          Bewertung am Ende funktionieren. Ohne Zugriff kannst du trotzdem freestylen —
+          nur ohne Aufnahme/Bewertung danach.
+        </p>
+      </section>
+
+      <!-- ============ SCREEN: COUNTDOWN ============ -->
+      <section id="screenCountdown" hidden>
+        <div class="countdown-number" id="countdownNumber">3</div>
+        <p class="countdown-label" id="countdownLabel">Mikro checken, Beat kommt gleich …</p>
+      </section>
+
+      <!-- ============ SCREEN: LIVE ============ -->
+      <section id="screenLive" hidden style="width:100%; max-width:760px;">
+        <div class="verse-meta" style="justify-content:center;">
+          <span class="badge" id="verseBadge">Strophe 1 · Reimschema</span>
+        </div>
+
+        <p class="live-hint">Rap jede Zeile frei — beende sie mit dem markierten Wort.</p>
+
+        <div class="beat-figures" id="beatFigures" aria-hidden="true">
+          <span class="beat-figure">
+            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#b537f5"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#b537f5"/></svg>
+          </span>
+          <span class="beat-figure">
+            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#8b5cf6"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#8b5cf6"/></svg>
+          </span>
+          <span class="beat-figure">
+            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#7a6cf0"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#7a6cf0"/></svg>
+          </span>
+          <span class="beat-figure">
+            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#3ba7ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#3ba7ff"/></svg>
+          </span>
+          <span class="beat-figure">
+            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#29d3ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#29d3ff"/></svg>
+          </span>
+        </div>
+
+        <div class="word-rack" id="wordRack">
+          <!-- 5 Endwörter (eins pro Zeile) werden per JS eingefügt -->
+        </div>
+
+        <div class="line-timer" id="lineTimerWrap"><div class="line-timer__fill" id="lineTimerFill"></div></div>
+
+        <div class="beat-visualizer" id="beatVisualizer" aria-hidden="true">
+          <span class="beat-visualizer__bar"></span><span class="beat-visualizer__bar"></span>
+          <span class="beat-visualizer__bar"></span><span class="beat-visualizer__bar"></span>
+          <span class="beat-visualizer__bar"></span><span class="beat-visualizer__bar"></span>
+        </div>
+
+        <button class="stage-exit" id="abortBtn" type="button">Challenge abbrechen</button>
+      </section>
+
+      <!-- ============ SCREEN: EVALUATING ============ -->
+      <section id="screenEvaluating" hidden>
+        <div class="spinner-ring"></div>
+        <p class="evaluating-status" id="evaluatingStatus">Transkribiere deine Aufnahme …</p>
+      </section>
+
+      <!-- ============ SCREEN: RESULTS ============ -->
+      <section id="screenResults" hidden data-display="flex" style="width:100%; justify-content:center;">
+        <div class="results">
+          <div class="card-glass score-card">
+            <div class="score-ring" id="scoreRing" style="--score:0;">
+              <span class="score-ring__value" id="scoreValue">0</span>
+              <div class="score-burst" id="scoreBurst" aria-hidden="true"></div>
+            </div>
+            <div class="score-card__body">
+              <h3 id="resultsHeadline">Solide Runde!</h3>
+              <p id="resultsSub" style="color:var(--text-muted); font-size:var(--fs-sm);"></p>
+              <span class="engine-badge" id="engineBadge">🧠 KI-Engine: Lokale Heuristik v1</span>
+            </div>
+          </div>
+
+          <div class="card-glass score-breakdown" id="scoreBreakdown">
+            <!-- 7 Bewertungsdimensionen werden per JS eingefügt -->
+          </div>
+
+          <div class="card-glass ai-comment">
+            <div class="ai-comment__avatar">🤖</div>
+            <div>
+              <p class="ai-comment__text" id="aiCommentText">…</p>
+              <span class="punchline-badge" id="punchlineBadge" hidden>🔥 Starke Punchline erkannt</span>
+              <span class="ai-comment__tag" id="aiCommentTag">KI-Kommentar · Lokale Heuristik, austauschbar gegen ein echtes Modell (Modul 3)</span>
+            </div>
+          </div>
+
+          <div class="card-glass transcript-box" id="transcriptBox">
+            <strong>Transkript</strong><br />
+            <span id="transcriptText">…</span>
+          </div>
+
+          <div class="card-glass audio-panel" id="audioPanel" hidden>
+            <audio controls id="audioPlayback"></audio>
+            <div class="results-actions">
+              <button class="btn btn-glass" id="downloadBtn" type="button">⬇️ Herunterladen</button>
+              <button class="btn btn-primary" id="publishBtn" type="button">📤 Veröffentlichen</button>
+            </div>
+          </div>
+
+          <div class="results-actions">
+            <button class="btn btn-glass" id="retryBtn" type="button">🔁 Neue Challenge</button>
+            <a class="btn btn-glass" href="index.html" style="text-align:center;">🏠 Zur Startseite</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/sound.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/beat-clock.js"></script>
+  <script src="assets/js/rhyme-engine.js"></script>
+  <script src="assets/js/ai/registry.js"></script>
+  <script src="assets/js/ai/rhyme-provider.local.js"></script>
+  <script src="assets/js/ai/evaluation-provider.local.js"></script>
+  <script src="assets/js/ai/speech-provider.web.js"></script>
+  <script src="assets/js/challenge.js"></script>
+</body>
+</html>
