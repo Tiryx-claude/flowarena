@@ -262,6 +262,175 @@
   transition: width var(--dur-slow) var(--ease-out);
 }
 
+/* ---------- Modul 6: Animationen (Swatch) ---------- */
+.anim-swatch {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.early-access-card {
+  max-width: 420px;
+}
+
+/* ---------- Modul 6: Kaufbestätigung (Demo) ---------- */
+.purchase-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 6, 10, 0.72);
+  backdrop-filter: blur(6px);
+  padding: var(--sp-4);
+}
+
+.purchase-modal {
+  width: 100%;
+  max-width: 380px;
+  padding: var(--sp-8) var(--sp-6) var(--sp-6);
+  border-radius: var(--r-xl);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-elevated);
+  text-align: center;
+}
+
+.purchase-modal__icon {
+  font-size: 2.2rem;
+  margin-bottom: var(--sp-2);
+}
+
+.purchase-modal__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  margin-bottom: var(--sp-2);
+}
+
+.purchase-modal__price {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: var(--sp-3);
+}
+
+.purchase-modal__note {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--sp-4);
+}
+
+.payment-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
+}
+
+.payment-method-opt {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.payment-method-opt:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.payment-method-opt.is-selected {
+  border-color: var(--neon-purple);
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(181, 55, 245, 0.16), rgba(41, 211, 255, 0.06));
+  box-shadow: var(--glow-purple);
+}
+
+.payment-method-opt__icon {
+  font-size: 1.1rem;
+}
+
+.purchase-modal__actions {
+  display: flex;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.purchase-modal__actions .btn {
+  flex: 1;
+}
+
+.purchase-modal__disclaimer {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+/* ---------- Modul 6: Kaufhistorie ---------- */
+.purchase-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.purchase-row:last-child {
+  border-bottom: none;
+}
+
+.purchase-row__icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.purchase-row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.purchase-row__label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.purchase-row__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.purchase-row__price {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--neon-blue);
+  flex-shrink: 0;
+}
+
+.empty-hint {
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Modul 6: Rechtliches ---------- */
+.legal-links {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
 /* ---------- Fairness-Hinweis ---------- */
 .fairness-note {
   padding: var(--sp-5) var(--sp-6);

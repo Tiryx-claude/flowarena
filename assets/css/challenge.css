@@ -84,6 +84,22 @@
   margin-top: var(--sp-3);
 }
 
+/* ---------- Modul 6: Free-Tageslimit ---------- */
+.daily-limit-hint {
+  font-size: var(--fs-xs);
+  color: var(--neon-blue);
+  margin-bottom: var(--sp-3);
+}
+
+.daily-limit-block {
+  text-align: center;
+  padding: var(--sp-6) 0;
+}
+
+.daily-limit-block__icon {
+  font-size: 2.6rem;
+}
+
 /* ---------- Screen: Countdown ---------- */
 .countdown-number {
   font-family: var(--font-display);
@@ -311,7 +327,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: conic-gradient(var(--neon-purple) calc(var(--score, 70) * 1%), var(--surface-strong) 0);
+  /* --anim-color1: Modul 6 (Shop) — die aktive Ergebnis-Animation setzt das
+     per Inline-Style (applyResultAnimation() in challenge.js); Fallback =
+     "Classic Spark". */
+  background: conic-gradient(var(--anim-color1, var(--neon-purple)) calc(var(--score, 70) * 1%), var(--surface-strong) 0);
 }
 
 .score-ring::before {
@@ -343,8 +362,9 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--gradient-accent);
-  box-shadow: 0 0 8px rgba(181, 55, 245, 0.8);
+  /* --anim-color1/--anim-color2: Modul 6, siehe .score-ring oben. */
+  background: linear-gradient(135deg, var(--anim-color1, var(--neon-purple)), var(--anim-color2, var(--neon-blue)));
+  box-shadow: 0 0 8px var(--anim-color1, rgba(181, 55, 245, 0.8));
   opacity: 0;
   animation: spark-fly 700ms var(--ease-out) forwards;
   animation-delay: var(--spark-delay, 0ms);

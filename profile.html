@@ -52,7 +52,7 @@
 
   <main class="page profile-page">
     <!-- ============ PROFILE HEADER ============ -->
-    <section class="card-glass profile-header">
+    <section class="card-glass profile-header" id="profileHeader">
       <div class="profile-avatar-wrap">
         <button class="profile-avatar" id="avatarBtn" type="button" aria-label="Avatar ändern" title="Avatar ändern">🎤</button>
         <div class="avatar-picker" id="avatarPicker" hidden></div>
@@ -78,11 +78,17 @@
       <div class="badge-grid" id="badgeGrid"></div>
     </section>
 
-    <!-- ============ AUSRÜSTUNG (Ball-Design) ============ -->
+    <!-- ============ AUSRÜSTUNG (Ball-Design, Animation, Profil-Design) ============ -->
     <section class="card-glass">
       <h2 class="section-title">🎨 Ausrüstung</h2>
       <div class="equipped-ball" id="equippedBall"></div>
       <a class="btn btn-glass btn-sm" href="shop.html#balls" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);">Ball-Design ändern →</a>
+
+      <div class="equipped-ball" id="equippedAnimation" style="margin-top:var(--sp-5);"></div>
+      <a class="btn btn-glass btn-sm" href="shop.html#animations" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);">Animation ändern →</a>
+
+      <div class="equipped-ball" id="equippedTheme" style="margin-top:var(--sp-5);"></div>
+      <a class="btn btn-glass btn-sm" href="shop.html#themes" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);">Profil-Design ändern →</a>
     </section>
 
     <!-- ============ MEINE POSTS ============ -->

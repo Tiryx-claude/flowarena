@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>FlowArena — Shop</title>
-  <meta name="description" content="FlowArena Shop: Premium, Credits, Beats, Ball-Designs und Premium-Challenges — fair, ohne Pay-to-Win." />
+  <meta name="description" content="FlowArena Shop: Premium, Credits, Beats, Ball-Designs, Animationen und Profil-Designs — fair, ohne Pay-to-Win." />
   <meta name="theme-color" content="#06060a" />
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23b537f5'/%3E%3Cstop offset='1' stop-color='%2329d3ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2306060a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='url(%23g)'/%3E%3C/svg%3E" />
@@ -63,8 +63,13 @@
       <a href="#credits">💎 Credits</a>
       <a href="#beats">🎵 Beats</a>
       <a href="#balls">⚪ Ball-Designs</a>
+      <a href="#animations">✨ Animationen</a>
+      <a href="#themes">🎨 Profil-Designs</a>
       <a href="#challenges">🏅 Premium-Challenges</a>
+      <a href="#early-access">🧪 Early Access</a>
       <a href="#rewards">🎁 Belohnungen</a>
+      <a href="#history">🧾 Kaufhistorie</a>
+      <a href="#legal">📄 Rechtliches</a>
     </div>
 
     <!-- ============ PREMIUM ============ -->
@@ -94,6 +99,20 @@
       <div class="shop-grid-3" id="ballCatalog"></div>
     </section>
 
+    <!-- ============ ERGEBNIS-ANIMATIONEN ============ -->
+    <section class="shop-section" id="animations">
+      <h2 class="section-title">✨ Ergebnis-Animationen</h2>
+      <p class="shop-section__hint">Rein kosmetisch — verändert nur, wie dein Ergebnis-Screen aussieht (Score-Ring &amp; Funken-Burst). Zwei Animationen sind Premium-exklusiv.</p>
+      <div class="shop-grid-3" id="animationCatalog"></div>
+    </section>
+
+    <!-- ============ PROFIL-DESIGNS ============ -->
+    <section class="shop-section" id="themes">
+      <h2 class="section-title">🎨 Profil-Designs</h2>
+      <p class="shop-section__hint">Ein anderer Hintergrund-Verlauf für deine Profilseite — rein visuell. Zwei Designs sind Premium-exklusiv.</p>
+      <div class="shop-grid-3" id="themeCatalog"></div>
+    </section>
+
     <!-- ============ PREMIUM-CHALLENGES ============ -->
     <section class="shop-section" id="challenges">
       <h2 class="section-title">🏅 Premium-Challenges</h2>
@@ -101,10 +120,18 @@
       <div class="shop-grid-3" id="premiumChallengeCatalog"></div>
     </section>
 
+    <!-- ============ EARLY ACCESS ============ -->
+    <section class="shop-section" id="early-access">
+      <h2 class="section-title">🧪 Early Access</h2>
+      <p class="shop-section__hint">Premium-exklusiver Blick auf kommende Features — reine Demo-Vorschau, noch kein echtes Feature.</p>
+      <div id="earlyAccessBlock"></div>
+    </section>
+
     <!-- ============ BELOHNUNGEN ============ -->
     <section class="card-glass shop-section" id="rewards">
       <h2 class="section-title">🎁 Belohnungen</h2>
       <div id="eventBanner"></div>
+      <div id="dailyLimitStatus"></div>
       <div class="rewards-grid">
         <div class="rewards-block">
           <h3 class="rewards-block__title">📅 Tages-Login-Serie</h3>
@@ -118,6 +145,13 @@
       </div>
     </section>
 
+    <!-- ============ KAUFHISTORIE ============ -->
+    <section class="card-glass shop-section" id="history">
+      <h2 class="section-title">🧾 Kaufhistorie</h2>
+      <p class="shop-section__hint">Jede Demo-Aktion (Premium, Credits, Freischaltungen) landet hier — reine lokale Übersicht, kein echter Zahlungsbeleg.</p>
+      <div id="purchaseHistory"></div>
+    </section>
+
     <!-- ============ FAIRNESS ============ -->
     <section class="shop-section" id="fairness">
       <div class="fairness-note">
@@ -125,12 +159,32 @@
         <p>
           Premium und Credits kaufen dir <strong>nie</strong> leichtere Reimwörter, eine großzügigere Bewertung oder
           einen Zeitvorteil im Beat. Sie kaufen Komfort (mehr Strophen), Zugriff (Beats/Challenges), Kosmetik
-          (Ball-Designs) und Werbefreiheit — der eigentliche Wettbewerb (Score, Turniere, Rangliste) bleibt für
-          Free- und Premium-Accounts exakt gleich fair. Details: <code>docs/SHOP.md</code>.
+          (Ball-Designs, Animationen, Profil-Designs) und Werbefreiheit — der eigentliche Wettbewerb (Score, Turniere,
+          Rangliste) bleibt für Free- und Premium-Accounts exakt gleich fair. Details: <code>docs/SHOP.md</code>.
         </p>
       </div>
     </section>
+
+    <!-- ============ RECHTLICHES ============ -->
+    <section class="shop-section" id="legal">
+      <div class="fairness-note">
+        <h2 class="section-title" style="margin-bottom:var(--sp-2);">📄 Rechtliches</h2>
+        <p style="margin-bottom:var(--sp-4);">
+          Premium ist jederzeit mit einem Klick kündbar (siehe oben) — keine Mindestlaufzeit, keine Kündigungsfrist.
+          Preise stehen immer sichtbar auf dem Kauf-Button, bevor du bestätigst. Alle Details zu Daten und Bedingungen:
+        </p>
+        <div class="legal-links">
+          <a class="btn btn-glass btn-sm" href="datenschutz.html" style="text-decoration:none;">🔒 Datenschutzerklärung</a>
+          <a class="btn btn-glass btn-sm" href="agb.html" style="text-decoration:none;">📜 AGB</a>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <!-- ============ KAUFBESTÄTIGUNG (Demo) ============ -->
+  <div class="purchase-modal-overlay" id="purchaseModalOverlay" hidden>
+    <div class="purchase-modal" id="purchaseModal"></div>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -139,6 +193,7 @@
   <script src="assets/js/profile-data.js"></script>
   <script src="assets/js/community-data.js"></script>
   <script src="assets/js/social-data.js"></script>
+  <script src="assets/js/purchase-data.js"></script>
   <script src="assets/js/daily-rewards.js"></script>
   <script src="assets/js/shop.js"></script>
   <script src="assets/js/notifications-ui.js"></script>

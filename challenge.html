@@ -41,12 +41,25 @@
         <span class="badge">🎯 Deine Einstellungen</span>
         <h1 style="font-size:var(--fs-2xl); margin:var(--sp-4) 0;">Bereit für deine Challenge?</h1>
         <div class="stage-summary" id="introSummary"></div>
+        <p class="daily-limit-hint" id="dailyLimitHint" hidden></p>
         <button class="btn btn-primary btn-hero" id="beginBtn" type="button">🎤 Los geht's</button>
-        <p class="mic-hint">
+        <p class="mic-hint" id="micHint">
           Wir fragen kurz nach Mikrofonzugriff, damit Aufnahme, Live-Transkript und
           Bewertung am Ende funktionieren. Ohne Zugriff kannst du trotzdem freestylen —
           nur ohne Aufnahme/Bewertung danach.
         </p>
+
+        <!-- Modul 6: Free-Tageslimit erreicht — ersetzt Start-Button + Hinweis. -->
+        <div class="daily-limit-block" id="dailyLimitBlock" hidden>
+          <div class="daily-limit-block__icon">⏳</div>
+          <h2 style="font-size:var(--fs-lg); margin:var(--sp-3) 0;">Tageslimit erreicht</h2>
+          <p style="color:var(--text-muted); font-size:var(--fs-sm); max-width:420px; margin:0 auto var(--sp-5);">
+            Du hast deine <span id="dailyLimitCount">5</span> kostenlosen Challenges für heute schon genutzt.
+            Morgen geht's automatisch weiter — oder mit Premium unbegrenzt, ohne Wartezeit.
+          </p>
+          <a class="btn btn-primary btn-hero" href="shop.html#premium" style="text-decoration:none;">👑 Premium ansehen</a>
+          <p style="margin-top:var(--sp-4);"><a href="index.html" style="color:var(--text-dim); font-size:var(--fs-sm);">← Zurück zur Startseite</a></p>
+        </div>
       </section>
 
       <!-- ============ SCREEN: COUNTDOWN ============ -->

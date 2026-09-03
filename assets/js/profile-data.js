@@ -64,6 +64,13 @@
       unlockedBallDesignIds: ["classic"],
       login: { streak: 0, lastLoginDate: null }, // lastLoginDate: "YYYY-MM-DD" (lokale Client-Zeit)
       weeklyChallenge: { weekKey: null, progress: 0, completed: false },
+      // ---- Modul 6: Monetarisierung — Kündigung, Animationen, Profil-Designs, Tageslimit ----
+      premiumSince: null, // Zeitstempel der (Demo-)Aktivierung, für die simulierte "nächste Abrechnung"-Anzeige
+      activeAnimationId: "classic",
+      unlockedAnimationIds: ["classic"],
+      activeThemeId: "default",
+      unlockedThemeIds: ["default"],
+      dailyChallengeCount: { date: null, count: 0 }, // date: "YYYY-MM-DD" — Free-Tageslimit, siehe canStartChallenge()
     };
   }
 
@@ -82,6 +89,7 @@
         privacy: { ...base.privacy, ...(parsed.privacy || {}) },
         login: { ...base.login, ...(parsed.login || {}) },
         weeklyChallenge: { ...base.weeklyChallenge, ...(parsed.weeklyChallenge || {}) },
+        dailyChallengeCount: { ...base.dailyChallengeCount, ...(parsed.dailyChallengeCount || {}) },
       };
     } catch (e) {
       return defaultProfile();
@@ -113,6 +121,27 @@
   /** Demo-Upgrade — KEINE echte Zahlung, siehe Datei-Kopfkommentar. */
   function unlockPremiumDemo(profile) {
     profile.premium = true;
+    profile.premiumSince = Date.now();
+    save(profile);
+    return profile;
+  }
+
+  /** Demo-Kündigung — jederzeit möglich, sofort wirksam (kein Warten auf eine
+   * "Restlaufzeit", da es ohnehin keine echte Abrechnung gibt). Ein gerade
+   * AKTIVES Premium-exklusives Ball-Design/Animation/Profil-Design fällt
+   * dabei auf die Standard-Variante zurück (die Premium-Variante bleibt aber
+   * bei erneutem Premium sofort wieder wählbar, da sie ja bereits "gehört"). */
+  function cancelPremiumDemo(profile) {
+    profile.premium = false;
+    profile.premiumSince = null;
+
+    const ball = window.FlowData.findBallDesign(profile.activeBallDesignId);
+    if (ball.premiumOnly) profile.activeBallDesignId = "classic";
+    const anim = window.FlowData.findAnimation(profile.activeAnimationId);
+    if (anim.premiumOnly) profile.activeAnimationId = "classic";
+    const theme = window.FlowData.findTheme(profile.activeThemeId);
+    if (theme.premiumOnly) profile.activeThemeId = "default";
+
     save(profile);
     return profile;
   }
@@ -157,6 +186,85 @@
     profile.activeBallDesignId = design.id;
     save(profile);
     return true;
+  }
+
+  /* -----------------------------------------------------------------
+     Modul 6 — Ergebnis-Animationen (kosmetisch, siehe docs/SHOP.md)
+     ----------------------------------------------------------------- */
+  function isAnimationUnlocked(profile, anim) {
+    if (!anim.premiumOnly && anim.price === 0) return true;
+    if (anim.premiumOnly) return profile.premium === true;
+    return profile.unlockedAnimationIds.includes(anim.id);
+  }
+
+  function unlockAnimation(profile, anim) {
+    if (isAnimationUnlocked(profile, anim)) return true;
+    if (anim.premiumOnly) return false;
+    if (!spendCredits(profile, anim.price || 0)) return false;
+    profile.unlockedAnimationIds.push(anim.id);
+    save(profile);
+    return true;
+  }
+
+  function setActiveAnimation(profile, anim) {
+    if (!isAnimationUnlocked(profile, anim)) return false;
+    profile.activeAnimationId = anim.id;
+    save(profile);
+    return true;
+  }
+
+  /* -----------------------------------------------------------------
+     Modul 6 — Profil-Designs (kosmetisch, siehe docs/SHOP.md)
+     ----------------------------------------------------------------- */
+  function isThemeUnlocked(profile, theme) {
+    if (!theme.premiumOnly && theme.price === 0) return true;
+    if (theme.premiumOnly) return profile.premium === true;
+    return profile.unlockedThemeIds.includes(theme.id);
+  }
+
+  function unlockTheme(profile, theme) {
+    if (isThemeUnlocked(profile, theme)) return true;
+    if (theme.premiumOnly) return false;
+    if (!spendCredits(profile, theme.price || 0)) return false;
+    profile.unlockedThemeIds.push(theme.id);
+    save(profile);
+    return true;
+  }
+
+  function setActiveTheme(profile, theme) {
+    if (!isThemeUnlocked(profile, theme)) return false;
+    profile.activeThemeId = theme.id;
+    save(profile);
+    return true;
+  }
+
+  /* -----------------------------------------------------------------
+     Modul 6 — Free-Tageslimit für Challenges ("unendlich Challenges" als
+     echter Premium-Perk). Reine Zugriffs-/Komfortgrenze: WENN eine Challenge
+     gestartet wird, läuft sie für Free- und Premium-Accounts technisch und
+     bewertungsmäßig absolut identisch ab — siehe docs/SHOP.md.
+     ----------------------------------------------------------------- */
+  /** @returns {{ allowed: boolean, remaining: number, limit: number }}
+   * Nutzt todayKey() aus dem "Tages-Login"-Abschnitt weiter unten in dieser
+   * Datei — Funktionsdeklarationen sind gehoisted, daher hier schon nutzbar. */
+  function canStartChallenge(profile) {
+    if (profile.premium) return { allowed: true, remaining: Infinity, limit: Infinity };
+    const limit = window.FlowData.FREE_DAILY_CHALLENGE_LIMIT;
+    const today = todayKey();
+    const count = profile.dailyChallengeCount.date === today ? profile.dailyChallengeCount.count : 0;
+    return { allowed: count < limit, remaining: Math.max(0, limit - count), limit };
+  }
+
+  /** Beim tatsächlichen Start einer Challenge aufrufen (nicht schon beim
+   * Öffnen der Intro-Seite) — verbraucht einen der Tages-Versuche. */
+  function recordChallengeStart(profile) {
+    if (profile.premium) return; // unbegrenzt, kein Zählen nötig
+    const today = todayKey();
+    if (profile.dailyChallengeCount.date !== today) {
+      profile.dailyChallengeCount = { date: today, count: 0 };
+    }
+    profile.dailyChallengeCount.count += 1;
+    save(profile);
   }
 
   /* -----------------------------------------------------------------
@@ -382,11 +490,20 @@
     addCredits,
     spendCredits,
     unlockPremiumDemo,
+    cancelPremiumDemo,
     isBeatUnlocked,
     unlockBeat,
     isBallDesignUnlocked,
     unlockBallDesign,
     setActiveBallDesign,
+    isAnimationUnlocked,
+    unlockAnimation,
+    setActiveAnimation,
+    isThemeUnlocked,
+    unlockTheme,
+    setActiveTheme,
+    canStartChallenge,
+    recordChallengeStart,
     purchaseCreditsDemo,
     recordDailyLogin,
     bumpWeeklyChallenge,

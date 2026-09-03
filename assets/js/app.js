@@ -284,6 +284,15 @@
   });
 
   els.startChallengeBtn?.addEventListener("click", () => {
+    // Modul 6: Free-Tageslimit vorab prüfen — vermeidet den Umweg über
+    // challenge.html, das dieselbe Prüfung ohnehin autoritativ durchführt
+    // (siehe challenge.js). Nur eine UX-Abkürzung, keine zweite Wahrheitsquelle.
+    const limitCheck = FlowProfile.canStartChallenge(FlowProfile.load());
+    if (!limitCheck.allowed) {
+      showToast(`⏳ Tageslimit erreicht (${limitCheck.limit}/${limitCheck.limit} kostenlose Challenges) — mit Premium unbegrenzt spielen.`);
+      return;
+    }
+
     saveSettings(state);
     playIfEnabled(window.FlowSound?.playConfirm);
     // Modul 3 hängt sich hier später ein (echte KI-Reimwörter/-Bewertung).

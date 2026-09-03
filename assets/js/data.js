@@ -181,6 +181,65 @@
     return BALL_DESIGNS.find((d) => d.id === id) || BALL_DESIGNS[0];
   }
 
+  /* -------------------------------------------------------------------
+     Modul 6 — Faires Monetarisierungssystem (Erweiterung von Modul 5)
+     -------------------------------------------------------------------
+     Neue kosmetische Kategorien (Ergebnis-Animationen, Profil-Designs),
+     ein Free-Tages-Limit für Challenges (Premium = unbegrenzt — reine
+     Komfort-/Zugriffs-Grenze, KEIN Bewertungs-/Zeit-/Reimwort-Vorteil),
+     eine rein dekorative Zahlungsmethoden-Auswahl für die Kaufbestätigung
+     (KEINE echten Zahlungsfelder, siehe docs/SHOP.md) und eine
+     Early-Access-Vorschau. Siehe docs/SHOP.md Abschnitt "Niemals
+     Pay-to-Win" — gilt hier genauso.
+     ------------------------------------------------------------------- */
+
+  // Free-Accounts dürfen FREE_DAILY_CHALLENGE_LIMIT Challenges pro Kalendertag
+  // STARTEN (siehe profile-data.js: canStartChallenge()/recordChallengeStart()).
+  // Bewusst großzügig bemessen — eine Zugriffs-/Komfortgrenze, kein
+  // Wettbewerbsnachteil: wer eine Challenge spielt, wird exakt gleich bewertet
+  // wie mit Premium. Premium = unbegrenzt (Infinity).
+  const FREE_DAILY_CHALLENGE_LIMIT = 5;
+
+  const RESULT_ANIMATIONS = [
+    { id: "classic", name: "Classic Spark", desc: "Der Standard-Look beim Ergebnis.", price: 0, premiumOnly: false, color1: "#b537f5", color2: "#29d3ff" },
+    { id: "inferno-burst", name: "Inferno Burst", desc: "Feurige Funken beim Ergebnis-Reveal.", price: 70, premiumOnly: false, color1: "#ff8a3d", color2: "#ff3d1f" },
+    { id: "aurora", name: "Aurora Flow", desc: "Premium-exklusiv — sanftes Nordlicht-Schimmern.", price: 0, premiumOnly: true, color1: "#29d3ff", color2: "#4fffb0" },
+    { id: "gold-shower", name: "Gold Shower", desc: "Premium-exklusiv — goldener Punktregen.", price: 0, premiumOnly: true, color1: "#ffd66b", color2: "#fff2c2" },
+  ];
+
+  const PROFILE_THEMES = [
+    { id: "default", name: "Standard", desc: "Die gewohnten App-Farben.", price: 0, premiumOnly: false, gradient: null },
+    { id: "sunset", name: "Sunset", desc: "Warmer Orange-Pink-Verlauf.", price: 60, premiumOnly: false, gradient: "linear-gradient(135deg, rgba(255,138,61,0.28) 0%, rgba(255,79,216,0.22) 100%)" },
+    { id: "cyber", name: "Cyber", desc: "Premium-exklusiv — kühles Neon-Grid-Gefühl.", price: 0, premiumOnly: true, gradient: "linear-gradient(135deg, rgba(41,211,255,0.3) 0%, rgba(181,55,245,0.24) 100%)" },
+    { id: "aurora-theme", name: "Aurora", desc: "Premium-exklusiv — sanftes Grün-Blau.", price: 0, premiumOnly: true, gradient: "linear-gradient(135deg, rgba(79,255,176,0.24) 0%, rgba(41,211,255,0.24) 100%)" },
+  ];
+
+  // Rein visuelle Auswahl für die Kaufbestätigung — es gibt KEINE echten
+  // Zahlungsfelder/-formulare, keine echte Verarbeitung. Siehe docs/SHOP.md.
+  const PAYMENT_METHODS = [
+    { id: "apple_pay", label: "Apple Pay", icon: "🍎" },
+    { id: "google_pay", label: "Google Pay", icon: "🇬" },
+    { id: "credit_card", label: "Kreditkarte", icon: "💳" },
+    { id: "debit_card", label: "Debitkarte", icon: "🏦" },
+  ];
+
+  // Simulierte Vorschau auf ein künftiges Feature — es gibt (noch) keine
+  // echte Feature-Pipeline in diesem Prototyp; die Karte macht das im Text
+  // selbst transparent, statt einen echten Rollout vorzutäuschen.
+  const EARLY_ACCESS_PREVIEW = {
+    icon: "🧪",
+    name: "Voice-Filter (Vorschau)",
+    desc: "Stimmveränderungen für deine Aufnahmen — als Erstes ausprobieren, sobald es echten Code dafür gibt. Reine Demo-Vorschau, noch kein echtes Feature.",
+  };
+
+  function findAnimation(id) {
+    return RESULT_ANIMATIONS.find((a) => a.id === id) || RESULT_ANIMATIONS[0];
+  }
+
+  function findTheme(id) {
+    return PROFILE_THEMES.find((t) => t.id === id) || PROFILE_THEMES[0];
+  }
+
   window.FlowData = {
     STORAGE_KEY,
     GAMEPLAY_CONFIG,
@@ -194,11 +253,18 @@
     DAILY_LOGIN_REWARDS,
     WEEKLY_CHALLENGE,
     WEEKEND_BONUS_MULTIPLIER,
+    FREE_DAILY_CHALLENGE_LIMIT,
+    RESULT_ANIMATIONS,
+    PROFILE_THEMES,
+    PAYMENT_METHODS,
+    EARLY_ACCESS_PREVIEW,
     loadSettings,
     saveSettings,
     findBeat,
     findTopicLabel,
     findBallDesign,
+    findAnimation,
+    findTheme,
     isWeekendBonusActive,
   };
 })(window);

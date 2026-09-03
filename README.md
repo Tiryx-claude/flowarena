@@ -7,7 +7,7 @@ Posts und werden bewertet.
 Der Name **FlowArena** ist ein Platzhalter — leicht austauschbar (Branding
 lebt zentral in `assets/css/tokens.css` + `index.html`-Titel/Logo).
 
-## Aktueller Stand: Modul 1–5 + Turniere + Social — Design-System, Spielablauf, KI, Community, Multiplayer, Freunde, Shop
+## Aktueller Stand: Modul 1–6 + Turniere + Social — Design-System, Spielablauf, KI, Community, Multiplayer, Freunde, Shop & Monetarisierung
 
 Alle Module sind als eigenständiger **HTML/CSS/JS-Prototyp ohne
 Build-Tooling** umgesetzt, weil auf dieser Maschine kein Node.js installiert
@@ -32,7 +32,9 @@ challenge.html                 Challenge-Bühne (Countdown, Strophen, Auswertung
 profile.html                    Profil (Credits, Premium, Abzeichen, eigene Posts)
 community.html                  Community-Feed + Rangliste
 tournament.html                 Turnier-Raum (Lobby, Runden, Voting, Finale)
-shop.html                       Shop (Premium, Credits, Beats, Ball-Designs, Premium-Challenges, Belohnungen)
+shop.html                       Shop (Premium, Credits, Beats, Ball-Designs, Animationen, Profil-Designs, Premium-Challenges, Early Access, Belohnungen, Kaufhistorie)
+datenschutz.html                 Datenschutzerklärung (transparent, Prototyp-Hinweis)
+agb.html                         Allgemeine Geschäftsbedingungen (transparent, Prototyp-Hinweis)
 assets/css/tokens.css          Design-Tokens (Farben, Radien, Schatten, Motion)
 assets/css/base.css            Reset + globale Styles
 assets/css/components.css      Buttons, Cards, Toggles, Drawer, …
@@ -43,9 +45,10 @@ assets/css/profile.css          Profil-Layout (Avatar, Stats, Badges, Premium, A
 assets/css/community.css        Post-Karten, Feed, Rangliste
 assets/css/home.css             Menü-Akkordeon, Panels, Gameplay-Vorschau
 assets/css/tournament.css       Lobby, Spieler-Karten, Voting, Sieger-Reveal
-assets/css/shop.css             Shop-Sektionen, Ball-Design-Karten, Belohnungen, Fairness-Hinweis
+assets/css/shop.css             Shop-Sektionen, Kosmetik-Karten, Kaufbestätigung, Kaufhistorie, Belohnungen, Fairness-Hinweis
 assets/css/ads.css              Werbe-Overlay (nur Free-Accounts, nie in Gameplay-Seiten)
-assets/js/data.js              Gemeinsame Daten (Beats, Themen, Settings, GAMEPLAY_CONFIG, Shop-Kataloge)
+assets/css/legal.css            Rechtliche Seiten (Datenschutz, AGB)
+assets/js/data.js              Gemeinsame Daten (Beats, Themen, Settings, GAMEPLAY_CONFIG, Shop-/Kosmetik-Kataloge, Zahlungsmethoden)
 assets/js/app.js               Startseiten-State, Rendering, Event-Handling
 assets/js/home.js               Menü-Akkordeon-Logik, Gameplay-Vorschau-Animation, Mini-Panels
 assets/js/spark-fx.js           Geteilte Funken-Partikel-Logik (Vorschau + echtes Gameplay)
@@ -56,7 +59,7 @@ assets/js/ai/registry.js        KI-Provider-Interfaces (RhymeProvider, Evaluatio
 assets/js/ai/rhyme-provider.local.js       Reimwörter — lokale Heuristik
 assets/js/ai/evaluation-provider.local.js  Bewertung (8 Dimensionen) — lokale Heuristik
 assets/js/ai/speech-provider.web.js        Speech-to-Text via Web Speech API
-assets/js/profile-data.js       Profil-Store: Credits, Premium (Demo), Badges, Stats
+assets/js/profile-data.js       Profil-Store: Credits, Premium (Demo, kündbar), Badges, Stats, Kosmetik, Tageslimit
 assets/js/community-data.js     Community-Store: Feed-Posts, Likes (lokal)
 assets/js/tournament-data.js    Turnier-Store: Räume, Runden, Voting, Gesamtstand (lokal)
 assets/js/social-data.js        Freunde/Personen-Directory/Benachrichtigungen-Store (lokal)
@@ -64,7 +67,8 @@ assets/js/profile.js            Profilseiten-Logik
 assets/js/community.js          Community-Seiten-Logik (Feed/Rangliste/Suche)
 assets/js/tournament.js         Turnier-Raum-Logik (Lobby, Runden, Voting, Finale)
 assets/js/notifications-ui.js   Geteiltes Glocken-Icon/Dropdown-Widget (alle Seiten)
-assets/js/shop.js               Shop-Seiten-Logik (Premium, Credits, Beats, Ball-Designs, Challenges, Belohnungen)
+assets/js/shop.js               Shop-Seiten-Logik (Premium inkl. Kündigung, Credits, Kosmetik, Challenges, Kaufbestätigung, Belohnungen, Kaufhistorie)
+assets/js/purchase-data.js      Kaufhistorie-Store (lokal, kein echter Zahlungsbeleg)
 assets/js/daily-rewards.js      Geteiltes Tages-Login-Belohnungs-Skript (alle Seiten, idempotent)
 assets/js/ads.js                Werbe-Overlay-Logik (nur Free-Accounts, nur Zwischen-Menüs-Seiten)
 assets/js/sound.js             Web-Audio Klicksound-, Beat-, Plopp- & Reveal-Engine
@@ -149,3 +153,4 @@ Die Tailwind-Migration der Design-Tokens ist bereits in
 9. ✅ Turniere / Multiplayer (lokal simuliert — Raum-Code, Lobby, synchrone Runden, Voting, Sieger; echtes Cross-Device-Multiplayer braucht ein Backend, siehe docs/TOURNAMENTS.md)
 10. ✅ Community & Profil, Ausbau: Freundessystem, Personen-Suche, Benachrichtigungen, Datenschutzeinstellungen — nahtlos mit Turnieren verzahnt (lokal, siehe docs/SOCIAL.md)
 11. ✅ Shop, Premium, Credits & Werbung (lokal simuliert — Ball-Designs, Premium-Challenges, Tages-/Wochen-Belohnungen, Wochenend-Bonus, Demo-Werbung; niemals Pay-to-Win, siehe docs/SHOP.md)
+12. ✅ Faires Monetarisierungssystem, Ausbau: kündbares Premium, Ergebnis-Animationen, Profil-Designs, Early Access, Free-Tageslimit für Challenges, Zahlungsmethoden-Auswahl mit Kaufbestätigung, Kaufhistorie, Datenschutz-/AGB-Seiten (lokal simuliert, niemals Pay-to-Win, siehe docs/SHOP.md)

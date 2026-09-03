@@ -50,6 +50,10 @@
 
   const els = {
     introSummary: $("#introSummary"),
+    dailyLimitHint: $("#dailyLimitHint"),
+    dailyLimitBlock: $("#dailyLimitBlock"),
+    dailyLimitCount: $("#dailyLimitCount"),
+    micHint: $("#micHint"),
     beginBtn: $("#beginBtn"),
     countdownNumber: $("#countdownNumber"),
     countdownLabel: $("#countdownLabel"),
@@ -98,6 +102,16 @@
     els.gameBall.style.setProperty("--ball-glow", design.glow);
   })();
 
+  // Modul 6: aktive Ergebnis-Animation (Shop) anwenden — rein kosmetisch,
+  // wirkt auf den Score-Ring UND den Funken-Burst (verschachtelt, erbt die
+  // CSS-Variablen), siehe assets/css/challenge.css.
+  (function applyResultAnimationSkin() {
+    if (!els.scoreRing) return;
+    const anim = window.FlowData.findAnimation(profile.activeAnimationId);
+    els.scoreRing.style.setProperty("--anim-color1", anim.color1);
+    els.scoreRing.style.setProperty("--anim-color2", anim.color2);
+  })();
+
   function showScreen(name) {
     // Setzt display direkt (statt nur [hidden]), damit kein inline/CSS-Style
     // auf einzelnen Screens die Sichtbarkeitssteuerung überschreiben kann.
@@ -134,6 +148,25 @@
     `;
   }
   renderIntroSummary();
+
+  /* ---------------------------------------------------------------------
+     Modul 6: Free-Tageslimit — "unendlich Challenges" als echter Premium-
+     Perk. Reine Zugriffsgrenze: läuft eine Challenge, wird sie exakt gleich
+     bewertet wie mit Premium (siehe docs/SHOP.md). Geprüft direkt beim Laden
+     dieser Seite (nicht erst beim Klick), damit auch direkte Navigation
+     (z.B. Lesezeichen) das Limit respektiert.
+     --------------------------------------------------------------------- */
+  const limitCheck = window.FlowProfile.canStartChallenge(profile);
+  if (!limitCheck.allowed) {
+    if (els.beginBtn) els.beginBtn.hidden = true;
+    if (els.micHint) els.micHint.hidden = true;
+    if (els.dailyLimitHint) els.dailyLimitHint.hidden = true;
+    if (els.dailyLimitCount) els.dailyLimitCount.textContent = String(limitCheck.limit);
+    if (els.dailyLimitBlock) els.dailyLimitBlock.hidden = false;
+  } else if (els.dailyLimitHint && limitCheck.remaining <= 2 && limitCheck.limit !== Infinity) {
+    els.dailyLimitHint.hidden = false;
+    els.dailyLimitHint.textContent = `ℹ️ Noch ${limitCheck.remaining} von ${limitCheck.limit} kostenlosen Challenges heute — mit Premium unbegrenzt.`;
+  }
 
   /* ---------------------------------------------------------------------
      Mikrofon & Aufnahme (MediaRecorder — separat von der Live-Transkription)
@@ -608,6 +641,10 @@
   els.beginBtn?.addEventListener("click", async () => {
     els.beginBtn.disabled = true;
     els.beginBtn.textContent = "Mikrofon wird angefragt …";
+
+    // Modul 6: verbraucht einen der Free-Tages-Versuche (no-op mit Premium) —
+    // erst HIER, nicht schon beim bloßen Anzeigen der Intro-Seite.
+    window.FlowProfile.recordChallengeStart(profile);
 
     // AudioContext JETZT (im Klick-Handler = User-Geste) erzeugen/resumen,
     // unabhängig vom "Klick-Sounds"-Setting — der Beat-Klick-Track ist

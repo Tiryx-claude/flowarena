@@ -1,4 +1,4 @@
-# FlowArena — Shop, Premium, Credits & Werbung (Modul 5)
+# FlowArena — Shop, Premium, Credits & Werbung (Modul 5, Ausbau Modul 6)
 
 ## 1. Ehrlichkeit zuerst: die Grenzen dieses Prototyps
 
@@ -34,6 +34,18 @@ Zahlungen.**
   Benachrichtigung, nicht zu doppelten Credits, weil beide Tabs vom
   selben Ausgangsstand aus denselben Endwert berechnen). Ein echtes Backend
   würde das mit einer echten Transaktion lösen.
+- **Die Zahlungsmethoden-Auswahl (Apple Pay/Google Pay/Kreditkarte/
+  Debitkarte) im Kaufdialog ist rein dekorativ.** Es gibt keine echten
+  Zahlungsfelder (keine Kartennummer-Eingabe, kein echtes Apple-/Google-Pay-
+  SDK) — nur anklickbare Icons, die auswählen, welches Label in der
+  Kaufhistorie landet. Siehe Abschnitt 12.
+- **Die Kaufhistorie (`assets/js/purchase-data.js`) ist kein echter Beleg.**
+  Sie lebt nur in `localStorage`, hat keine steuerliche/rechtliche
+  Relevanz und dient ausschließlich der Nachvollziehbarkeit innerhalb
+  dieses Prototyps.
+- **`datenschutz.html`/`agb.html` sind keine rechtsverbindlichen Dokumente
+  eines echten Unternehmens** — sie beschreiben ehrlich, was der Code
+  tatsächlich tut, sagen das aber auch ausdrücklich selbst.
 
 Sobald ein echtes Backend existiert, ersetzen `/api/payments`,
 `/api/credits`, `/api/rewards` diese lokalen Stores 1:1 — die Aufrufer
@@ -52,9 +64,9 @@ tatsächlich kaufen:
 
 | Kategorie | Was es bringt | Wettbewerbsrelevant? |
 |---|---|---|
-| Komfort | Bis zu 10 statt 5 Strophen/Challenge | Nein — beide Varianten werden identisch bewertet, mehr Strophen ist mehr Aufwand, kein Vorteil pro Strophe |
-| Zugriff | Premium-Beats, Premium-Challenges | Nein — andere Beats/Themen ändern nichts an der Bewertungslogik |
-| Kosmetik | Ball-Designs | Nein — rein visuell, exakt gleiche Ball-Mechanik/Timing |
+| Komfort | Bis zu 10 statt 5 Strophen/Challenge, unbegrenzt Challenges/Tag (Free: 5) | Nein — jede Challenge wird identisch bewertet, unabhängig von Strophenzahl/Tageslimit |
+| Zugriff | Premium-Beats, Premium-Challenges, Early Access | Nein — andere Beats/Themen/Vorschauen ändern nichts an der Bewertungslogik |
+| Kosmetik | Ball-Designs, Ergebnis-Animationen, Profil-Designs | Nein — rein visuell, exakt gleiche Mechanik/Timing/Bewertung |
 | Werbefreiheit | Keine Promo-Karten mehr zwischen Menüs | Nein — betrifft nur Free-Accounts, nie das Gameplay selbst |
 
 Turniere, Rangliste und Community-Voting behandeln Premium- und
@@ -64,12 +76,26 @@ alle Teilnehmenden.
 
 ## 3. Premium (`assets/js/data.js`: `PREMIUM`)
 
-6,99 €/Monat (Demo). Perks: keine Werbung, alle Premium-Beats, alle
-Premium-Ball-Designs (Inferno, Gold Rush), alle Premium-Challenges, bis zu
-10 statt 5 Strophen/Challenge, 👑-Badge auf dem Profil. Aktivierbar über
-[`shop.html`](../shop.html) (Hauptort) oder weiterhin über
-[`profile.html`](../profile.html) (identischer Code-Pfad,
-`FlowProfile.unlockPremiumDemo()`).
+6,99 €/Monat (Demo). Perks: keine Werbung, unbegrenzt Challenges (Abschnitt
+13), alle Premium-Beats, alle Premium-Ball-Designs/-Animationen/-Profil-
+Designs, alle Premium-Challenges, Early Access (Abschnitt 12), bis zu 10
+statt 5 Strophen/Challenge, 👑-Badge auf dem Profil.
+
+Aktivierung/Kündigung laufen **zentral über [`shop.html`](../shop.html)**
+(`#premium`) — `profile.html` zeigt nur noch den Status und verlinkt dorthin,
+damit es nicht zwei unterschiedliche Kauf-Code-Pfade gibt.
+
+- **Aktivieren:** `FlowProfile.unlockPremiumDemo()`, läuft über den
+  Kaufbestätigungs-Dialog (Abschnitt 12) mit Zahlungsmethoden-Auswahl.
+  Setzt `profile.premiumSince` (Zeitstempel), aus dem `shop.js` eine
+  simulierte "nächste Abrechnung" (+30 Tage) anzeigt — rein informativ,
+  keine echte Abo-Verwaltung.
+- **Kündigen:** `FlowProfile.cancelPremiumDemo()`, jederzeit mit einem
+  Klick (Zwei-Klick-Bestätigung wie beim Datenreset in `docs/SOCIAL.md`),
+  **sofort wirksam**, keine Mindestlaufzeit, keine Kündigungsfrist. Ein
+  gerade aktives Premium-exklusives Ball-Design/Animation/Profil-Design
+  fällt dabei automatisch auf die Standard-Variante zurück (bleibt aber
+  freigeschaltet und ist bei erneutem Premium sofort wieder wählbar).
 
 ## 4. Credits
 
@@ -160,18 +186,104 @@ Es gibt keine separate, leichtere Bewertungslogik für Premium-Challenges.
 - Skippable (3 Sekunden Mindestanzeige, dann "Überspringen ✕"), mit
   direktem CTA-Link zum beworbenen Feature (z. B. `shop.html#premium`).
 
-## 11. Testabdeckung
+## 12. Kaufbestätigung, Zahlungsmethoden & Kaufhistorie (Modul 6)
 
-Manuell durchgespielt: `shop.html` komplett (Premium-Status-Anzeige,
-Credits-Paket-Kauf, Beat-Freischaltung, Ball-Design freischalten +
-ausrüsten, Premium-Challenge → korrekt vorbefüllte `challenge.html`,
-Belohnungen-Sektion), Ball-Design sichtbar identisch in Vorschau
-(`index.html`) UND echtem Gameplay (`challenge.html`), Tages-Login-Serie
-(Streak-Anzeige, Benachrichtigung, Idempotenz bei mehrfachem Laden am
-selben Tag geprüft), Wochen-Challenge (Fortschritt, Einmal-Vergabe der
-Belohnung geprüft), Werbe-Overlay (Anzeige nur ohne Premium, Cooldown,
-Skip-Button-Timing, sauberes Schließen), `profile.html` "🎨 Ausrüstung"
-zeigt das aktive Ball-Design korrekt. Keine neuen Konsolenfehler in allen
-Läufen (die von früheren Modulen bekannten, harmlosen Alt-Einträge in
-`app.js:312`/`home.js:111` sind unverändert vorhanden und nicht durch
-dieses Modul verursacht).
+- **Kaufbestätigung:** `shop.js` → `openPurchaseModal()` — für jeden
+  ECHTEN-Geld-Kauf (Premium, Credits-Pakete) zeigt ein Dialog Preis,
+  Artikel und eine Auswahl aus `PAYMENT_METHODS` (Apple Pay, Google Pay,
+  Kreditkarte, Debitkarte — `assets/js/data.js`), bevor irgendetwas
+  passiert. Kein Zahlungsfeld, keine Eingabe — nur anklickbare Icons.
+  Erst nach explizitem "Kauf bestätigen" wird die eigentliche
+  Freischaltungs-Funktion aufgerufen. Credits-Ausgaben für kosmetische
+  Inhalte (Ball-Designs/Animationen/Profil-Designs/Beats) laufen weiter
+  als einzelner Klick ohne diesen Dialog (kein zusätzliches "echtes Geld"
+  im Spiel, du gibst bereits verdiente/gekaufte Credits aus), werden aber
+  ebenfalls in der Kaufhistorie protokolliert.
+- **Kaufhistorie:** [`assets/js/purchase-data.js`](../assets/js/purchase-data.js)
+  (`window.FlowPurchases`, Key `flowarena.purchases.v1`, Deckel 50
+  Einträge) — jede abgeschlossene Shop-Aktion (Premium aktiviert/gekündigt,
+  Credits gekauft, Beat/Ball-Design/Animation/Profil-Design freigeschaltet)
+  landet dort mit Icon, Label, Preis/Kosten, gewählter "Zahlungsmethode"
+  (oder `"Credits"`) und Zeitstempel. Sichtbar in `shop.html` → 🧾
+  Kaufhistorie. Kein echter Beleg (siehe Abschnitt 1).
+
+## 13. Free-Tageslimit ("unendlich Challenges" als Premium-Perk)
+
+`FREE_DAILY_CHALLENGE_LIMIT` (`data.js`, aktuell 5) begrenzt, wie oft ein
+Free-Account **eine Challenge STARTEN** kann — nicht, wie sie bewertet
+wird. `FlowProfile.canStartChallenge()` prüft das Limit, `recordChallengeStart()`
+verbraucht einen Versuch (erst beim tatsächlichen Klick auf "Los geht's",
+nicht schon beim Öffnen der Intro-Seite). Zwei Prüfstellen:
+
+- **Autoritativ:** `challenge.js` selbst, direkt beim Laden — zeigt bei
+  erreichtem Limit einen Block "⏳ Tageslimit erreicht" mit Premium-CTA
+  statt des Start-Buttons. Greift auch bei direkter Navigation.
+  Bei ≤2 verbleibenden Versuchen erscheint stattdessen ein dezenter Hinweis.
+- **UX-Abkürzung:** `app.js`s "Challenge starten"-Button prüft vorab und
+  zeigt einen Toast statt zu navigieren — spart den Umweg über
+  `challenge.html`, ist aber keine zweite Wahrheitsquelle.
+
+Premium: `canStartChallenge()` liefert immer `{ allowed: true, remaining:
+Infinity }`. Setzt sich täglich lokal zurück (`dailyChallengeCount.date`).
+
+## 14. Ergebnis-Animationen & Profil-Designs (kosmetisch, Modul 6)
+
+Zwei weitere rein kosmetische Kategorien, nach demselben Muster wie
+Ball-Designs (Abschnitt 8):
+
+- **Ergebnis-Animationen** (`RESULT_ANIMATIONS` in `data.js`): verändern
+  nur die Farben von Score-Ring und Funken-Burst auf dem Ergebnis-Screen
+  (`--anim-color1`/`--anim-color2` CSS-Variablen, gesetzt in `challenge.js`
+  `applyResultAnimationSkin()`, siehe `assets/css/challenge.css`). 2 von 4
+  Premium-exklusiv (Aurora Flow, Gold Shower).
+- **Profil-Designs** (`PROFILE_THEMES` in `data.js`): ein alternativer
+  Hintergrund-Verlauf für den Profil-Header (`profile.js` setzt
+  `el.style.backgroundImage`). 2 von 4 Premium-exklusiv (Cyber, Aurora).
+
+Beide über `FlowProfile.is*Unlocked()`/`unlock*()`/`setActive*()`
+verwaltet — exakt dasselbe Muster wie Ball-Designs, bewusst dupliziert
+statt generalisiert (drei kurze, unabhängig lesbare Funktionspaare statt
+einer abstrakten "Kosmetik-Engine").
+
+## 15. Early Access (Demo-Vorschau, Modul 6)
+
+`EARLY_ACCESS_PREVIEW` in `data.js` — eine einzelne, statische Karte in
+`shop.html`, premium-gated. Da dieser Prototyp keine echte
+Feature-Pipeline hat, macht die Karte selbst im Text transparent, dass es
+sich um eine reine Demo-Vorschau handelt ("noch kein echtes Feature") —
+kein vorgetäuschter Rollout.
+
+## 16. Rechtliches: Datenschutz & AGB (Modul 6)
+
+[`datenschutz.html`](../datenschutz.html) und [`agb.html`](../agb.html) —
+eigenständige, im gleichen dunklen Stil gehaltene Seiten, verlinkt aus
+`shop.html` (§ Rechtliches) und dem Footer von `index.html`. Beide sagen
+explizit, dass FlowArena ein Software-Prototyp ohne reale
+Geschäftstätigkeit ist, und beschreiben trotzdem ehrlich und vollständig,
+was der Code tatsächlich tut (kein Server, nur `localStorage`,
+Mikrofon/Aufnahme bleibt lokal, keine echten Zahlungsdaten, kein echtes
+Werbenetzwerk, jederzeit kündbar, Preise immer vor dem Kauf sichtbar).
+Ersetzt keine echte Rechtsberatung.
+
+## 17. Testabdeckung
+
+Manuell durchgespielt: `shop.html` komplett (Premium aktivieren über den
+Kaufdialog mit Zahlungsmethoden-Auswahl, Premium kündigen inkl.
+Zwei-Klick-Bestätigung und Rückfall premium-exklusiver Auswahl auf
+Standard, Credits-Paket-Kauf über denselben Dialog, Beat-Freischaltung,
+Ball-Design/Animation/Profil-Design freischalten + ausrüsten,
+Premium-Challenge → korrekt vorbefüllte `challenge.html`,
+Belohnungen-Sektion inkl. Free-Tageslimit-Anzeige, Early-Access-Karte,
+Kaufhistorie mit korrekten Einträgen), Ball-Design UND Ergebnis-Animation
+sichtbar identisch in Vorschau/Gameplay (`index.html`/`challenge.html`)
+bzw. auf dem Ergebnis-Screen, Profil-Design sichtbar auf `profile.html`,
+Free-Tageslimit (Blockbildschirm bei erreichtem Limit, dezenter Hinweis
+bei ≤2 verbleibend, korrektes Hochzählen beim Start, Premium = unbegrenzt),
+Tages-Login-Serie (Streak-Anzeige, Benachrichtigung, Idempotenz bei
+mehrfachem Laden am selben Tag geprüft), Wochen-Challenge (Fortschritt,
+Einmal-Vergabe der Belohnung geprüft), Werbe-Overlay (Anzeige nur ohne
+Premium, Cooldown, Skip-Button-Timing, sauberes Schließen),
+`datenschutz.html`/`agb.html` (Rendering, Links). Keine neuen
+Konsolenfehler in allen Läufen (die von früheren Modulen bekannten,
+harmlosen Alt-Einträge in `app.js:312`/`home.js:111` sind unverändert
+vorhanden und nicht durch dieses Modul verursacht).

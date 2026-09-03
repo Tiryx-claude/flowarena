@@ -1,0 +1,79 @@
+/* =========================================================================
+   FlowArena — Rechtliche Seiten (Datenschutz, AGB) — Modul 6
+   ========================================================================= */
+
+.legal-page {
+  padding-top: var(--sp-8);
+  padding-bottom: var(--sp-16);
+  max-width: 720px;
+}
+
+.legal-page__intro {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  margin-bottom: var(--sp-6);
+  max-width: 640px;
+}
+
+.legal-section {
+  padding: var(--sp-6);
+  margin-bottom: var(--sp-4);
+}
+
+.legal-section h2 {
+  font-size: var(--fs-md);
+  margin-bottom: var(--sp-3);
+}
+
+.legal-section p {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
+
+.legal-section p + p {
+  margin-top: var(--sp-3);
+}
+
+.legal-section ul {
+  margin: var(--sp-2) 0 var(--sp-3);
+  padding-left: var(--sp-5);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
+
+.legal-section li + li {
+  margin-top: var(--sp-1);
+}
+
+.legal-section li {
+  position: relative;
+}
+
+.legal-section li::before {
+  content: "–";
+  position: absolute;
+  left: calc(-1 * var(--sp-4));
+  color: var(--neon-blue);
+}
+
+.legal-section a,
+.legal-page__footnote a {
+  color: var(--neon-blue);
+}
+
+.legal-section code {
+  background: var(--surface-strong);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.legal-page__footnote {
+  color: var(--text-dim);
+  font-size: var(--fs-xs);
+  margin-top: var(--sp-6);
+  line-height: 1.6;
+}

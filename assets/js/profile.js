@@ -25,7 +25,10 @@
     statGrid: $("#statGrid"),
     premiumCard: $("#premiumCard"),
     badgeGrid: $("#badgeGrid"),
+    profileHeader: $("#profileHeader"),
     equippedBall: $("#equippedBall"),
+    equippedAnimation: $("#equippedAnimation"),
+    equippedTheme: $("#equippedTheme"),
     ownPosts: $("#ownPosts"),
     friendSearchInput: $("#friendSearchInput"),
     friendSearchResults: $("#friendSearchResults"),
@@ -83,14 +86,18 @@
     `).join("");
   }
 
+  // Aktivierung/Kündigung (inkl. Kaufbestätigung mit Zahlungsmethode) läuft
+  // zentral über shop.html#premium — hier nur Status + Link, damit es nicht
+  // zwei unterschiedliche Kauf-Code-Pfade gibt (siehe docs/SHOP.md).
   function renderPremiumCard() {
     if (profile.premium) {
       els.premiumCard.innerHTML = `
         <h2 class="section-title">👑 Premium aktiv</h2>
         <p style="color:var(--text-muted); font-size:var(--fs-sm);">
-          Du hast Zugriff auf alle Beats und bis zu 10 Strophen pro Challenge.
+          Keine Werbung, alle Premium-Beats/-Designs, Early Access und bis zu 10 Strophen pro Challenge.
         </p>
         <p class="premium-card__note">Demo-Status, lokal in diesem Browser gespeichert — keine echte Zahlung, kein echtes Abo.</p>
+        <a class="btn btn-glass btn-sm" href="shop.html#premium" style="text-decoration:none; display:inline-block; margin-top:var(--sp-3);">Verwalten / Kündigen →</a>
       `;
       return;
     }
@@ -101,17 +108,9 @@
         <li>Bis zu 10 statt 5 Strophen pro Challenge</li>
         <li>Premium-Badge auf deinem Profil</li>
       </ul>
-      <button class="btn btn-primary" id="premiumBtn" type="button">Premium aktivieren (Demo)</button>
-      <p class="premium-card__note">Reiner Demo-Schalter für diesen Prototyp — es wird keine Zahlung verarbeitet und nichts abgebucht.</p>
+      <a class="btn btn-primary" href="shop.html#premium" style="text-decoration:none; display:inline-block;">Premium ansehen (Demo)</a>
+      <p class="premium-card__note">Reiner Demo-Schalter für diesen Prototyp — es wird keine Zahlung verarbeitet und nichts abgebucht. Jederzeit kündbar.</p>
     `;
-    $("#premiumBtn")?.addEventListener("click", () => {
-      FlowProfile.unlockPremiumDemo(profile);
-      window.FlowSound?.playConfirm?.();
-      showToast("👑 Premium aktiviert (Demo)!");
-      FlowSocial?.addNotification({ icon: "👑", text: "Premium aktiviert (Demo) — alle Beats & 10 Strophen freigeschaltet." });
-      renderHeader();
-      renderPremiumCard();
-    });
   }
 
   function renderBadges() {
@@ -137,6 +136,35 @@
         <div class="equipped-ball__desc">${escapeHtml(design.desc)}</div>
       </div>
     `;
+  }
+
+  function renderEquippedAnimation() {
+    if (!els.equippedAnimation) return;
+    const anim = window.FlowData.findAnimation(profile.activeAnimationId);
+    els.equippedAnimation.innerHTML = `
+      <span class="ball-swatch" style="background:linear-gradient(135deg, ${anim.color1}, ${anim.color2});"></span>
+      <div>
+        <div class="equipped-ball__name">${escapeHtml(anim.name)}</div>
+        <div class="equipped-ball__desc">${escapeHtml(anim.desc)}</div>
+      </div>
+    `;
+  }
+
+  function renderEquippedTheme() {
+    const theme = window.FlowData.findTheme(profile.activeThemeId);
+    if (els.equippedTheme) {
+      els.equippedTheme.innerHTML = `
+        <span class="ball-swatch" style="background:${theme.gradient || "var(--surface)"};"></span>
+        <div>
+          <div class="equipped-ball__name">${escapeHtml(theme.name)}</div>
+          <div class="equipped-ball__desc">${escapeHtml(theme.desc)}</div>
+        </div>
+      `;
+    }
+    // Wirkung: der Profil-Header selbst bekommt den Farbverlauf als Overlay.
+    if (els.profileHeader) {
+      els.profileHeader.style.backgroundImage = theme.gradient || "";
+    }
   }
 
   function renderOwnPosts() {
@@ -281,6 +309,8 @@
     renderPremiumCard();
     renderBadges();
     renderEquippedBall();
+    renderEquippedAnimation();
+    renderEquippedTheme();
     renderOwnPosts();
     renderFriends();
     renderPrivacy();
