@@ -131,4 +131,9 @@
 
   renderFeed();
   renderLeaderboard();
+
+  // Direktlink von der Startseite (Rangliste-Panel → community.html#leaderboard)
+  if (window.location.hash === "#leaderboard") {
+    els.tabLeaderboard.click();
+  }
 })();

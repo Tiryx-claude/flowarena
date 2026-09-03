@@ -38,8 +38,10 @@ assets/css/layout.css          Nav, Hero, Beat-Animation, Footer
 assets/css/challenge.css       Countdown, Word-Rack, Ergebnis-Screen
 assets/css/profile.css          Profil-Layout (Avatar, Stats, Badges, Premium)
 assets/css/community.css        Post-Karten, Feed, Rangliste
+assets/css/home.css             Menü-Akkordeon, Panels, Gameplay-Vorschau (Ball + Magma-Kästchen)
 assets/js/data.js              Gemeinsame Daten (Beats, Themen, Settings, GAMEPLAY_CONFIG)
 assets/js/app.js               Startseiten-State, Rendering, Event-Handling
+assets/js/home.js               Menü-Akkordeon-Logik, Gameplay-Vorschau-Animation, Mini-Panels
 assets/js/beat-clock.js         BeatClock: drift-freie BPM-Uhr (AudioContext-basiert)
 assets/js/challenge.js         Spielablauf-State-Machine, Word-Rack, Aufnahme, Ergebnis-Inszenierung
 assets/js/rhyme-engine.js       Kuratierte Reimwort-Datenbank (Daten für den lokalen Provider)
@@ -110,7 +112,7 @@ npx prisma init --datasource-provider postgresql
 ```
 
 Die Tailwind-Migration der Design-Tokens ist bereits in
-`docs/DESIGN_SYSTEM.md` (Abschnitt 11) vorbereitet.
+`docs/DESIGN_SYSTEM.md` (Abschnitt 12) vorbereitet.
 
 ## Modul-Roadmap
 

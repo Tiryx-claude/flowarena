@@ -17,6 +17,8 @@
   <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/components.css" />
   <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/community.css" />
+  <link rel="stylesheet" href="assets/css/home.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -28,16 +30,8 @@
       <span>Flow<span class="nav__brand-name">Arena</span></span>
     </div>
 
-    <nav class="nav__links" aria-label="Hauptnavigation">
-      <a class="nav__link" href="index.html">Home</a>
-      <a class="nav__link" href="#">Challenges</a>
-      <a class="nav__link" href="#">Beats</a>
-      <a class="nav__link" href="community.html">Community</a>
-    </nav>
-
     <div class="nav__actions">
       <a class="chip" href="profile.html" style="text-decoration:none; cursor:pointer;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></a>
-      <button class="btn-icon js-open-settings" type="button" aria-label="Einstellungen öffnen" title="Einstellungen">⚙️</button>
       <a class="btn-icon" href="profile.html" aria-label="Profil öffnen" title="Profil" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
     </div>
   </header>
@@ -53,57 +47,129 @@
         live vor deinem Chat oder ganz für dich allein.
       </p>
 
-      <div class="beat-figures" id="beatFigures" aria-hidden="true">
-        <span class="beat-figure">
-          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#b537f5"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#b537f5"/></svg>
-        </span>
-        <span class="beat-figure">
-          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#8b5cf6"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#8b5cf6"/></svg>
-        </span>
-        <span class="beat-figure">
-          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#7a6cf0"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#7a6cf0"/></svg>
-        </span>
-        <span class="beat-figure">
-          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#3ba7ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#3ba7ff"/></svg>
-        </span>
-        <span class="beat-figure">
-          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#29d3ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#29d3ff"/></svg>
-        </span>
-      </div>
-
-      <div class="hero__cta">
-        <button class="btn btn-primary btn-hero" id="startChallengeBtn" type="button">🎤 Challenge starten</button>
-        <button class="btn btn-glass js-open-settings" type="button">Einstellungen</button>
+      <!-- ============ GAMEPLAY-VORSCHAU ============ -->
+      <div class="gameplay-preview">
+        <span class="preview-bpm-tag">100 BPM · Beispiel-Strophe</span>
+        <div class="preview-track" id="previewTrack">
+          <div class="preview-box">RAUM</div>
+          <div class="preview-box">BAUM</div>
+          <div class="preview-box">KAUM</div>
+          <div class="preview-box">TRAUM</div>
+          <div class="preview-box">SCHAUM</div>
+          <div class="preview-ball" id="previewBall" aria-hidden="true"></div>
+          <div class="spark-layer" id="previewSparkLayer" aria-hidden="true"></div>
+        </div>
+        <p class="preview-caption">
+          So läuft's: dein Ball tanzt im Takt des Beats von Wort zu Wort — du rappst jede Zeile frei
+          und landest genau auf dem markierten Wort. 5 Wörter, 5 Zeilen, eine Reimfamilie pro Strophe.
+        </p>
       </div>
     </section>
 
-    <!-- ============ QUICK SETTINGS PREVIEW ============ -->
-    <section class="quick-settings" id="quickSettingsChips" aria-label="Aktuelle Einstellungen">
-      <!-- wird per JS befüllt -->
+    <!-- ============ MENÜ-LEISTE ============ -->
+    <section class="menu-bar" role="tablist" aria-label="Hauptmenü">
+      <button class="menu-btn is-active" type="button" data-panel="play">🎤 Spielen</button>
+      <button class="menu-btn" type="button" data-panel="tournament-create">🏆 Turnier erstellen</button>
+      <button class="menu-btn" type="button" data-panel="tournament-join">🔑 Turnier beitreten</button>
+      <button class="menu-btn" type="button" data-panel="leaderboard">📊 Rangliste</button>
+      <button class="menu-btn" type="button" data-panel="community">👥 Community</button>
+      <button class="menu-btn" type="button" data-panel="shop">🛒 Shop</button>
+      <button class="menu-btn js-open-settings" type="button">⚙️ Einstellungen</button>
     </section>
 
-    <!-- ============ FEATURE PREVIEW (kommende Module) ============ -->
-    <section class="features">
-      <div class="card-glass feature-card">
-        <div class="feature-card__icon">🎯</div>
-        <h3>Schwierigkeitsgrade</h3>
-        <p>Leicht, Mittel oder Schwer — die Reimlogik passt sich deinem Skill-Level an. (Modul 2)</p>
+    <!-- ============ PANELS (Akkordeon) ============ -->
+    <div class="menu-panels">
+      <!-- ---- Spielen ---- -->
+      <div class="menu-panel is-open" data-panel="play">
+        <div class="menu-panel__inner">
+          <div class="card-glass menu-panel__card">
+            <h2 class="menu-panel__title">🎤 Bereit für deine Challenge?</h2>
+            <div class="play-summary" id="quickSettingsChips" aria-label="Aktuelle Einstellungen">
+              <!-- wird per JS befüllt -->
+            </div>
+            <div class="play-cta">
+              <button class="btn btn-primary btn-hero" id="startChallengeBtn" type="button">🎤 Challenge starten</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card-glass feature-card">
-        <div class="feature-card__icon">🏆</div>
-        <h3>Turniere & Ranglisten</h3>
-        <p>Tritt gegen andere an, sammle Abzeichen und klettere die Charts hoch. (später andockbar)</p>
+
+      <!-- ---- Turnier erstellen ---- -->
+      <div class="menu-panel" data-panel="tournament-create">
+        <div class="menu-panel__inner">
+          <div class="card-glass menu-panel__card">
+            <div class="coming-soon">
+              <div class="coming-soon__icon">🏆</div>
+              <h2 class="menu-panel__title" style="justify-content:center;">Turniere kommen bald</h2>
+              <p style="color:var(--text-muted); font-size:var(--fs-sm);">Eigene Turniere für deinen Chat oder deine Community erstellen — geplant für ein späteres Modul.</p>
+              <ul class="coming-soon__perks">
+                <li>Bracket-System mit mehreren Runden</li>
+                <li>Zuschauer-Modus mit Live-Voting</li>
+                <li>Eigene Reim-Themen &amp; Preise festlegen</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card-glass feature-card">
-        <div class="feature-card__icon">📡</div>
-        <h3>Streamer-Modus</h3>
-        <p>Großformatige Anzeige, Chat-Interaktion und Overlay-freundliches Layout.</p>
+
+      <!-- ---- Turnier beitreten ---- -->
+      <div class="menu-panel" data-panel="tournament-join">
+        <div class="menu-panel__inner">
+          <div class="card-glass menu-panel__card">
+            <div class="coming-soon">
+              <div class="coming-soon__icon">🔑</div>
+              <h2 class="menu-panel__title" style="justify-content:center;">Turnier-Beitritt kommt bald</h2>
+              <p style="color:var(--text-muted); font-size:var(--fs-sm);">Per Code einem laufenden Turnier beitreten — geplant für ein späteres Modul.</p>
+              <ul class="coming-soon__perks">
+                <li>Beitritt per Einladungs-Code</li>
+                <li>Live-Rangliste während des Turniers</li>
+                <li>Direkt-Duelle gegen andere Teilnehmer:innen</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+
+      <!-- ---- Rangliste ---- -->
+      <div class="menu-panel" data-panel="leaderboard">
+        <div class="menu-panel__inner">
+          <div class="card-glass menu-panel__card">
+            <h2 class="menu-panel__title">📊 Rangliste</h2>
+            <div id="leaderboardMini"></div>
+            <a class="panel-footer-link" href="community.html#leaderboard">Vollständige Rangliste ansehen →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Community ---- -->
+      <div class="menu-panel" data-panel="community">
+        <div class="menu-panel__inner">
+          <div class="card-glass menu-panel__card">
+            <h2 class="menu-panel__title">👥 Community</h2>
+            <div class="feed-list" id="communityMini"></div>
+            <a class="panel-footer-link" href="community.html">Zum vollständigen Feed →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Shop ---- -->
+      <div class="menu-panel" data-panel="shop">
+        <div class="menu-panel__inner">
+          <div class="card-glass menu-panel__card">
+            <h2 class="menu-panel__title">🛒 Shop</h2>
+            <div class="shop-grid" id="shopGrid"></div>
+            <div class="shop-premium-teaser">
+              <span>👑 Mit Premium sind alle Beats sofort freigeschaltet.</span>
+              <a class="btn btn-glass btn-sm" href="profile.html" style="text-decoration:none;">Zu Premium</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">
-    <p>FlowArena · Modul 1 — Design-System &amp; UI-Richtlinien · Prototyp</p>
+    <p>FlowArena · Prototyp</p>
   </footer>
 
   <!-- ============ SETTINGS DRAWER ============ -->
@@ -204,6 +270,8 @@
   <script src="assets/js/sound.js"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>
+  <script src="assets/js/community-data.js"></script>
   <script src="assets/js/app.js"></script>
+  <script src="assets/js/home.js"></script>
 </body>
 </html>

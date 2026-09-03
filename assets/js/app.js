@@ -156,6 +156,13 @@
      Drawer
      --------------------------------------------------------------------- */
   function openDrawer() {
+    // Profil frisch laden (z.B. falls im Shop-Panel gerade ein Beat per
+    // Credits freigeschaltet wurde) und Beat-Liste/Strophen-Deckel neu rendern.
+    profile = FlowProfile.load();
+    renderBeatList();
+    renderVerses();
+    renderProfileBits();
+
     els.drawer?.classList.add("is-open");
     els.drawerOverlay?.classList.add("is-open");
     els.drawer?.setAttribute("aria-hidden", "false");

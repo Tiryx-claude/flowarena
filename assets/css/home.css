@@ -1,0 +1,293 @@
+/* =========================================================================
+   FlowArena — Startseite (Modul 1, überarbeitet)
+   Menü-Leiste (Akkordeon), Panels, Gameplay-Vorschau.
+   ========================================================================= */
+
+/* ---------- Gameplay-Vorschau ---------- */
+.gameplay-preview {
+  width: min(680px, 100%);
+  margin: var(--sp-6) auto var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.preview-bpm-tag {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+}
+
+.preview-track {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: 56px var(--sp-4) var(--sp-6);
+}
+
+.preview-box {
+  position: relative;
+  min-width: 64px;
+  padding: var(--sp-3) var(--sp-2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+/* "glüht wie Magma", wenn der Ball auftrifft (per JS getriggert) */
+.preview-box.is-hit {
+  color: #fff4e0;
+  background: linear-gradient(180deg, #ff8a3d, #ff3d1f 70%);
+  border-color: #ffb066;
+  box-shadow:
+    0 0 22px rgba(255, 106, 0, 0.75),
+    0 0 48px rgba(255, 45, 0, 0.4),
+    inset 0 0 18px rgba(255, 210, 120, 0.5);
+  transform: translateY(-3px) scale(1.08);
+}
+
+.preview-ball {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #e4e6f5 55%, #b9bcd6 100%);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 28px rgba(255, 255, 255, 0.5);
+  will-change: transform;
+  pointer-events: none;
+}
+
+.spark-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pv-spark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff5da, #ffb04d 60%, transparent 100%);
+  box-shadow: 0 0 8px rgba(255, 170, 60, 0.9);
+  opacity: 1;
+  animation: pv-spark-fly 480ms ease-out forwards;
+}
+
+@keyframes pv-spark-fly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+}
+
+.preview-caption {
+  max-width: 460px;
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .preview-track { gap: var(--sp-2); padding: 48px var(--sp-2) var(--sp-5); }
+  .preview-box { min-width: 48px; font-size: var(--fs-xs); padding: var(--sp-2) 4px; }
+}
+
+/* ---------- Menü-Leiste ---------- */
+.menu-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin: var(--sp-8) auto var(--sp-5);
+  width: min(900px, 100%);
+}
+
+.menu-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  padding: 0.75em 1.3em;
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-spring);
+  white-space: nowrap;
+}
+
+.menu-btn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.menu-btn.is-active {
+  color: #fff;
+  background: var(--gradient-accent);
+  border-color: transparent;
+  box-shadow: var(--glow-purple);
+}
+
+/* ---------- Panels (Akkordeon, flüssig animiert via grid-template-rows) ---------- */
+.menu-panels {
+  width: min(900px, 100%);
+  margin: 0 auto var(--sp-16);
+}
+
+.menu-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 420ms var(--ease-out);
+}
+
+.menu-panel.is-open {
+  grid-template-rows: 1fr;
+}
+
+.menu-panel__inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.menu-panel__card {
+  margin-top: var(--sp-4);
+  padding: var(--sp-8);
+}
+
+.menu-panel__title {
+  font-size: var(--fs-lg);
+  margin-bottom: var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* "Spielen"-Panel: Zusammenfassung + CTA */
+.play-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-6);
+}
+
+.play-cta {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Coming-Soon (Turniere) ---------- */
+.coming-soon {
+  text-align: center;
+  padding: var(--sp-6) 0;
+}
+
+.coming-soon__icon {
+  font-size: 2.4rem;
+  margin-bottom: var(--sp-3);
+}
+
+.coming-soon__perks {
+  list-style: none;
+  padding: 0;
+  margin: var(--sp-4) auto 0;
+  max-width: 360px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.coming-soon__perks li::before {
+  content: "→ ";
+  color: var(--neon-blue);
+  font-weight: 700;
+}
+
+/* ---------- Mini-Rangliste / Mini-Feed innerhalb der Panels ---------- */
+.panel-footer-link {
+  display: block;
+  text-align: center;
+  margin-top: var(--sp-5);
+  font-size: var(--fs-sm);
+  color: var(--neon-blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.panel-footer-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Shop ---------- */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-3);
+}
+
+.shop-card {
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.shop-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.shop-card__name {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.shop-card__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.shop-card__action {
+  margin-top: auto;
+}
+
+.shop-premium-teaser {
+  margin-top: var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--gradient-accent-soft);
+  border: 1px solid rgba(181, 55, 245, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+}

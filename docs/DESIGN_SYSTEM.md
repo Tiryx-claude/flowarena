@@ -119,7 +119,30 @@ Alle in [`assets/css/components.css`](../assets/css/components.css):
   hereingleitet (`translateY`) statt seitlich (`translateX`), da das für
   Daumen-Bedienung auf dem Smartphone natürlicher ist.
 
-## 11. Geplante Migration nach Tailwind/Next.js
+## 11. Startseite: Menü-Akkordeon & Gameplay-Vorschau
+
+Die Startseite (`index.html`, `assets/css/home.css`, `assets/js/home.js`) ist
+ein Hub statt einer reinen Landingpage:
+
+- **Menü-Leiste** (`.menu-bar`): 7 Buttons (Spielen, Turnier erstellen,
+  Turnier beitreten, Rangliste, Community, Shop, Einstellungen). Die ersten 6
+  verhalten sich als **Akkordeon** — Klick auf einen öffnet sein Panel
+  (`.menu-panel`) und schließt automatisch das vorher offene. "Einstellungen"
+  ist bewusst **kein** Teil dieser Gruppe: Es öffnet das bestehende
+  Settings-Drawer-Overlay unabhängig vom Akkordeon-Zustand (das Panel im
+  Hintergrund bleibt offen) und zeigt dort wie gehabt alle Felder gleichzeitig.
+- Panel-Übergänge animieren flüssig über CSS `grid-template-rows: 0fr → 1fr`
+  (kein JS-Höhen-Messen nötig).
+- **Gameplay-Vorschau** (`.gameplay-preview`): ein weißer Ball hüpft
+  BPM-getaktet über 5 Wort-Kästchen (dieselbe Zahl/Anordnung wie das
+  echte Word-Rack im Spiel, siehe `docs/GAMEPLAY.md`), rein dekorativ und
+  ohne Audio. Getroffene Kästchen **glühen wie Magma** (Orange/Rot-Gradient,
+  `.preview-box.is-hit` in `home.css`) — eine bewusste, lokal begrenzte
+  Ausnahme von der sonst durchgängigen Lila/Blau-Akzentfarbe, weil "Magma"
+  explizit als eigenständiges visuelles Signal gewünscht war. Bei Kontakt
+  spawnen kurze Funken-Partikel (`.pv-spark`).
+
+## 12. Geplante Migration nach Tailwind/Next.js
 
 Sobald Node.js verfügbar ist, lassen sich die Tokens direkt in
 `tailwind.config.js` überführen:
