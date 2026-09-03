@@ -117,9 +117,29 @@
       const player = { id: `bot-${Date.now()}-${i}-${Math.floor(Math.random() * 1000)}`, name, avatar, isHost: false, isBot: true, joinedAt: Date.now() };
       t.players.push(player);
       added.push(player);
+      // Wächst die Personen-Directory (Modul 4, Ausbau) — macht Suche/Freunde
+      // über die Zeit lebendiger, ohne ein Backend zu brauchen.
+      window.FlowSocial?.rememberPerson({ name, avatar });
     }
     saveTournament(t);
     return added;
+  }
+
+  /**
+   * Fügt eine:n gespeicherte:n Freund:in als (simulierte:n) Teilnehmer:in
+   * hinzu — dieselbe Bot-Simulation wie addBotPlayers() (kein echtes
+   * zweites Gerät), aber mit dem echten Namen/Avatar aus der Freundesliste
+   * statt einem Zufallsnamen, plus `isFriendInvite` für eine persönlichere
+   * Kennzeichnung in der UI.
+   */
+  function addFriendPlayer(code, friend) {
+    const t = loadTournament(code);
+    if (!t || t.status !== "lobby") return null;
+    if (t.players.some((p) => p.name === friend.name)) return null;
+    const player = { id: `friend-${Date.now()}-${Math.floor(Math.random() * 1000)}`, name: friend.name, avatar: friend.avatar, isHost: false, isBot: true, isFriendInvite: true, joinedAt: Date.now() };
+    t.players.push(player);
+    saveTournament(t);
+    return player;
   }
 
   /**
@@ -166,14 +186,16 @@
     const round = t.rounds[roundIndex];
     t.players.filter((p) => p.isBot).forEach((p) => {
       if (round.submissions[p.id]) return;
+      const overall = 55 + Math.floor(Math.random() * 40);
       round.submissions[p.id] = {
-        overall: 55 + Math.floor(Math.random() * 40),
+        overall,
         excerpt: BOT_EXCERPTS[Math.floor(Math.random() * BOT_EXCERPTS.length)],
         isBot: true,
         votes: 0,
         votedBy: [],
         submittedAt: Date.now(),
       };
+      window.FlowSocial?.rememberPerson({ name: p.name, avatar: p.avatar, score: overall });
     });
     saveTournament(t);
     return t;
@@ -244,6 +266,7 @@
     saveTournament,
     joinTournament,
     addBotPlayers,
+    addFriendPlayer,
     startTournament,
     submitRoundResult,
     simulateBotSubmissions,

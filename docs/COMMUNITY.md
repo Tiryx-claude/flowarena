@@ -75,14 +75,19 @@ Challenge als pulsierendes Banner angezeigt (`challenge.js → renderResults`).
 
 ## 6. Community-Feed & Rangliste
 
-[`community.html`](../community.html): zwei Tabs.
+[`community.html`](../community.html): drei Tabs.
 
 - **Feed:** Post-Karten (Autor, Thema, Beat/BPM, Zeit, Score, Textausschnitt,
   Like-Button). Likes sind pro Browser (`localStorage`), kein echter
   Multi-User-Zähler.
 - **Rangliste:** kombiniert die Scores der (fiktiven) Seed-Autoren mit
   deinem `profile.stats.bestScore`, korrekt einsortiert — "Du" wird
-  hervorgehoben.
+  hervorgehoben. Umschaltbar zwischen "Alle" und "Nur Freunde"; respektiert
+  die Datenschutzeinstellung "In der Rangliste anzeigen" (siehe
+  [`docs/SOCIAL.md`](SOCIAL.md)).
+- **Suche:** Personen-Suche mit direktem "+ Freund"-Hinzufügen — siehe
+  [`docs/SOCIAL.md`](SOCIAL.md) für das komplette Freundessystem,
+  Benachrichtigungen und Datenschutzeinstellungen (Modul 4, Ausbau).
 
 Veröffentlichen (`challenge.js → publishBtn`) legt einen echten Eintrag in
 `flowarena.community.posts.v1` an (Text/Score/Meta — **keine Audiodatei**,

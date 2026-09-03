@@ -7,6 +7,7 @@
 
   const FlowProfile = window.FlowProfile;
   const FlowCommunity = window.FlowCommunity;
+  const FlowSocial = window.FlowSocial;
   const { findTopicLabel } = window.FlowData;
   const profile = FlowProfile.load();
 
@@ -21,10 +22,16 @@
     profileAvatarLink: $("#profileAvatarLink"),
     tabFeed: $("#tabFeed"),
     tabLeaderboard: $("#tabLeaderboard"),
+    tabSearch: $("#tabSearch"),
     feedView: $("#feedView"),
     leaderboardView: $("#leaderboardView"),
+    searchView: $("#searchView"),
     feedList: $("#feedList"),
     leaderboardList: $("#leaderboardList"),
+    lbScopeAll: $("#lbScopeAll"),
+    lbScopeFriends: $("#lbScopeFriends"),
+    peopleSearchInput: $("#peopleSearchInput"),
+    searchResults: $("#searchResults"),
     toast: $("#toast"),
   };
 
@@ -92,13 +99,33 @@
   });
 
   /* ---------------------------------------------------------------------
-     Leaderboard — Seed-Autoren (aus ihren Beispiel-Posts) + du selbst
+     Leaderboard — "Alle" (Seed-Autoren) oder "Nur Freunde" (deine
+     Freundesliste), jeweils + du selbst (außer du hast dich per
+     Datenschutz-Einstellung aus der Rangliste ausgeblendet).
      --------------------------------------------------------------------- */
+  let leaderboardScope = "all";
+
   function renderLeaderboard() {
-    const posts = FlowCommunity.loadPosts().filter((p) => p.isSeed);
-    const rows = posts.map((p) => ({ name: p.authorName, avatar: p.authorAvatar, score: p.overall, isYou: false }));
-    rows.push({ name: profile.displayName, avatar: profile.avatar, score: profile.stats.bestScore, isYou: true });
+    let rows;
+    if (leaderboardScope === "friends") {
+      rows = (FlowSocial?.loadFriends() || []).map((f) => {
+        const person = FlowSocial.getPerson(f.id);
+        return { name: f.name, avatar: f.avatar, score: person?.bestScore ?? 0, isYou: false };
+      });
+    } else {
+      const posts = FlowCommunity.loadPosts().filter((p) => p.isSeed);
+      rows = posts.map((p) => ({ name: p.authorName, avatar: p.authorAvatar, score: p.overall, isYou: false }));
+    }
+
+    if (profile.privacy.showOnLeaderboard) {
+      rows.push({ name: profile.displayName, avatar: profile.avatar, score: profile.stats.bestScore, isYou: true });
+    }
     rows.sort((a, b) => b.score - a.score);
+
+    if (rows.length === 0) {
+      els.leaderboardList.innerHTML = `<p class="empty-hint">Noch keine Freunde — schau in der Suche vorbei und füg welche hinzu.</p>`;
+      return;
+    }
 
     els.leaderboardList.innerHTML = rows.map((r, i) => `
       <div class="leaderboard-row ${r.isYou ? "is-you" : ""}">
@@ -109,29 +136,81 @@
       </div>
     `).join("");
 
-    if (profile.stats.challengesCompleted === 0) {
+    if (leaderboardScope === "all" && profile.privacy.showOnLeaderboard && profile.stats.challengesCompleted === 0) {
       els.leaderboardList.insertAdjacentHTML("beforeend", `<p class="empty-hint" style="margin-top:var(--sp-3);">Du hast noch keine Challenge abgeschlossen — dein Bestwert steht noch bei 0.</p>`);
     }
   }
 
-  /* ---------------------------------------------------------------------
-     Tabs
-     --------------------------------------------------------------------- */
-  els.tabFeed.addEventListener("click", () => {
-    els.tabFeed.classList.add("is-active");
-    els.tabLeaderboard.classList.remove("is-active");
-    els.feedView.hidden = false;
-    els.leaderboardView.hidden = true;
+  els.lbScopeAll?.addEventListener("click", () => {
+    leaderboardScope = "all";
+    els.lbScopeAll.classList.add("is-active");
+    els.lbScopeFriends.classList.remove("is-active");
+    renderLeaderboard();
+    window.FlowSound?.playClick?.();
+  });
+  els.lbScopeFriends?.addEventListener("click", () => {
+    leaderboardScope = "friends";
+    els.lbScopeFriends.classList.add("is-active");
+    els.lbScopeAll.classList.remove("is-active");
+    renderLeaderboard();
     window.FlowSound?.playClick?.();
   });
 
-  els.tabLeaderboard.addEventListener("click", () => {
-    els.tabLeaderboard.classList.add("is-active");
-    els.tabFeed.classList.remove("is-active");
-    els.leaderboardView.hidden = false;
-    els.feedView.hidden = true;
-    window.FlowSound?.playClick?.();
+  /* ---------------------------------------------------------------------
+     Suche — Personen-Directory (Seed-Personen + begegnete Turnier-Bots)
+     --------------------------------------------------------------------- */
+  function renderSearch(query) {
+    if (!els.searchResults) return;
+    const results = FlowSocial ? FlowSocial.searchPeople(query) : [];
+    if (results.length === 0) {
+      els.searchResults.innerHTML = `<p class="empty-hint">Niemand gefunden. Spiel ein paar Turniere — die Personen-Liste wächst, je mehr du spielst.</p>`;
+      return;
+    }
+    els.searchResults.innerHTML = results.map((p) => {
+      const friend = FlowSocial.isFriend(p.id);
+      return `
+        <div class="card-glass person-card">
+          <div class="person-card__avatar">${p.avatar}</div>
+          <div class="person-card__body">
+            <div class="person-card__name">${escapeHtml(p.name)}</div>
+            <div class="person-card__meta">Bestwert ${p.bestScore} Pkt.</div>
+          </div>
+          <button class="btn ${friend ? "btn-glass" : "btn-primary"} btn-sm" type="button" data-friend-id="${p.id}" ${friend ? "disabled" : ""}>
+            ${friend ? "✓ Freund" : "+ Freund"}
+          </button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  els.peopleSearchInput?.addEventListener("input", () => renderSearch(els.peopleSearchInput.value));
+
+  els.searchResults?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-friend-id]");
+    if (!btn || btn.disabled) return;
+    const person = FlowSocial.getPerson(btn.dataset.friendId);
+    if (!person) return;
+    FlowSocial.addFriend(person);
+    window.FlowSound?.playConfirm?.();
+    showToast(`👥 ${person.name} zu deinen Freunden hinzugefügt.`);
+    renderSearch(els.peopleSearchInput?.value || "");
   });
+
+  /* ---------------------------------------------------------------------
+     Tabs
+     --------------------------------------------------------------------- */
+  const tabButtons = [els.tabFeed, els.tabLeaderboard, els.tabSearch];
+  const tabViews = { [els.tabFeed?.id]: els.feedView, [els.tabLeaderboard?.id]: els.leaderboardView, [els.tabSearch?.id]: els.searchView };
+
+  function activateTab(btn) {
+    tabButtons.forEach((b) => b?.classList.toggle("is-active", b === btn));
+    Object.entries(tabViews).forEach(([id, view]) => { if (view) view.hidden = id !== btn.id; });
+    window.FlowSound?.playClick?.();
+  }
+
+  els.tabFeed?.addEventListener("click", () => activateTab(els.tabFeed));
+  els.tabLeaderboard?.addEventListener("click", () => { activateTab(els.tabLeaderboard); renderLeaderboard(); });
+  els.tabSearch?.addEventListener("click", () => { activateTab(els.tabSearch); renderSearch(els.peopleSearchInput?.value || ""); });
 
   renderFeed();
   renderLeaderboard();

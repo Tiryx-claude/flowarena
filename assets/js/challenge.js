@@ -570,6 +570,9 @@
       els.badgeUnlockBanner.innerHTML = progress.newBadges.map((b) =>
         `<span style="font-size:1.6rem;">${b.icon}</span><span><strong>Neues Abzeichen:</strong> ${b.name} — <span style="color:var(--text-dim);">${b.desc}</span></span>`
       ).join("<br>");
+      progress.newBadges.forEach((b) => {
+        window.FlowSocial?.addNotification({ icon: b.icon, text: `Neues Abzeichen freigeschaltet: ${b.name}` });
+      });
     }
 
     renderScoreBreakdown(result.scores);

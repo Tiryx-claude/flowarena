@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="assets/css/community.css" />
   <link rel="stylesheet" href="assets/css/beat-ball.css" />
   <link rel="stylesheet" href="assets/css/home.css" />
+  <link rel="stylesheet" href="assets/css/social.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -33,6 +34,13 @@
 
     <div class="nav__actions">
       <a class="chip" href="profile.html" style="text-decoration:none; cursor:pointer;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></a>
+      <div class="notif-wrap">
+        <button class="btn-icon" id="notifBellBtn" type="button" aria-label="Benachrichtigungen" title="Benachrichtigungen">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+        <div class="notif-dropdown" id="notifDropdown" hidden>
+          <div class="notif-dropdown__head"><span>Benachrichtigungen</span><button type="button" id="notifMarkReadBtn">Alle gelesen</button></div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
       <a class="btn-icon" href="profile.html" aria-label="Profil öffnen" title="Profil" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
     </div>
   </header>
@@ -307,9 +315,11 @@
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>
   <script src="assets/js/community-data.js"></script>
+  <script src="assets/js/social-data.js"></script>
   <script src="assets/js/tournament-data.js"></script>
   <script src="assets/js/spark-fx.js"></script>
   <script src="assets/js/app.js"></script>
   <script src="assets/js/home.js"></script>
+  <script src="assets/js/notifications-ui.js"></script>
 </body>
 </html>

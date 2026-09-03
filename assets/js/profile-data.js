@@ -38,6 +38,10 @@
       premium: false,
       unlockedBeatIds: [],
       earnedBadgeIds: [],
+      privacy: {
+        showOnLeaderboard: true, // steuert, ob "Du" in Rangliste/Mini-Rangliste auftauchst
+        showActivityToFriends: true, // symbolisch (kein Backend) — vorbereitet für später
+      },
       stats: {
         challengesCompleted: 0,
         totalScore: 0,
@@ -62,7 +66,12 @@
       // Merge gegen defaultProfile(), damit neu hinzugekommene Felder bei
       // älteren gespeicherten Profilen nicht fehlen.
       const base = defaultProfile();
-      return { ...base, ...parsed, stats: { ...base.stats, ...(parsed.stats || {}) } };
+      return {
+        ...base,
+        ...parsed,
+        stats: { ...base.stats, ...(parsed.stats || {}) },
+        privacy: { ...base.privacy, ...(parsed.privacy || {}) },
+      };
     } catch (e) {
       return defaultProfile();
     }
@@ -184,6 +193,29 @@
     return { creditsEarned, newBadges };
   }
 
+  function setPrivacy(profile, key, value) {
+    profile.privacy[key] = value;
+    save(profile);
+    return profile;
+  }
+
+  /**
+   * Löscht ALLE FlowArena-Daten aus localStorage (Profil, Community-Posts,
+   * Turniere, Freunde, Benachrichtigungen, Einstellungen) — ein echter,
+   * sofort wirksamer "Alles zurücksetzen"-Schalter, da es sonst keine
+   * Backend-Löschung gibt. Absichtlich nicht automatisch aufgerufen — nur
+   * über einen expliziten, bestätigten Klick in profile.html.
+   */
+  function resetAllLocalData() {
+    const prefixes = ["flowarena."];
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && prefixes.some((p) => key.startsWith(p))) keysToRemove.push(key);
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  }
+
   window.FlowProfile = {
     STORAGE_KEY,
     AVATAR_OPTIONS,
@@ -197,5 +229,7 @@
     unlockBeat,
     recordChallengeResult,
     recordTournamentResult,
+    setPrivacy,
+    resetAllLocalData,
   };
 })(window);

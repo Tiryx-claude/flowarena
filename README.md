@@ -7,7 +7,7 @@ Posts und werden bewertet.
 Der Name **FlowArena** ist ein Platzhalter — leicht austauschbar (Branding
 lebt zentral in `assets/css/tokens.css` + `index.html`-Titel/Logo).
 
-## Aktueller Stand: Modul 1–4 + Turniere — Design-System, Spielablauf, KI, Community, Multiplayer
+## Aktueller Stand: Modul 1–4 + Turniere + Social — Design-System, Spielablauf, KI, Community, Multiplayer, Freunde
 
 Alle Module sind als eigenständiger **HTML/CSS/JS-Prototyp ohne
 Build-Tooling** umgesetzt, weil auf dieser Maschine kein Node.js installiert
@@ -56,15 +56,19 @@ assets/js/ai/speech-provider.web.js        Speech-to-Text via Web Speech API
 assets/js/profile-data.js       Profil-Store: Credits, Premium (Demo), Badges, Stats
 assets/js/community-data.js     Community-Store: Feed-Posts, Likes (lokal)
 assets/js/tournament-data.js    Turnier-Store: Räume, Runden, Voting, Gesamtstand (lokal)
+assets/js/social-data.js        Freunde/Personen-Directory/Benachrichtigungen-Store (lokal)
 assets/js/profile.js            Profilseiten-Logik
-assets/js/community.js          Community-Seiten-Logik (Feed/Rangliste)
+assets/js/community.js          Community-Seiten-Logik (Feed/Rangliste/Suche)
 assets/js/tournament.js         Turnier-Raum-Logik (Lobby, Runden, Voting, Finale)
+assets/js/notifications-ui.js   Geteiltes Glocken-Icon/Dropdown-Widget (alle Seiten)
 assets/js/sound.js             Web-Audio Klicksound-, Beat-, Plopp- & Reveal-Engine
+assets/css/social.css           Benachrichtigungs-Glocke, Personen-Karten, Datenschutz-Zeilen
 docs/DESIGN_SYSTEM.md          UI-Richtlinien
 docs/GAMEPLAY.md               Spielregeln, Timing, Strophen-/Reimlogik
 docs/AI_ARCHITECTURE.md        KI-Provider-Verträge, Upgrade-Pfad, Content-Policy
 docs/COMMUNITY.md               Profil/Credits/Premium/Community — Mechanik & Grenzen
 docs/TOURNAMENTS.md             Turniere/Multiplayer — Mechanik & Grenzen dieses Prototyps
+docs/SOCIAL.md                  Freunde/Suche/Benachrichtigungen/Datenschutz — Mechanik & Grenzen
 scripts/serve.ps1              Minimaler statischer Dev-Server (PowerShell)
 ```
 
@@ -72,8 +76,10 @@ Siehe [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) für die UI-Richtlinien,
 [`docs/GAMEPLAY.md`](docs/GAMEPLAY.md) für Spielregeln/Timing,
 [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) für die austauschbare
 KI-Provider-Architektur, [`docs/COMMUNITY.md`](docs/COMMUNITY.md) für
-Profil/Credits/Premium/Community und [`docs/TOURNAMENTS.md`](docs/TOURNAMENTS.md)
-für Turniere/Multiplayer (jeweils inkl. ehrlicher Grenzen dieses Prototyps).
+Profil/Credits/Premium/Community, [`docs/TOURNAMENTS.md`](docs/TOURNAMENTS.md)
+für Turniere/Multiplayer und [`docs/SOCIAL.md`](docs/SOCIAL.md) für
+Freunde/Suche/Benachrichtigungen/Datenschutz (jeweils inkl. ehrlicher Grenzen
+dieses Prototyps).
 
 ## Geplante Architektur (nächste Module)
 
@@ -133,3 +139,5 @@ Die Tailwind-Migration der Design-Tokens ist bereits in
 7. ⏳ Publish-Flow, Feed, Likes/Comments (echtes Backend statt localStorage)
 8. ⏳ Admin-Bereich (Beat-Management)
 9. ✅ Turniere / Multiplayer (lokal simuliert — Raum-Code, Lobby, synchrone Runden, Voting, Sieger; echtes Cross-Device-Multiplayer braucht ein Backend, siehe docs/TOURNAMENTS.md)
+10. ✅ Community & Profil, Ausbau: Freundessystem, Personen-Suche, Benachrichtigungen, Datenschutzeinstellungen — nahtlos mit Turnieren verzahnt (lokal, siehe docs/SOCIAL.md)
+11. ⏳ Shop, Premium (Ausbau), Credits (Ausbau) & Werbung (geplant als "Modul 5")

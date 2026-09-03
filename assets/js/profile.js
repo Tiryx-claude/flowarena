@@ -7,6 +7,7 @@
 
   const FlowProfile = window.FlowProfile;
   const FlowCommunity = window.FlowCommunity;
+  const FlowSocial = window.FlowSocial;
   let profile = FlowProfile.load();
 
   const $ = (sel) => document.querySelector(sel);
@@ -25,6 +26,12 @@
     premiumCard: $("#premiumCard"),
     badgeGrid: $("#badgeGrid"),
     ownPosts: $("#ownPosts"),
+    friendSearchInput: $("#friendSearchInput"),
+    friendSearchResults: $("#friendSearchResults"),
+    friendsList: $("#friendsList"),
+    privacyLeaderboardToggle: $("#privacyLeaderboardToggle"),
+    privacyActivityToggle: $("#privacyActivityToggle"),
+    resetDataBtn: $("#resetDataBtn"),
     toast: $("#toast"),
   };
 
@@ -100,6 +107,7 @@
       FlowProfile.unlockPremiumDemo(profile);
       window.FlowSound?.playConfirm?.();
       showToast("👑 Premium aktiviert (Demo)!");
+      FlowSocial?.addNotification({ icon: "👑", text: "Premium aktiviert (Demo) — alle Beats & 10 Strophen freigeschaltet." });
       renderHeader();
       renderPremiumCard();
     });
@@ -142,12 +150,126 @@
     `).join("")}</div>`;
   }
 
+  /* ---------------------------------------------------------------------
+     Freunde
+     --------------------------------------------------------------------- */
+  function renderFriends() {
+    if (!els.friendsList) return;
+    const friends = FlowSocial?.loadFriends() || [];
+    if (friends.length === 0) {
+      els.friendsList.innerHTML = `<p class="empty-hint">Noch keine Freunde — such oben nach einem Namen.</p>`;
+      return;
+    }
+    els.friendsList.innerHTML = `<div class="person-list">${friends.map((f) => `
+      <div class="card-glass person-card">
+        <div class="person-card__avatar">${f.avatar}</div>
+        <div class="person-card__body">
+          <div class="person-card__name">${escapeHtml(f.name)}</div>
+          <div class="person-card__meta">Freund:in seit ${timeAgo(f.addedAt)}</div>
+        </div>
+        <button class="btn btn-glass btn-sm" type="button" data-remove-friend="${f.id}">Entfernen</button>
+      </div>
+    `).join("")}</div>`;
+  }
+
+  function renderFriendSearch(query) {
+    if (!els.friendSearchResults) return;
+    if (!query) {
+      els.friendSearchResults.hidden = true;
+      els.friendSearchResults.innerHTML = "";
+      return;
+    }
+    els.friendSearchResults.hidden = false;
+    const results = FlowSocial?.searchPeople(query) || [];
+    if (results.length === 0) {
+      els.friendSearchResults.innerHTML = `<p class="empty-hint">Niemand gefunden.</p>`;
+      return;
+    }
+    els.friendSearchResults.innerHTML = results.slice(0, 6).map((p) => {
+      const friend = FlowSocial.isFriend(p.id);
+      return `
+        <div class="card-glass person-card">
+          <div class="person-card__avatar">${p.avatar}</div>
+          <div class="person-card__body">
+            <div class="person-card__name">${escapeHtml(p.name)}</div>
+            <div class="person-card__meta">Bestwert ${p.bestScore} Pkt.</div>
+          </div>
+          <button class="btn ${friend ? "btn-glass" : "btn-primary"} btn-sm" type="button" data-add-friend="${p.id}" ${friend ? "disabled" : ""}>${friend ? "✓ Freund" : "+ Freund"}</button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  els.friendSearchInput?.addEventListener("input", () => renderFriendSearch(els.friendSearchInput.value.trim()));
+
+  els.friendSearchResults?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-add-friend]");
+    if (!btn || btn.disabled) return;
+    const person = FlowSocial.getPerson(btn.dataset.addFriend);
+    if (!person) return;
+    FlowSocial.addFriend(person);
+    window.FlowSound?.playConfirm?.();
+    showToast(`👥 ${person.name} zu deinen Freunden hinzugefügt.`);
+    renderFriendSearch(els.friendSearchInput.value.trim());
+    renderFriends();
+  });
+
+  els.friendsList?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-remove-friend]");
+    if (!btn) return;
+    FlowSocial.removeFriend(btn.dataset.removeFriend);
+    window.FlowSound?.playClick?.();
+    renderFriends();
+  });
+
+  /* ---------------------------------------------------------------------
+     Datenschutz
+     --------------------------------------------------------------------- */
+  function renderPrivacy() {
+    const setToggle = (el, isOn) => {
+      if (!el) return;
+      el.classList.toggle("is-on", isOn);
+      el.setAttribute("aria-checked", String(isOn));
+    };
+    setToggle(els.privacyLeaderboardToggle, profile.privacy.showOnLeaderboard);
+    setToggle(els.privacyActivityToggle, profile.privacy.showActivityToFriends);
+  }
+
+  els.privacyLeaderboardToggle?.addEventListener("click", () => {
+    FlowProfile.setPrivacy(profile, "showOnLeaderboard", !profile.privacy.showOnLeaderboard);
+    window.FlowSound?.playToggle?.(profile.privacy.showOnLeaderboard);
+    renderPrivacy();
+  });
+  els.privacyActivityToggle?.addEventListener("click", () => {
+    FlowProfile.setPrivacy(profile, "showActivityToFriends", !profile.privacy.showActivityToFriends);
+    window.FlowSound?.playToggle?.(profile.privacy.showActivityToFriends);
+    renderPrivacy();
+  });
+
+  els.resetDataBtn?.addEventListener("click", () => {
+    if (els.resetDataBtn.dataset.confirming !== "true") {
+      els.resetDataBtn.dataset.confirming = "true";
+      els.resetDataBtn.textContent = "Wirklich ALLES löschen? Nochmal klicken zum Bestätigen";
+      setTimeout(() => {
+        if (els.resetDataBtn.dataset.confirming === "true") {
+          els.resetDataBtn.dataset.confirming = "false";
+          els.resetDataBtn.textContent = "Alle Daten löschen";
+        }
+      }, 4000);
+      return;
+    }
+    FlowProfile.resetAllLocalData();
+    window.location.href = "index.html";
+  });
+
   function renderAll() {
     renderHeader();
     renderStats();
     renderPremiumCard();
     renderBadges();
     renderOwnPosts();
+    renderFriends();
+    renderPrivacy();
   }
 
   /* ---------------------------------------------------------------------

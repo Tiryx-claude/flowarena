@@ -47,7 +47,11 @@ index.html (erstellen/beitreten)
   `tournament.js`), damit Host-Pfad und Join-Pfad denselben Code nutzen.
 - **Lobby**: Spieler-Karten poppen mit Plopp-Sound rein
   (`FlowSound.playPlop()`), wenn Bots hinzugefügt werden. Nur der Host sieht
-  "Turnier starten" (ab 2 Spieler:innen aktiv).
+  "Turnier starten" (ab 2 Spieler:innen aktiv). Zusätzlich zu zufälligen
+  Demo-Bots kann der Host über "👥 Freund einladen" gespeicherte Freund:innen
+  (siehe [`docs/SOCIAL.md`](SOCIAL.md)) mit echtem Namen/Avatar als
+  simulierte Mitspieler:in hinzufügen (`isFriendInvite`-Kennzeichnung statt
+  generischem Bot-Tag).
 - **Runden**: `FlowTournament.startTournament()` generiert **alle** Runden
   im Voraus über `FlowAI.rhyme.generateStanza()` — **eine Reim-Familie pro
   Runde, garantiert dieselben 5 Wörter für alle Teilnehmenden** dieser Runde

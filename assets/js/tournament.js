@@ -14,6 +14,7 @@
   const FlowProfile = window.FlowProfile;
   const FlowTournament = window.FlowTournament;
   const FlowCommunity = window.FlowCommunity;
+  const FlowSocial = window.FlowSocial;
 
   const appSettings = loadSettings(); // nur für soundEnabled (UI-Klicks, nicht der Beat selbst)
   let profile = FlowProfile.load();
@@ -56,6 +57,8 @@
     roomCodeValue: $("#roomCodeValue"),
     playerGrid: $("#playerGrid"),
     hostLobbyActions: $("#hostLobbyActions"),
+    inviteFriendBtn: $("#inviteFriendBtn"),
+    inviteFriendPanel: $("#inviteFriendPanel"),
     addBotsBtn: $("#addBotsBtn"),
     startTournamentBtn: $("#startTournamentBtn"),
     waitingHint: $("#waitingHint"),
@@ -146,7 +149,7 @@
       <div class="player-card ${p.isHost ? "is-host" : ""}">
         <div class="player-card__avatar">${p.avatar}</div>
         <div class="player-card__name">${escapeHtml(p.name)}</div>
-        <div class="player-card__tag">${p.isHost ? "👑 Host" : p.isBot ? "🤖 Bot (Demo)" : "Spieler:in"}</div>
+        <div class="player-card__tag">${p.isHost ? "👑 Host" : p.isFriendInvite ? "👥 Freund (Demo)" : p.isBot ? "🤖 Bot (Demo)" : "Spieler:in"}</div>
       </div>
     `).join("");
   }
@@ -164,6 +167,46 @@
       els.waitingHint.hidden = false;
     }
   }
+
+  function renderInvitePanel() {
+    if (!els.inviteFriendPanel) return;
+    const friends = FlowSocial?.loadFriends() || [];
+    const alreadyIn = new Set(tournament.players.map((p) => p.name));
+    const invitable = friends.filter((f) => !alreadyIn.has(f.name));
+
+    if (invitable.length === 0) {
+      els.inviteFriendPanel.innerHTML = `<p class="empty-hint" style="text-align:center;">${friends.length === 0 ? "Noch keine Freunde — füg welche in deinem Profil hinzu." : "Alle deine Freunde sind schon im Raum."}</p>`;
+      return;
+    }
+    els.inviteFriendPanel.innerHTML = invitable.map((f) => `
+      <div class="card-glass person-card">
+        <div class="person-card__avatar">${f.avatar}</div>
+        <div class="person-card__body"><div class="person-card__name">${escapeHtml(f.name)}</div></div>
+        <button class="btn btn-primary btn-sm" type="button" data-invite-friend="${f.id}">Einladen</button>
+      </div>
+    `).join("");
+  }
+
+  els.inviteFriendBtn?.addEventListener("click", () => {
+    els.inviteFriendPanel.hidden = !els.inviteFriendPanel.hidden;
+    if (!els.inviteFriendPanel.hidden) renderInvitePanel();
+    playIfEnabled(window.FlowSound?.playClick);
+  });
+
+  els.inviteFriendPanel?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-invite-friend]");
+    if (!btn) return;
+    const friends = FlowSocial?.loadFriends() || [];
+    const friend = friends.find((f) => f.id === btn.dataset.inviteFriend);
+    if (!friend) return;
+    const added = FlowTournament.addFriendPlayer(tournament.code, friend);
+    if (!added) return;
+    tournament = FlowTournament.loadTournament(tournament.code);
+    renderPlayerGrid();
+    renderInvitePanel();
+    els.startTournamentBtn.disabled = tournament.players.length < 2;
+    playIfEnabled(window.FlowSound?.playPlop);
+  });
 
   els.addBotsBtn?.addEventListener("click", () => {
     const added = FlowTournament.addBotPlayers(tournament.code, 1 + Math.floor(Math.random() * 2));
@@ -554,8 +597,23 @@
 
     const progress = FlowProfile.recordTournamentResult(profile, { code: tournament.code, won });
     refreshTopbar();
+
+    // Nur bei der ERSTEN Auswertung benachrichtigen (creditsEarned > 0), nicht
+    // bei jedem Neuladen des Finale-Screens (siehe Dedup in recordTournamentResult).
+    if (progress.creditsEarned > 0) {
+      const myRank = FlowTournament.computeStandings(tournament).findIndex((r) => r.id === FlowTournament.ME_ID) + 1;
+      window.FlowSocial?.addNotification({
+        icon: won ? "🏆" : "🎤",
+        text: won
+          ? `Du hast das Turnier ${tournament.code} gewonnen!`
+          : `Turnier ${tournament.code} beendet — Platz ${myRank} von ${standings.length}.`,
+      });
+    }
     if (progress.newBadges.length) {
       showToast(`🏅 Neues Abzeichen: ${progress.newBadges[0].name}!`);
+      progress.newBadges.forEach((b) => {
+        window.FlowSocial?.addNotification({ icon: b.icon, text: `Neues Abzeichen freigeschaltet: ${b.name}` });
+      });
     }
   }
 
