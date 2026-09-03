@@ -1,0 +1,281 @@
+/* =========================================================================
+   FlowArena — Shop Page (Modul 5: Shop, Premium, Credits & Werbung)
+   ========================================================================= */
+
+.shop-page {
+  padding-top: var(--sp-8);
+  padding-bottom: var(--sp-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  max-width: 900px;
+}
+
+.section-title {
+  font-size: var(--fs-md);
+  margin-bottom: var(--sp-4);
+}
+
+/* ---------- Sprung-Navigation ---------- */
+.shop-jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+
+.shop-jump-nav a {
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.shop-jump-nav a:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.shop-section__hint {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--sp-4);
+  max-width: 640px;
+}
+
+.shop-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--sp-3);
+}
+
+.shop-card {
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.shop-card:hover {
+  border-color: var(--border-strong);
+}
+
+.shop-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.shop-card__name {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.shop-card__meta {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.shop-card__action {
+  margin-top: auto;
+  padding-top: var(--sp-2);
+}
+
+/* ---------- Premium ---------- */
+.premium-hero {
+  padding: var(--sp-4) 0;
+}
+
+.premium-hero--active .premium-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  margin-bottom: var(--sp-3);
+}
+
+.premium-hero__price {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: var(--sp-4);
+}
+
+.premium-hero__price span {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  color: var(--text-dim);
+  -webkit-text-fill-color: var(--text-dim);
+}
+
+.premium-card__perks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.premium-card__perks li::before {
+  content: "✓ ";
+  color: var(--neon-blue);
+  font-weight: 700;
+}
+
+.premium-hero__no-advantage {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+.premium-card__note {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  margin-top: var(--sp-4);
+}
+
+/* ---------- Ball-Designs ---------- */
+.ball-card__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05), transparent 70%);
+  border-radius: var(--r-md);
+}
+
+.ball-swatch {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ball-gradient);
+  box-shadow: var(--ball-glow);
+}
+
+/* ---------- Belohnungen ---------- */
+.event-banner {
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--gradient-accent-soft);
+  border: 1px solid rgba(181, 55, 245, 0.35);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--sp-5);
+}
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+}
+
+@media (max-width: 640px) {
+  .rewards-grid { grid-template-columns: 1fr; }
+}
+
+.rewards-block__title {
+  font-size: var(--fs-sm);
+  margin-bottom: var(--sp-3);
+}
+
+.login-streak__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--sp-2);
+}
+
+.login-day {
+  padding: var(--sp-2) var(--sp-1);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: center;
+  opacity: 0.55;
+}
+
+.login-day.is-reached {
+  opacity: 1;
+  border-color: var(--border-strong);
+}
+
+.login-day.is-current {
+  opacity: 1;
+  border-color: var(--neon-purple);
+  background: linear-gradient(180deg, rgba(181, 55, 245, 0.16), rgba(41, 211, 255, 0.06));
+  box-shadow: var(--glow-purple);
+}
+
+.login-day__num {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+.login-day__reward {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.login-streak__caption {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  margin-top: var(--sp-3);
+}
+
+.weekly-progress {
+  height: 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.weekly-progress__fill {
+  height: 100%;
+  background: var(--gradient-accent);
+  border-radius: var(--r-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+/* ---------- Fairness-Hinweis ---------- */
+.fairness-note {
+  padding: var(--sp-5) var(--sp-6);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.fairness-note code {
+  background: var(--surface-strong);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: var(--fs-xs);
+}

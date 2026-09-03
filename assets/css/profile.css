@@ -230,3 +230,30 @@
   opacity: 0.45;
   filter: grayscale(0.6);
 }
+
+/* ---------- Ausrüstung (Ball-Design, Modul 5) ---------- */
+.equipped-ball {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.ball-swatch {
+  flex-shrink: 0;
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ball-gradient);
+  box-shadow: var(--ball-glow);
+}
+
+.equipped-ball__name {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.equipped-ball__desc {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}

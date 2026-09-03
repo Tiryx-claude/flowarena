@@ -88,6 +88,16 @@
     if (settings.soundEnabled && typeof fn === "function") fn();
   }
 
+  // Modul 5: aktives Ball-Design (Shop) anwenden — rein kosmetisch, siehe
+  // docs/SHOP.md. Eine Quelle für die Farbwerte (assets/js/data.js), hier
+  // nur als CSS-Variablen ans Ball-Element gereicht.
+  (function applyBallSkin() {
+    if (!els.gameBall) return;
+    const design = window.FlowData.findBallDesign(profile.activeBallDesignId);
+    els.gameBall.style.setProperty("--ball-gradient", design.gradient);
+    els.gameBall.style.setProperty("--ball-glow", design.glow);
+  })();
+
   function showScreen(name) {
     // Setzt display direkt (statt nur [hidden]), damit kein inline/CSS-Style
     // auf einzelnen Screens die Sichtbarkeitssteuerung überschreiben kann.
@@ -562,7 +572,14 @@
 
     if (els.creditsEarnedBadge && progress) {
       els.creditsEarnedBadge.hidden = false;
-      els.creditsEarnedBadge.textContent = `💎 +${progress.creditsEarned} Credits`;
+      els.creditsEarnedBadge.textContent = `💎 +${progress.creditsEarned} Credits${progress.weekendBonusApplied ? " (inkl. 🎉 Wochenend-Bonus)" : ""}`;
+    }
+
+    // Modul 5: Wochen-Challenge-Belohnung — eigene, kurze Benachrichtigung,
+    // unabhängig vom Abzeichen-Banner (kein Abzeichen, nur Credits).
+    if (progress?.weeklyChallenge?.completed) {
+      showToast(`🗓️ Wochen-Challenge geschafft: +${progress.weeklyChallenge.creditsReward} 💎 Credits!`);
+      window.FlowSocial?.addNotification({ icon: "🗓️", text: `Wochen-Challenge „${progress.weeklyChallenge.label}“ geschafft: +${progress.weeklyChallenge.creditsReward} Credits.` });
     }
 
     if (els.badgeUnlockBanner && progress?.newBadges?.length) {

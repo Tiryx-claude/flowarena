@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FlowArena — Shop</title>
+  <meta name="description" content="FlowArena Shop: Premium, Credits, Beats, Ball-Designs und Premium-Challenges — fair, ohne Pay-to-Win." />
+  <meta name="theme-color" content="#06060a" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23b537f5'/%3E%3Cstop offset='1' stop-color='%2329d3ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2306060a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='url(%23g)'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/tokens.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/beat-ball.css" />
+  <link rel="stylesheet" href="assets/css/community.css" />
+  <link rel="stylesheet" href="assets/css/social.css" />
+  <link rel="stylesheet" href="assets/css/shop.css" />
+  <link rel="stylesheet" href="assets/css/ads.css" />
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="nav__brand">
+      <span class="nav__logo" aria-hidden="true">🎤</span>
+      <span>Flow<span class="nav__brand-name">Arena</span></span>
+    </div>
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a class="nav__link" href="index.html">Home</a>
+      <a class="nav__link" href="#">Challenges</a>
+      <a class="nav__link" href="#">Beats</a>
+      <a class="nav__link" href="community.html">Community</a>
+    </nav>
+    <div class="nav__actions">
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
+      <div class="notif-wrap">
+        <button class="btn-icon" id="notifBellBtn" type="button" aria-label="Benachrichtigungen" title="Benachrichtigungen">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+        <div class="notif-dropdown" id="notifDropdown" hidden>
+          <div class="notif-dropdown__head"><span>Benachrichtigungen</span><button type="button" id="notifMarkReadBtn">Alle gelesen</button></div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <a class="btn-icon" href="profile.html" aria-label="Profil öffnen" title="Profil" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
+    </div>
+  </header>
+
+  <main class="page shop-page">
+    <h1 style="font-size:var(--fs-2xl); margin-bottom:var(--sp-2);">🛒 Shop</h1>
+    <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-2); max-width:640px;">
+      Premium, Credits, Beats, Ball-Designs und Premium-Challenges — übersichtlich, mit Vorschau und klaren Preisen.
+      Alles rein kosmetisch/komfortabel: <strong style="color:var(--text-muted);">nichts hier gibt dir einen Vorteil im
+      Wettbewerb</strong> — siehe <a href="#fairness" style="color:var(--neon-blue);">„Niemals Pay-to-Win“</a> unten.
+    </p>
+
+    <div class="shop-jump-nav">
+      <a href="#premium">👑 Premium</a>
+      <a href="#credits">💎 Credits</a>
+      <a href="#beats">🎵 Beats</a>
+      <a href="#balls">⚪ Ball-Designs</a>
+      <a href="#challenges">🏅 Premium-Challenges</a>
+      <a href="#rewards">🎁 Belohnungen</a>
+    </div>
+
+    <!-- ============ PREMIUM ============ -->
+    <section class="card-glass shop-section" id="premium">
+      <h2 class="section-title">👑 FlowArena Premium</h2>
+      <div id="premiumBlock"></div>
+    </section>
+
+    <!-- ============ CREDITS ============ -->
+    <section class="shop-section" id="credits">
+      <h2 class="section-title">💎 Credits kaufen</h2>
+      <p class="shop-section__hint">Credits kannst du auch kostenlos verdienen: tägliches Einloggen, wöchentliche Challenges, Turnierteilnahmen und Challenges abschließen — siehe <a href="#rewards" style="color:var(--neon-blue);">Belohnungen</a>.</p>
+      <div class="shop-grid-3" id="creditPackages"></div>
+    </section>
+
+    <!-- ============ BEATS ============ -->
+    <section class="shop-section" id="beats">
+      <h2 class="section-title">🎵 Beats</h2>
+      <p class="shop-section__hint">Premium-Beats sind mit Premium sofort dabei, oder einzeln per Credits freischaltbar.</p>
+      <div class="shop-grid-3" id="beatCatalog"></div>
+    </section>
+
+    <!-- ============ BALL-DESIGNS ============ -->
+    <section class="shop-section" id="balls">
+      <h2 class="section-title">⚪ Ball-Designs</h2>
+      <p class="shop-section__hint">Rein kosmetisch — dein Ball sieht anders aus, spielt sich aber exakt gleich. Zwei Designs sind Premium-exklusiv.</p>
+      <div class="shop-grid-3" id="ballCatalog"></div>
+    </section>
+
+    <!-- ============ PREMIUM-CHALLENGES ============ -->
+    <section class="shop-section" id="challenges">
+      <h2 class="section-title">🏅 Premium-Challenges</h2>
+      <p class="shop-section__hint">Kuratierte Beat/Thema-Kombinationen, exklusiv für Premium — gleiche Bewertung, gleiche Regeln wie jede andere Challenge.</p>
+      <div class="shop-grid-3" id="premiumChallengeCatalog"></div>
+    </section>
+
+    <!-- ============ BELOHNUNGEN ============ -->
+    <section class="card-glass shop-section" id="rewards">
+      <h2 class="section-title">🎁 Belohnungen</h2>
+      <div id="eventBanner"></div>
+      <div class="rewards-grid">
+        <div class="rewards-block">
+          <h3 class="rewards-block__title">📅 Tages-Login-Serie</h3>
+          <div class="login-streak" id="loginStreak"></div>
+          <p class="shop-section__hint" style="margin-top:var(--sp-3);">Jeden Tag einloggen verlängert die Serie — Tag 7 hat immer eine Chance auf ein neues Ball-Design.</p>
+        </div>
+        <div class="rewards-block">
+          <h3 class="rewards-block__title">🗓️ Wochen-Challenge</h3>
+          <div id="weeklyChallengeBlock"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAIRNESS ============ -->
+    <section class="shop-section" id="fairness">
+      <div class="fairness-note">
+        <h2 class="section-title" style="margin-bottom:var(--sp-2);">⚖️ Niemals Pay-to-Win</h2>
+        <p>
+          Premium und Credits kaufen dir <strong>nie</strong> leichtere Reimwörter, eine großzügigere Bewertung oder
+          einen Zeitvorteil im Beat. Sie kaufen Komfort (mehr Strophen), Zugriff (Beats/Challenges), Kosmetik
+          (Ball-Designs) und Werbefreiheit — der eigentliche Wettbewerb (Score, Turniere, Rangliste) bleibt für
+          Free- und Premium-Accounts exakt gleich fair. Details: <code>docs/SHOP.md</code>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/sound.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/profile-data.js"></script>
+  <script src="assets/js/community-data.js"></script>
+  <script src="assets/js/social-data.js"></script>
+  <script src="assets/js/daily-rewards.js"></script>
+  <script src="assets/js/shop.js"></script>
+  <script src="assets/js/notifications-ui.js"></script>
+  <script src="assets/js/ads.js"></script>
+</body>
+</html>

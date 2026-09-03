@@ -103,6 +103,15 @@
   }
   refreshTopbar();
 
+  // Modul 5: aktives Ball-Design (Shop) anwenden — siehe challenge.js für
+  // dieselbe Logik (bewusst dupliziert statt geteilt, siehe docs/TOURNAMENTS.md §5).
+  (function applyBallSkin() {
+    if (!els.gameBall) return;
+    const design = window.FlowData.findBallDesign(profile.activeBallDesignId);
+    els.gameBall.style.setProperty("--ball-gradient", design.gradient);
+    els.gameBall.style.setProperty("--ball-glow", design.glow);
+  })();
+
   /* ---------------------------------------------------------------------
      Turnier laden / beitreten
      --------------------------------------------------------------------- */
@@ -602,11 +611,12 @@
     // bei jedem Neuladen des Finale-Screens (siehe Dedup in recordTournamentResult).
     if (progress.creditsEarned > 0) {
       const myRank = FlowTournament.computeStandings(tournament).findIndex((r) => r.id === FlowTournament.ME_ID) + 1;
+      const bonusNote = progress.weekendBonusApplied ? " (inkl. 🎉 Wochenend-Bonus)" : "";
       window.FlowSocial?.addNotification({
         icon: won ? "🏆" : "🎤",
-        text: won
+        text: (won
           ? `Du hast das Turnier ${tournament.code} gewonnen!`
-          : `Turnier ${tournament.code} beendet — Platz ${myRank} von ${standings.length}.`,
+          : `Turnier ${tournament.code} beendet — Platz ${myRank} von ${standings.length}.`) + ` +${progress.creditsEarned} 💎${bonusNote}`,
       });
     }
     if (progress.newBadges.length) {
@@ -614,6 +624,11 @@
       progress.newBadges.forEach((b) => {
         window.FlowSocial?.addNotification({ icon: b.icon, text: `Neues Abzeichen freigeschaltet: ${b.name}` });
       });
+    }
+    // Modul 5: kosmetischer Bonus bei einem Sieg (Chance auf ein neues
+    // Ball-Design, siehe FlowProfile.maybeAwardCosmetic).
+    if (progress.cosmeticReward) {
+      window.FlowSocial?.addNotification({ icon: "🎨", text: `Bonus-Belohnung: Ball-Design „${progress.cosmeticReward.name}“ freigeschaltet!` });
     }
   }
 

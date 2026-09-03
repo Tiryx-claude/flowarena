@@ -58,6 +58,13 @@
     const boxes = $$(".preview-box");
     if (!track || !ball || !boxes.length) return;
 
+    // Modul 5: die Vorschau zeigt dasselbe Ball-Design, das im echten
+    // Gameplay aktiv ist — ein kleiner, ehrlicher Vorgeschmack auf den
+    // eigenen Shop-Look statt eines rein dekorativen Standard-Balls.
+    const equippedDesign = window.FlowData.findBallDesign(FlowProfile.load().activeBallDesignId);
+    ball.style.setProperty("--ball-gradient", equippedDesign.gradient);
+    ball.style.setProperty("--ball-glow", equippedDesign.glow);
+
     const DEMO_BPM = 100;
     const secPerHop = 60 / DEMO_BPM; // ein Kästchen pro Beat
     const hopCount = boxes.length; // inkl. Rücksprung vom letzten zum ersten

@@ -11,9 +11,12 @@ diesem Modul lebt in `localStorage` — pro Browser, pro Gerät:
   seedet ein paar klar fiktive Beispiel-Posts (keine echten Personen) und
   ergänzt sie um das, was DU in diesem Browser veröffentlichst.
 - **Kein echtes Premium/keine Zahlung.** Der "Premium aktivieren"-Button in
-  [`profile.html`](../profile.html) ist ein reiner Demo-Schalter — es werden
-  nirgends Zahlungsdaten abgefragt, verarbeitet oder abgebucht. Das ist
-  bewusst so (Zahlungsflüsse gehören nicht in einen Client-only-Prototyp).
+  [`profile.html`](../profile.html)/[`shop.html`](../shop.html) ist ein reiner
+  Demo-Schalter — es werden nirgends Zahlungsdaten abgefragt, verarbeitet
+  oder abgebucht. Das ist bewusst so (Zahlungsflüsse gehören nicht in einen
+  Client-only-Prototyp). Der vollständige Premium/Credits/Shop-Ausbau
+  (Ball-Designs, Credits-Käufe, Belohnungen, Werbung) ist in
+  [`docs/SHOP.md`](SHOP.md) dokumentiert (Modul 5).
 
 Sobald ein echtes Backend existiert (Modul 5+), ersetzen `/api/profile`,
 `/api/posts`, `/api/payments` diese lokalen Stores 1:1 — die aufrufenden

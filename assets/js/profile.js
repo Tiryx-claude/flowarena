@@ -25,6 +25,7 @@
     statGrid: $("#statGrid"),
     premiumCard: $("#premiumCard"),
     badgeGrid: $("#badgeGrid"),
+    equippedBall: $("#equippedBall"),
     ownPosts: $("#ownPosts"),
     friendSearchInput: $("#friendSearchInput"),
     friendSearchResults: $("#friendSearchResults"),
@@ -124,6 +125,18 @@
         </div>
       `;
     }).join("");
+  }
+
+  function renderEquippedBall() {
+    if (!els.equippedBall) return;
+    const design = window.FlowData.findBallDesign(profile.activeBallDesignId);
+    els.equippedBall.innerHTML = `
+      <span class="ball-swatch" style="--ball-gradient:${design.gradient}; --ball-glow:${design.glow};"></span>
+      <div>
+        <div class="equipped-ball__name">${escapeHtml(design.name)}</div>
+        <div class="equipped-ball__desc">${escapeHtml(design.desc)}</div>
+      </div>
+    `;
   }
 
   function renderOwnPosts() {
@@ -267,6 +280,7 @@
     renderStats();
     renderPremiumCard();
     renderBadges();
+    renderEquippedBall();
     renderOwnPosts();
     renderFriends();
     renderPrivacy();
