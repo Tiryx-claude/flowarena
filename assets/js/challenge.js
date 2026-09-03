@@ -7,9 +7,10 @@
      letzte. Die KI liefert NUR diese Endwörter, nie Text/Zeilen/Strophen.
    - Der Spieler tippt nichts — es gibt kein Texteingabefeld. Er rappt live
      ins Mikrofon; die Website zeigt nur die Endwörter an.
-   - Zeilenwechsel, Ball-/Männchen-Animation und Beat-Klick-Track laufen
-     alle auf DERSELBEN Uhr (assets/js/beat-clock.js, AudioContext-Zeit) —
-     kein setInterval/CSS-Timing, kein Drift über die Challenge hinweg.
+   - Zeilenwechsel, Ball-Animation (Bounce + Sprung + Funken) und
+     Beat-Klick-Track laufen alle auf DERSELBEN Uhr (assets/js/beat-clock.js,
+     AudioContext-Zeit) — kein setInterval/CSS-Timing, kein Drift über die
+     Challenge hinweg.
    - Jede neue Strophe bekommt eine neue Reim-Familie (nie dieselbe wie eine
      vorherige Strophe in dieser Challenge, bis der Vorrat erschöpft ist).
 
@@ -78,10 +79,10 @@
     publishBtn: $("#publishBtn"),
     retryBtn: $("#retryBtn"),
     toast: $("#toast"),
+    wordRackWrap: $("#wordRackWrap"),
+    gameBall: $("#gameBall"),
+    gameSparkLayer: $("#gameSparkLayer"),
   };
-
-  const figureEls = $$("#beatFigures .beat-figure");
-  const barEls = $$("#beatVisualizer .beat-visualizer__bar");
 
   function playIfEnabled(fn) {
     if (settings.soundEnabled && typeof fn === "function") fn();
@@ -168,8 +169,8 @@
   }
 
   /* ---------------------------------------------------------------------
-     BeatClock — EINE Uhr für Beat-Klicks, Ball-/Männchen-Animation UND
-     Zeilenwechsel. Siehe assets/js/beat-clock.js für die Drift-Begründung.
+     BeatClock — EINE Uhr für Beat-Klicks, Ball-Animation UND Zeilenwechsel.
+     Siehe assets/js/beat-clock.js für die Drift-Begründung.
      --------------------------------------------------------------------- */
   let clock = null;
   let rafId = null;
@@ -195,26 +196,47 @@
   }
 
   /* ---------------------------------------------------------------------
-     Visuelle Beat-Synchronisation: Ball/Männchen + Balken, direkt aus der
-     BeatClock-Phase berechnet (kein CSS-Keyframe-Timer, siehe challenge.css).
+     Visuelle Beat-Synchronisation: EIN weißer Ball hüpft BPM-genau auf dem
+     gerade aktiven Wort-Kästchen (vertikal, jeden einzelnen Beat) und
+     springt exakt beim Zeilenwechsel zum nächsten Kästchen (horizontal) —
+     Funken + Magma-Glow markieren die Landung. Bewusst NUR ein Element statt
+     mehrerer Figuren/Balken: klares, unabgelenktes Rhythmusgefühl. Alles
+     direkt aus der BeatClock-Phase berechnet (kein CSS-Keyframe-Timer),
+     siehe assets/css/beat-ball.css + challenge.css.
      --------------------------------------------------------------------- */
-  function updateFigures(phase) {
-    figureEls.forEach((el, i) => {
-      const local = phase - i * 0.14;
-      const frac = ((local % 1) + 1) % 1;
-      const bounce = Math.sin(frac * Math.PI);
-      el.style.transform = `translateY(${(-22 * bounce).toFixed(1)}px) scaleY(${(1 + 0.08 * bounce).toFixed(3)})`;
+  const BALL_BOUNCE_HEIGHT = 26;
+  const BALL_RADIUS = 10;
+  let boxCenters = [];
+  let measureResizeTimer = null;
+
+  function measureBoxCenters() {
+    if (!els.wordRackWrap) return;
+    const wrapRect = els.wordRackWrap.getBoundingClientRect();
+    boxCenters = $$("#wordRack .word-slot").map((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left - wrapRect.left + r.width / 2, y: r.top - wrapRect.top };
     });
   }
 
-  function updateBeatBars(phase) {
-    barEls.forEach((el, i) => {
-      const local = phase - i * 0.09;
-      const frac = ((local % 1) + 1) % 1;
-      const bounce = Math.sin(frac * Math.PI);
-      el.style.height = `${(14 + 24 * bounce).toFixed(1)}px`;
-      el.style.opacity = (0.5 + 0.4 * bounce).toFixed(2);
-    });
+  window.addEventListener("resize", () => {
+    clearTimeout(measureResizeTimer);
+    measureResizeTimer = setTimeout(measureBoxCenters, 150);
+  });
+
+  function updateBall(phase, lineInStanza) {
+    if (!els.gameBall || !boxCenters.length) return;
+    const target = boxCenters[lineInStanza] || boxCenters[boxCenters.length - 1];
+    if (!target) return;
+    const frac = ((phase % 1) + 1) % 1;
+    const bounce = Math.sin(frac * Math.PI);
+    const y = target.y - BALL_BOUNCE_HEIGHT * bounce;
+    els.gameBall.style.transform = `translate(${(target.x - BALL_RADIUS).toFixed(1)}px, ${(y - BALL_RADIUS * 2).toFixed(1)}px)`;
+  }
+
+  function spawnLandingSparks(lineInStanza) {
+    const target = boxCenters[lineInStanza];
+    if (!target) return;
+    window.FlowSparkFX?.spawnSparks(els.gameSparkLayer, target.x, target.y + 6, { count: 9, minDist: 18, maxDist: 34 });
   }
 
   /* ---------------------------------------------------------------------
@@ -297,8 +319,6 @@
     function frame() {
       if (!clock || !clock.running) return;
       const phase = clock.currentBeatPhase();
-      updateFigures(phase);
-      updateBeatBars(phase);
 
       const lineStart = clock.lineTime(globalLineIndex);
       const lineEnd = clock.lineTime(globalLineIndex + 1);
@@ -311,8 +331,12 @@
       if (displayedLineIndex !== globalLineIndex && resolvedStanzas[stanzaIndex]) {
         renderVerseBadge(stanzaIndex);
         renderWordRack(stanzaIndex, lineInStanza);
+        measureBoxCenters(); // Kästchen-Positionen frisch nach dem Rendern messen
+        spawnLandingSparks(lineInStanza); // Ball "landet" auf dem neuen Kästchen
         displayedLineIndex = globalLineIndex;
       }
+
+      updateBall(phase, lineInStanza);
 
       if (!finished && clock.now() >= lineEnd) {
         advancePastLine(stanzaIndex, lineInStanza);
@@ -385,6 +409,9 @@
     showScreen("live");
     renderVerseBadge(0);
     renderWordRack(0, 0);
+    measureBoxCenters();
+    spawnLandingSparks(0);
+    displayedLineIndex = 0; // initiales Rendern schon erledigt — Frame-Loop soll es nicht wiederholen
     startBeatClock();
 
     if (micGranted) {

@@ -75,11 +75,27 @@ derselben Uhr, nach der der Web-Audio-Scheduler selbst Töne abspielt:
   Vorausschau) sample-genau eingeplant (`osc.start(audioTime)`), statt sofort
   abgespielt zu werden.
 - `currentBeatPhase()` liefert jeden Frame frisch die aktuelle Beat-Phase
-  (z.B. `2.4` = 40% durch Beat 2) — Basis für die Ball-/Männchen-Animation.
+  (z.B. `2.4` = 40% durch Beat 2) — Basis für die Ball-Animation.
 - **Ein** `requestAnimationFrame`-Loop in `challenge.js` liest diese Uhr pro
-  Frame und treibt drei Dinge synchron an: Ball-/Männchen-Position, die
+  Frame und treibt drei Dinge synchron an: Ball-Position, die
   Zeilen-Timer-Leiste, und den Zeilenwechsel-Check
   (`clock.now() >= clock.lineTime(n+1)`).
+
+**Ball-Verhalten (Modul-2-Rewrite):** Statt mehrerer dekorativer Figuren/
+Balken gibt es genau **ein** Element — einen weißen Ball
+(`assets/css/beat-ball.css`), der auf dem aktuell aktiven Wort-Kästchen
+**jeden einzelnen Beat** hoch- und runterhüpft (vertikal, aus
+`currentBeatPhase() % 1`) und **exakt beim Zeilenwechsel** zum nächsten
+Kästchen springt (horizontal, `updateBall()` in `challenge.js`). Die
+Kästchen-Positionen werden per `getBoundingClientRect()` gemessen
+(`measureBoxCenters()`), einmalig direkt nach jedem Zeilenwechsel-Render —
+`.word-slot` transitioniert deshalb bewusst **nur** paint-Eigenschaften
+(Farbe/Schatten/Transform), nie layoutverändernde wie `font-size`/`padding`,
+damit die gemessene Position stabil bleibt und die Reihe nicht "hüpft". Bei
+jeder Landung: **Funken** (`assets/js/spark-fx.js`) + das Kästchen glüht wie
+**Magma** (`--magma-*`-Variablen, geteilt mit der Homepage-Vorschau, siehe
+`docs/DESIGN_SYSTEM.md`). Bewusst nur EIN Anker statt mehrerer bewegter
+Elemente — klares Rhythmusgefühl ohne Ablenkung vom eigentlichen Rap.
 
 Der Beat-Klick-Track selbst ist weiterhin ein **synthetischer Platzhalter**
 (`FlowSound.playBeatTick`, siehe `assets/js/sound.js`) — es liegen noch keine
@@ -126,9 +142,13 @@ einfach als weiterer Eintrag in `BEATS` ergänzt.
 ## 9. Aufnahme, Live-Transkript, Auswertung
 
 - **Aufnahme**: `MediaRecorder` (Browser-nativ) zeichnet Mikrofon-Audio als
-  `audio/webm`-Blob auf, von Challenge-Start bis Challenge-Ende. Abspielbar,
-  herunterladbar (`<a download>`), "veröffentlichen" ist ein Platzhalter
-  (Modul 5: Publish-Flow).
+  `audio/webm`-Blob auf. Beginnt automatisch mit dem Beat (kein manueller
+  Start), endet automatisch nach der letzten Zeile der letzten Strophe
+  (`finishChallenge()` stoppt Recorder + Speech-Recognition + BeatClock im
+  selben Zug). Abspielbar, herunterladbar (`<a download>`), veröffentlichbar
+  in den lokalen Community-Feed (`FlowCommunity.addPost`, siehe
+  `docs/COMMUNITY.md`) — die Audiodatei selbst bleibt dabei lokal auf dem
+  Ergebnis-Screen, nur Text/Score landen im Post (siehe dort, Abschnitt 6).
 - **Live-Transkript**: `SpeechRecognition`/`webkitSpeechRecognition` (Web
   Speech API), nur zur Nachbearbeitung — NICHT die Eingabemethode während des
   Spiels. Ohne Unterstützung/Freigabe: sauberer Fallback, die Challenge bleibt
@@ -158,3 +178,31 @@ FlowAI.evaluation.evaluate({ transcript, difficulty, topic, totalVerses,
 
 Details, Content-Policy (Roast-Modus) und Upgrade-Pfad:
 [`docs/AI_ARCHITECTURE.md`](AI_ARCHITECTURE.md).
+
+## 11. Grundlage für Turniere, Community & Shop
+
+Der Challenge-Ablauf ist so geschnitten, dass er von genau EINER
+Einstellungsquelle (`loadSettings()`, aktuell `localStorage`) startet und mit
+genau EINEM Ergebnis-Objekt endet (`result` aus
+`FlowAI.evaluation.evaluate(...)`, siehe Abschnitt 10) — das ist der
+Anschlusspunkt für alles, was später darauf aufbaut:
+
+- **Community** (bereits verdrahtet): `finishChallenge()` → `renderResults()`
+  → Klick auf "Veröffentlichen" → `FlowCommunity.addPost({ authorName,
+  authorAvatar, topic, beatName, bpm, overall, excerpt })` — landet im Feed
+  auf `community.html` und im eigenen Profil. Siehe `docs/COMMUNITY.md`.
+- **Shop/Credits** (bereits verdrahtet): direkt im Anschluss an die
+  Bewertung ruft `finishChallenge()` `FlowProfile.recordChallengeResult(...)`
+  auf — vergibt Credits, aktualisiert Stats, prüft neue Abzeichen. Der Shop
+  (`index.html`-Panel + `profile.html`) liest/schreibt denselben
+  `FlowProfile`-Store, komplett unabhängig vom Challenge-Ablauf selbst.
+- **Turniere** (noch nicht gebaut, aber vorbereitet): Ein künftiger
+  Turnier-Modus müsste nur (a) `loadSettings()` durch turniervorgegebene
+  Werte ersetzen (Beat/Thema/Schwierigkeit/Strophen vom Turnier statt aus
+  den lokalen Settings) und (b) in `finishChallenge()` zusätzlich zum
+  bestehenden `recordChallengeResult()`-Aufruf das `result`-Objekt an einen
+  Turnier-Endpunkt/-Store melden (analog zu `FlowCommunity.addPost`) — die
+  komplette Strophen-/Zeilen-/BeatClock-/Bewertungs-Logik bliebe unverändert
+  wiederverwendbar. Genau dafür ist `challenge.js` bewusst NICHT an die
+  Startseiten-Einstellungen gekoppelt, sondern nur an die Werte, die
+  `loadSettings()` zurückgibt.

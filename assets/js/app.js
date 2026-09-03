@@ -50,7 +50,6 @@
     startChallengeBtn: $("#startChallengeBtn"),
     quickChips: $("#quickSettingsChips"),
     toast: $("#toast"),
-    beatFigures: $("#beatFigures"),
     creditsValue: $("#creditsValue"),
     profileAvatarLink: $("#profileAvatarLink"),
   };
@@ -117,13 +116,6 @@
     renderToggle(els.roastToggle, state.roastMode);
   }
 
-  function renderBeatAnimation() {
-    const bpm = currentBeat().bpm;
-    const beatMs = Math.round(60000 / bpm);
-    // Ein "Sprung"-Zyklus dauert zwei Beats, wirkt organischer als 1:1
-    document.documentElement.style.setProperty("--beat-dur", `${beatMs * 2}ms`);
-  }
-
   function renderQuickChips() {
     if (!els.quickChips) return;
     const beat = currentBeat();
@@ -147,7 +139,6 @@
     renderVerses();
     renderTopic();
     renderToggles();
-    renderBeatAnimation();
     renderQuickChips();
     renderProfileBits();
   }
@@ -221,7 +212,6 @@
     state.beatId = beat.id;
     playIfEnabled(window.FlowSound?.playSelect);
     renderBeatList();
-    renderBeatAnimation();
     renderQuickChips();
   });
 

@@ -76,20 +76,7 @@
     });
 
     function spawnSparks(x, y) {
-      if (!sparkLayer) return;
-      const n = 7;
-      for (let i = 0; i < n; i++) {
-        const s = document.createElement("span");
-        s.className = "pv-spark";
-        const angle = (Math.PI * 2 * i) / n + Math.random() * 0.4;
-        const dist = 16 + Math.random() * 14;
-        s.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
-        s.style.setProperty("--dy", `${Math.sin(angle) * dist - 6}px`);
-        s.style.left = `${x}px`;
-        s.style.top = `${y}px`;
-        sparkLayer.appendChild(s);
-        setTimeout(() => s.remove(), 500);
-      }
+      window.FlowSparkFX?.spawnSparks(sparkLayer, x, y, { count: 7, minDist: 16, maxDist: 30 });
     }
 
     let lastLandedIndex = -1;

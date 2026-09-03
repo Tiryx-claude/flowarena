@@ -70,12 +70,14 @@ auf dunklem Grund flach.
   (Buttons, Cards), `--dur-slow 600ms` (Drawer-Slide).
 - Easing: `--ease-out` für UI-Übergänge, `--ease-spring` für Elemente, die
   "lebendig" wirken sollen (Buttons, Toggle-Thumb).
-- **Beat-synchrone Animation:** Die Figuren in `.beat-figures` springen im Takt
-  des aktuell gewählten Beats. JS berechnet `--beat-dur = 60000 / BPM * 2` und
-  setzt es als CSS-Variable — die Keyframe-Animation `figure-jump` läuft mit
-  gestaffeltem `animation-delay` pro Figur, wodurch eine "Line-to-Line"-Wellenbewegung
-  entsteht. Das ist bewusst **dezent** (kein Screen-Shake, keine grellen Blitze),
-  aber durch die konstante Bewegung **spürbar**.
+- **Beat-synchrone Animation:** Ein weißer Ball hüpft im Takt des gewählten
+  Beats über die Wort-Kästchen (Homepage: dekorative Vorschau, `home.js`;
+  echtes Spiel: BPM-exakt aus der `BeatClock`, `challenge.js`) — kein
+  CSS-`animation-duration`-Trick mehr, sondern jeden Frame direkt aus der
+  Zeit berechnet. Details: `docs/GAMEPLAY.md`, Abschnitt 5, und Abschnitt 11
+  weiter unten in diesem Dokument. Das ist bewusst **dezent** (kein
+  Screen-Shake, keine grellen Blitze), aber durch die konstante Bewegung
+  **spürbar**.
 - `prefers-reduced-motion: reduce` wird respektiert (globale Regel in `base.css`).
 
 ## 8. Sound-Richtlinien
@@ -136,11 +138,17 @@ ein Hub statt einer reinen Landingpage:
 - **Gameplay-Vorschau** (`.gameplay-preview`): ein weißer Ball hüpft
   BPM-getaktet über 5 Wort-Kästchen (dieselbe Zahl/Anordnung wie das
   echte Word-Rack im Spiel, siehe `docs/GAMEPLAY.md`), rein dekorativ und
-  ohne Audio. Getroffene Kästchen **glühen wie Magma** (Orange/Rot-Gradient,
-  `.preview-box.is-hit` in `home.css`) — eine bewusste, lokal begrenzte
-  Ausnahme von der sonst durchgängigen Lila/Blau-Akzentfarbe, weil "Magma"
-  explizit als eigenständiges visuelles Signal gewünscht war. Bei Kontakt
-  spawnen kurze Funken-Partikel (`.pv-spark`).
+  ohne Audio. Getroffene Kästchen **glühen wie Magma** (Orange/Rot-Gradient)
+  — eine bewusste Ausnahme von der sonst durchgängigen Lila/Blau-Akzentfarbe,
+  weil "Magma" explizit als eigenständiges visuelles Signal gewünscht war.
+  Bei Kontakt spawnen kurze Funken-Partikel.
+- Ball, Funken und Magma-Glow sind **kein reines Marketing-Bild**: Seit
+  Modul 2 (überarbeitet) nutzt die echte Challenge-Bühne (`challenge.html`)
+  exakt dieselbe visuelle Sprache — geteilte Bausteine in
+  `assets/css/beat-ball.css` (Ball/Funken-Styles, `--magma-*`-Variablen) und
+  `assets/js/spark-fx.js` (Funken-Partikel-Logik), damit Vorschau und
+  tatsächliches Gameplay optisch identisch wirken. Details:
+  `docs/GAMEPLAY.md`, Abschnitt 5.
 
 ## 12. Geplante Migration nach Tailwind/Next.js
 

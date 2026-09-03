@@ -36,14 +36,16 @@ assets/css/base.css            Reset + globale Styles
 assets/css/components.css      Buttons, Cards, Toggles, Drawer, …
 assets/css/layout.css          Nav, Hero, Beat-Animation, Footer
 assets/css/challenge.css       Countdown, Word-Rack, Ergebnis-Screen
+assets/css/beat-ball.css        Geteilt: Ball + Funken + Magma-Variablen (Vorschau UND echtes Gameplay)
 assets/css/profile.css          Profil-Layout (Avatar, Stats, Badges, Premium)
 assets/css/community.css        Post-Karten, Feed, Rangliste
-assets/css/home.css             Menü-Akkordeon, Panels, Gameplay-Vorschau (Ball + Magma-Kästchen)
+assets/css/home.css             Menü-Akkordeon, Panels, Gameplay-Vorschau
 assets/js/data.js              Gemeinsame Daten (Beats, Themen, Settings, GAMEPLAY_CONFIG)
 assets/js/app.js               Startseiten-State, Rendering, Event-Handling
 assets/js/home.js               Menü-Akkordeon-Logik, Gameplay-Vorschau-Animation, Mini-Panels
+assets/js/spark-fx.js           Geteilte Funken-Partikel-Logik (Vorschau + echtes Gameplay)
 assets/js/beat-clock.js         BeatClock: drift-freie BPM-Uhr (AudioContext-basiert)
-assets/js/challenge.js         Spielablauf-State-Machine, Word-Rack, Aufnahme, Ergebnis-Inszenierung
+assets/js/challenge.js         Spielablauf-State-Machine, Ball-Animation, Aufnahme, Ergebnis-Inszenierung
 assets/js/rhyme-engine.js       Kuratierte Reimwort-Datenbank (Daten für den lokalen Provider)
 assets/js/ai/registry.js        KI-Provider-Interfaces (RhymeProvider, EvaluationProvider, SpeechProvider)
 assets/js/ai/rhyme-provider.local.js       Reimwörter — lokale Heuristik
@@ -117,7 +119,7 @@ Die Tailwind-Migration der Design-Tokens ist bereits in
 ## Modul-Roadmap
 
 1. ✅ Design-System & UI (Startseite, Einstellungen, Sound, Animation)
-2. ✅ Spielablauf & Reimlogik (Countdown, Strophen/Zeilen, Aufnahme, Platzhalter-Bewertung)
+2. ✅ Spielablauf & Reimlogik (Countdown, Strophen/Zeilen, BPM-Ball mit Funken/Magma-Glow, automatische Aufnahme)
 3. ✅ KI-Architektur (Reimwörter, 8-dimensionale Bewertung, STT, Roast-Modus — austauschbare Provider, aktuell lokale Heuristiken)
 4. ✅ Community, Profile, Premium & Credits (lokal — kein echtes Backend, siehe docs/COMMUNITY.md)
 5. ⏭️ Datenbank/Prisma-Setup + Auth (macht Profile/Posts/Payments echt statt lokal)

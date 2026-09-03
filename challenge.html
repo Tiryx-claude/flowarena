@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/components.css" />
   <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/beat-ball.css" />
   <link rel="stylesheet" href="assets/css/challenge.css" />
 </head>
 <body>
@@ -60,37 +61,17 @@
           <span class="badge" id="verseBadge">Strophe 1 · Reimschema</span>
         </div>
 
-        <p class="live-hint">Rap jede Zeile frei — beende sie mit dem markierten Wort.</p>
+        <p class="live-hint">Rap jede Zeile frei — beende sie mit dem markierten Wort. Der Ball zeigt dir den Takt.</p>
 
-        <div class="beat-figures" id="beatFigures" aria-hidden="true">
-          <span class="beat-figure">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#b537f5"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#b537f5"/></svg>
-          </span>
-          <span class="beat-figure">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#8b5cf6"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#8b5cf6"/></svg>
-          </span>
-          <span class="beat-figure">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#7a6cf0"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#7a6cf0"/></svg>
-          </span>
-          <span class="beat-figure">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#3ba7ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#3ba7ff"/></svg>
-          </span>
-          <span class="beat-figure">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="9" r="6" fill="#29d3ff"/><rect x="12" y="17" width="16" height="18" rx="8" fill="#29d3ff"/></svg>
-          </span>
-        </div>
-
-        <div class="word-rack" id="wordRack">
-          <!-- 5 Endwörter (eins pro Zeile) werden per JS eingefügt -->
+        <div class="word-rack-wrap" id="wordRackWrap">
+          <div class="word-rack" id="wordRack">
+            <!-- 5 Endwörter (eins pro Zeile) werden per JS eingefügt -->
+          </div>
+          <div class="beat-ball" id="gameBall" aria-hidden="true"></div>
+          <div class="spark-layer" id="gameSparkLayer" aria-hidden="true"></div>
         </div>
 
         <div class="line-timer" id="lineTimerWrap"><div class="line-timer__fill" id="lineTimerFill"></div></div>
-
-        <div class="beat-visualizer" id="beatVisualizer" aria-hidden="true">
-          <span class="beat-visualizer__bar"></span><span class="beat-visualizer__bar"></span>
-          <span class="beat-visualizer__bar"></span><span class="beat-visualizer__bar"></span>
-          <span class="beat-visualizer__bar"></span><span class="beat-visualizer__bar"></span>
-        </div>
 
         <button class="stage-exit" id="abortBtn" type="button">Challenge abbrechen</button>
       </section>
@@ -160,6 +141,7 @@
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>
   <script src="assets/js/community-data.js"></script>
+  <script src="assets/js/spark-fx.js"></script>
   <script src="assets/js/beat-clock.js"></script>
   <script src="assets/js/rhyme-engine.js"></script>
   <script src="assets/js/ai/registry.js"></script>

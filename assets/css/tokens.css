@@ -88,9 +88,6 @@
   --dur-med: 280ms;
   --dur-slow: 600ms;
 
-  /* vom Beat abgeleitete Animationsdauer (JS setzt diesen Wert live) */
-  --beat-dur: 640ms;
-
   /* ---------- Breakpoints (Referenz, für JS/Kommentare) ---------- */
   --bp-mobile: 480px;
   --bp-tablet: 768px;

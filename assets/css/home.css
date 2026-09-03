@@ -49,54 +49,18 @@
   transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 
-/* "glüht wie Magma", wenn der Ball auftrifft (per JS getriggert) */
+/* "glüht wie Magma", wenn der Ball auftrifft (per JS getriggert) —
+   Farbwerte kommen aus assets/css/beat-ball.css (geteilt mit der echten
+   Challenge-Bühne, damit Vorschau und Gameplay optisch identisch sind). */
 .preview-box.is-hit {
-  color: #fff4e0;
-  background: linear-gradient(180deg, #ff8a3d, #ff3d1f 70%);
-  border-color: #ffb066;
-  box-shadow:
-    0 0 22px rgba(255, 106, 0, 0.75),
-    0 0 48px rgba(255, 45, 0, 0.4),
-    inset 0 0 18px rgba(255, 210, 120, 0.5);
+  color: var(--magma-text);
+  background: var(--magma-bg);
+  border-color: var(--magma-border);
+  box-shadow: var(--magma-glow);
   transform: translateY(-3px) scale(1.08);
 }
 
-.preview-ball {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffffff, #e4e6f5 55%, #b9bcd6 100%);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 28px rgba(255, 255, 255, 0.5);
-  will-change: transform;
-  pointer-events: none;
-}
-
-.spark-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.pv-spark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff5da, #ffb04d 60%, transparent 100%);
-  box-shadow: 0 0 8px rgba(255, 170, 60, 0.9);
-  opacity: 1;
-  animation: pv-spark-fly 480ms ease-out forwards;
-}
-
-@keyframes pv-spark-fly {
-  0% { opacity: 1; transform: translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
-}
+/* .beat-ball, .spark-layer, .pv-spark → assets/css/beat-ball.css */
 
 .preview-caption {
   max-width: 460px;
