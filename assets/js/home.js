@@ -9,9 +9,14 @@
   const { BEATS, findTopicLabel } = window.FlowData;
   const FlowProfile = window.FlowProfile;
   const FlowCommunity = window.FlowCommunity;
+  const FlowTournament = window.FlowTournament;
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
 
   /* ---------------------------------------------------------------------
      1) Menü-Akkordeon
@@ -37,6 +42,7 @@
       if (btn.dataset.panel === "leaderboard") renderLeaderboardPanel();
       if (btn.dataset.panel === "community") renderCommunityPanel();
       if (btn.dataset.panel === "shop") renderShopPanel();
+      if (btn.dataset.panel === "tournament-create") renderTourneyBeatOptions();
     });
   });
 
@@ -134,7 +140,7 @@
       <div class="leaderboard-row ${r.isYou ? "is-you" : ""}">
         <span class="leaderboard-row__rank">#${i + 1}</span>
         <span class="leaderboard-row__avatar">${r.avatar}</span>
-        <span class="leaderboard-row__name">${r.name}${r.isYou ? " (Du)" : ""}</span>
+        <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.isYou ? " (Du)" : ""}</span>
         <span class="leaderboard-row__score">${r.score} Pkt.</span>
       </div>
     `).join("");
@@ -152,10 +158,10 @@
         <div class="post-card__avatar">${p.authorAvatar}</div>
         <div class="post-card__body">
           <div class="post-card__head">
-            <span class="post-card__author">${p.authorName}</span>
-            <span class="post-card__meta">· ${findTopicLabel(p.topic)} · ${p.beatName}</span>
+            <span class="post-card__author">${escapeHtml(p.authorName)}</span>
+            <span class="post-card__meta">· ${findTopicLabel(p.topic)} · ${escapeHtml(p.beatName)}</span>
           </div>
-          <p class="post-card__excerpt">${p.excerpt}</p>
+          <p class="post-card__excerpt">${escapeHtml(p.excerpt)}</p>
           <div class="post-card__footer">
             <span class="post-card__score">${p.overall} Pkt.</span>
             <span class="like-btn" style="cursor:default;">❤️ ${p.likes}</span>
@@ -214,8 +220,99 @@
   }
 
   /* ---------------------------------------------------------------------
+     6) Turnier erstellen (Panel "tournament-create")
+     --------------------------------------------------------------------- */
+  const tourneyState = { difficulty: "mittel", beatId: null, topic: "freestyle", rounds: 3 };
+
+  function renderTourneyBeatOptions() {
+    const sel = $("#tourneyBeatSelect");
+    if (!sel) return;
+    const profile = FlowProfile.load();
+    const unlocked = BEATS.filter((b) => FlowProfile.isBeatUnlocked(profile, b));
+    sel.innerHTML = unlocked.map((b) => `<option value="${b.id}">${escapeHtml(b.name)} · ${b.bpm} BPM</option>`).join("");
+    if (!tourneyState.beatId || !unlocked.find((b) => b.id === tourneyState.beatId)) {
+      tourneyState.beatId = unlocked[0]?.id || BEATS[0].id;
+    }
+    sel.value = tourneyState.beatId;
+  }
+
+  function renderTourneyRounds() {
+    const val = $("#tourneyRoundsValue");
+    if (val) val.textContent = String(tourneyState.rounds);
+    const minus = $("#tourneyRoundsMinus");
+    const plus = $("#tourneyRoundsPlus");
+    if (minus) minus.disabled = tourneyState.rounds <= 1;
+    if (plus) plus.disabled = tourneyState.rounds >= 5;
+  }
+
+  $$(".js-tourney-difficulty").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tourneyState.difficulty = btn.dataset.value;
+      $$(".js-tourney-difficulty").forEach((b) => b.classList.toggle("is-active", b === btn));
+      window.FlowSound?.playSelect?.();
+    });
+  });
+  // Standardauswahl sichtbar machen
+  $$(".js-tourney-difficulty").forEach((b) => b.classList.toggle("is-active", b.dataset.value === tourneyState.difficulty));
+
+  $("#tourneyBeatSelect")?.addEventListener("change", (e) => { tourneyState.beatId = e.target.value; });
+  $("#tourneyTopicSelect")?.addEventListener("change", (e) => { tourneyState.topic = e.target.value; });
+
+  $("#tourneyRoundsMinus")?.addEventListener("click", () => {
+    if (tourneyState.rounds <= 1) return;
+    tourneyState.rounds -= 1;
+    renderTourneyRounds();
+    window.FlowSound?.playClick?.();
+  });
+  $("#tourneyRoundsPlus")?.addEventListener("click", () => {
+    if (tourneyState.rounds >= 5) return;
+    tourneyState.rounds += 1;
+    renderTourneyRounds();
+    window.FlowSound?.playClick?.();
+  });
+
+  $("#createTournamentBtn")?.addEventListener("click", () => {
+    const profile = FlowProfile.load();
+    window.FlowSound?.playConfirm?.();
+    const tournament = FlowTournament.createTournament({
+      hostProfile: profile,
+      difficulty: tourneyState.difficulty,
+      beatId: tourneyState.beatId,
+      topic: tourneyState.topic,
+      roundsTotal: tourneyState.rounds,
+    });
+    window.location.href = `tournament.html?code=${tournament.code}`;
+  });
+
+  /* ---------------------------------------------------------------------
+     7) Turnier beitreten (Panel "tournament-join")
+     --------------------------------------------------------------------- */
+  const joinCodeInput = $("#joinCodeInput");
+  joinCodeInput?.addEventListener("input", () => {
+    joinCodeInput.value = joinCodeInput.value.replace(/\D/g, "").slice(0, 4);
+  });
+
+  $("#joinTournamentBtn")?.addEventListener("click", () => {
+    const code = (joinCodeInput?.value || "").trim();
+    if (code.length !== 4) {
+      window.FlowSound?.playClick?.();
+      const toast = $("#toast");
+      if (toast) {
+        toast.textContent = "Bitte einen 4-stelligen Code eingeben.";
+        toast.classList.add("is-visible");
+        setTimeout(() => toast.classList.remove("is-visible"), 2400);
+      }
+      return;
+    }
+    window.FlowSound?.playConfirm?.();
+    window.location.href = `tournament.html?code=${code}`;
+  });
+
+  /* ---------------------------------------------------------------------
      Init
      --------------------------------------------------------------------- */
   initGameplayPreview();
+  renderTourneyBeatOptions();
+  renderTourneyRounds();
   openPanel("play");
 })();

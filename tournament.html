@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FlowArena — Turnier-Raum</title>
+  <meta name="description" content="Turnier-Lobby, gemeinsame Runden und Voting — Beitritt per Raum-Code." />
+  <meta name="theme-color" content="#06060a" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23b537f5'/%3E%3Cstop offset='1' stop-color='%2329d3ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%2306060a'/%3E%3Ccircle cx='50' cy='50' r='30' fill='url(%23g)'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/tokens.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/beat-ball.css" />
+  <link rel="stylesheet" href="assets/css/challenge.css" />
+  <link rel="stylesheet" href="assets/css/community.css" />
+  <link rel="stylesheet" href="assets/css/tournament.css" />
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="nav__brand" href="index.html" style="text-decoration:none;">
+      <span class="nav__logo" aria-hidden="true">🎤</span>
+      <span>Flow<span class="nav__brand-name">Arena</span></span>
+    </a>
+    <div class="nav__actions">
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
+      <span class="chip" style="cursor:default;" id="roomCodeChip"><span class="chip__dot"></span><span class="chip__label">Raum</span><span class="chip__value" id="roomCodeChipValue">----</span></span>
+    </div>
+  </header>
+
+  <main class="page tournament-page">
+    <!-- ============ NICHT GEFUNDEN ============ -->
+    <section id="screenNotFound" hidden style="text-align:center; padding-top:var(--sp-16);">
+      <div class="coming-soon__icon">🔍</div>
+      <h1 style="font-size:var(--fs-xl); margin:var(--sp-4) 0;">Turnier nicht gefunden</h1>
+      <p style="color:var(--text-muted); font-size:var(--fs-sm); max-width:420px; margin:0 auto var(--sp-6);">
+        Kein Turnier mit diesem Code gespeichert. Denk dran: Turniere sind aktuell lokal auf
+        diesem Gerät gespeichert — ein Code funktioniert nur im selben Browser, in dem das
+        Turnier erstellt wurde (siehe docs/TOURNAMENTS.md).
+      </p>
+      <a class="btn btn-primary" href="index.html">🏠 Zur Startseite</a>
+    </section>
+
+    <!-- ============ LOBBY ============ -->
+    <section id="screenLobby" hidden>
+      <div class="card-glass room-code-card">
+        <div class="room-code-label">Raum-Code</div>
+        <div class="room-code-value" id="roomCodeValue">----</div>
+        <p class="room-code-hint">Gib diesen Code an andere weiter, damit sie über „Turnier beitreten" mitmachen können (funktioniert aktuell nur im selben Browser, siehe Hinweis unten).</p>
+      </div>
+
+      <h2 class="section-title" style="text-align:center;">👥 Teilnehmende</h2>
+      <div class="player-grid" id="playerGrid"></div>
+
+      <div class="lobby-actions" id="hostLobbyActions" hidden>
+        <button class="btn btn-glass" id="addBotsBtn" type="button">🎲 Bots hinzufügen (Demo)</button>
+        <button class="btn btn-primary" id="startTournamentBtn" type="button" disabled>▶️ Turnier starten</button>
+      </div>
+      <p id="waitingHint" hidden style="text-align:center; color:var(--text-dim); font-size:var(--fs-sm); margin-top:var(--sp-6);">⏳ Warte, bis der Host das Turnier startet …</p>
+
+      <p style="text-align:center; margin-top:var(--sp-8);">
+        <button class="stage-exit" id="leaveLobbyBtn" type="button">Turnier verlassen</button>
+      </p>
+    </section>
+
+    <!-- ============ RUNDEN-COUNTDOWN ============ -->
+    <section id="screenRoundIntro" hidden style="text-align:center;">
+      <span class="badge" id="roundIntroBadge">Runde 1 von 3</span>
+      <div class="countdown-number" id="countdownNumber" style="margin-top:var(--sp-6);">3</div>
+      <p class="countdown-label" id="countdownLabel">Alle Teilnehmenden rappen dieselben Wörter …</p>
+    </section>
+
+    <!-- ============ RUNDE LIVE ============ -->
+    <section id="screenRoundLive" hidden style="width:100%; max-width:760px; text-align:center;">
+      <div class="round-progress" id="roundProgressLive"></div>
+      <div class="verse-meta" style="justify-content:center;">
+        <span class="badge" id="roundLiveBadge">Runde 1 von 3 · Reimschema</span>
+      </div>
+      <p class="live-hint">Rap frei — beende jede Zeile mit dem markierten Wort. Alle im Turnier bekommen dieselben Wörter.</p>
+
+      <div class="word-rack-wrap" id="wordRackWrap">
+        <div class="word-rack" id="wordRack"></div>
+        <div class="beat-ball" id="gameBall" aria-hidden="true"></div>
+        <div class="spark-layer" id="gameSparkLayer" aria-hidden="true"></div>
+      </div>
+
+      <div class="line-timer" id="lineTimerWrap"><div class="line-timer__fill" id="lineTimerFill"></div></div>
+    </section>
+
+    <!-- ============ RUNDEN-AUSWERTUNG / VOTING ============ -->
+    <section id="screenRoundVoting" hidden>
+      <div class="round-progress" id="roundProgressVoting"></div>
+      <h2 class="section-title" style="text-align:center;">🗳️ Runde <span id="votingRoundNumber">1</span> — Takes &amp; Voting</h2>
+      <p style="text-align:center; color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+        Bot-Takes sind Demo-Simulationen (kein echtes Audio) — deiner ist der einzige echte Take, den du dir anhören kannst.
+      </p>
+      <div class="submission-list" id="submissionList"></div>
+
+      <div class="lobby-actions" id="hostVotingActions" hidden>
+        <button class="btn btn-primary" id="nextRoundBtn" type="button">Nächste Runde →</button>
+      </div>
+      <p id="waitingVoteHint" hidden style="text-align:center; color:var(--text-dim); font-size:var(--fs-sm); margin-top:var(--sp-4);">⏳ Warte auf den Host für die nächste Runde …</p>
+    </section>
+
+    <!-- ============ FINALE / SIEGER ============ -->
+    <section id="screenFinal" hidden>
+      <div class="card-glass winner-banner" id="winnerBanner">
+        <div class="score-burst" id="winnerBurst" aria-hidden="true"></div>
+        <div class="winner-banner__avatar" id="winnerAvatar">🏆</div>
+        <div class="winner-banner__title" id="winnerName">—</div>
+        <p style="color:var(--text-muted); font-size:var(--fs-sm);">gewinnt das Turnier!</p>
+      </div>
+
+      <h2 class="section-title" style="text-align:center;">Gesamtstand</h2>
+      <div id="standingsList"></div>
+
+      <div class="lobby-actions">
+        <button class="btn btn-glass" id="saveClipBtn" type="button">⬇️ Meinen Take als Clip speichern</button>
+        <button class="btn btn-primary" id="shareResultBtn" type="button">📤 Ergebnis in der Community teilen</button>
+      </div>
+      <div class="lobby-actions">
+        <a class="btn btn-glass" href="index.html" style="text-decoration:none;">🏠 Zur Startseite</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/js/sound.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/profile-data.js"></script>
+  <script src="assets/js/community-data.js"></script>
+  <script src="assets/js/tournament-data.js"></script>
+  <script src="assets/js/spark-fx.js"></script>
+  <script src="assets/js/beat-clock.js"></script>
+  <script src="assets/js/rhyme-engine.js"></script>
+  <script src="assets/js/ai/registry.js"></script>
+  <script src="assets/js/ai/rhyme-provider.local.js"></script>
+  <script src="assets/js/ai/evaluation-provider.local.js"></script>
+  <script src="assets/js/ai/speech-provider.web.js"></script>
+  <script src="assets/js/tournament.js"></script>
+</body>
+</html>

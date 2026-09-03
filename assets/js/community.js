@@ -12,6 +12,10 @@
 
   const $ = (sel) => document.querySelector(sel);
 
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
   const els = {
     creditsValue: $("#creditsValue"),
     profileAvatarLink: $("#profileAvatarLink"),
@@ -60,10 +64,10 @@
         <div class="post-card__avatar">${p.authorAvatar}</div>
         <div class="post-card__body">
           <div class="post-card__head">
-            <span class="post-card__author">${p.authorName}</span>
-            <span class="post-card__meta">· ${findTopicLabel(p.topic)} · ${p.beatName} (${p.bpm} BPM) · ${timeAgo(p.createdAt)}</span>
+            <span class="post-card__author">${escapeHtml(p.authorName)}</span>
+            <span class="post-card__meta">· ${findTopicLabel(p.topic)} · ${escapeHtml(p.beatName)} (${p.bpm} BPM) · ${timeAgo(p.createdAt)}</span>
           </div>
-          <p class="post-card__excerpt">${p.excerpt}</p>
+          <p class="post-card__excerpt">${escapeHtml(p.excerpt)}</p>
           <div class="post-card__footer">
             <span class="post-card__score">${p.overall} Pkt.</span>
             <button class="like-btn ${liked ? "is-liked" : ""}" type="button" data-post-id="${p.id}">
@@ -100,7 +104,7 @@
       <div class="leaderboard-row ${r.isYou ? "is-you" : ""}">
         <span class="leaderboard-row__rank">#${i + 1}</span>
         <span class="leaderboard-row__avatar">${r.avatar}</span>
-        <span class="leaderboard-row__name">${r.name}${r.isYou ? " (Du)" : ""}</span>
+        <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.isYou ? " (Du)" : ""}</span>
         <span class="leaderboard-row__score">${r.score} Pkt.</span>
       </div>
     `).join("");

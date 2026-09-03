@@ -113,6 +113,23 @@
       osc.start(t0);
       osc.stop(t0 + 0.15);
     },
+    /** "Plopp" — kurzer, runder Pitch-Sweep nach oben, für Beitritte in der Turnier-Lobby */
+    playPlop() {
+      const audioCtx = getCtx();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(280, t0);
+      osc.frequency.exponentialRampToValueAtTime(620, t0 + 0.09);
+      gainNode.gain.setValueAtTime(0, t0);
+      gainNode.gain.linearRampToValueAtTime(0.07, t0 + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+      osc.connect(gainNode).connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.15);
+    },
     /** Ergebnis-Reveal — kurzes Arpeggio, Tonhöhe je nach Bewertungs-Bracket */
     playReveal(bracket) {
       const runs = {

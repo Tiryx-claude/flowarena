@@ -27,6 +27,7 @@
     { id: "on_point", name: "Wort-Perfektionist", icon: "🎯", desc: "90+ Punkte bei Endwort-Nutzung erreicht." },
     { id: "roast_survivor", name: "Roast-Survivor", icon: "😅", desc: "Eine Challenge im Roast-Modus überlebt." },
     { id: "explorer", name: "Entdecker", icon: "🧭", desc: "4 verschiedene Themenfelder ausprobiert." },
+    { id: "tournament_champion", name: "Turniersieger", icon: "🏆", desc: "Ein Turnier gewonnen." },
   ];
 
   function defaultProfile() {
@@ -46,7 +47,10 @@
         maxStanzasInOneRun: 0,
         roastCompleted: false,
         topicsUsed: [],
+        tournamentsPlayed: 0,
+        tournamentsWon: 0,
       },
+      rewardedTournamentCodes: [], // verhindert Doppel-Vergabe von Credits/Badges bei einem Reload auf dem Finale-Screen
     };
   }
 
@@ -119,6 +123,7 @@
       on_point: s.bestEndwortNutzung >= 90,
       roast_survivor: s.roastCompleted === true,
       explorer: (s.topicsUsed || []).length >= 4,
+      tournament_champion: (s.tournamentsWon || 0) >= 1,
     };
     const newly = [];
     BADGES.forEach((b) => {
@@ -154,6 +159,31 @@
     return { creditsEarned, newBadges };
   }
 
+  /**
+   * Nach Abschluss eines Turniers aufrufen (jede:r Teilnehmer:in, nicht nur
+   * der/die Sieger:in). Vergibt Teilnahme-Credits, bei Sieg zusätzlichen
+   * Bonus + das "Turniersieger"-Abzeichen. Läuft für denselben `code` nur
+   * EINMAL durch (schützt gegen Doppel-Vergabe, falls der Finale-Screen neu
+   * geladen wird).
+   * @returns {{ creditsEarned: number, newBadges: Array }}
+   */
+  function recordTournamentResult(profile, { code, won }) {
+    if (code && profile.rewardedTournamentCodes.includes(code)) {
+      return { creditsEarned: 0, newBadges: [] };
+    }
+    if (code) profile.rewardedTournamentCodes.push(code);
+
+    profile.stats.tournamentsPlayed += 1;
+    if (won) profile.stats.tournamentsWon += 1;
+
+    const creditsEarned = won ? 40 : 15;
+    addCredits(profile, creditsEarned);
+
+    const newBadges = checkBadgeConditions(profile);
+    save(profile);
+    return { creditsEarned, newBadges };
+  }
+
   window.FlowProfile = {
     STORAGE_KEY,
     AVATAR_OPTIONS,
@@ -166,5 +196,6 @@
     isBeatUnlocked,
     unlockBeat,
     recordChallengeResult,
+    recordTournamentResult,
   };
 })(window);

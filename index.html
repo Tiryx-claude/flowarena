@@ -99,15 +99,48 @@
       <div class="menu-panel" data-panel="tournament-create">
         <div class="menu-panel__inner">
           <div class="card-glass menu-panel__card">
-            <div class="coming-soon">
-              <div class="coming-soon__icon">🏆</div>
-              <h2 class="menu-panel__title" style="justify-content:center;">Turniere kommen bald</h2>
-              <p style="color:var(--text-muted); font-size:var(--fs-sm);">Eigene Turniere für deinen Chat oder deine Community erstellen — geplant für ein späteres Modul.</p>
-              <ul class="coming-soon__perks">
-                <li>Bracket-System mit mehreren Runden</li>
-                <li>Zuschauer-Modus mit Live-Voting</li>
-                <li>Eigene Reim-Themen &amp; Preise festlegen</li>
-              </ul>
+            <h2 class="menu-panel__title">🏆 Turnier erstellen</h2>
+
+            <div class="field">
+              <div class="field__head"><span class="field__label">Schwierigkeitsgrad</span></div>
+              <div class="segmented" role="group" aria-label="Turnier-Schwierigkeitsgrad">
+                <button class="segmented__opt js-tourney-difficulty" data-value="leicht" type="button">Leicht</button>
+                <button class="segmented__opt js-tourney-difficulty" data-value="mittel" type="button">Mittel</button>
+                <button class="segmented__opt js-tourney-difficulty" data-value="schwer" type="button">Schwer</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field__head"><span class="field__label">Beat</span></div>
+              <select class="select" id="tourneyBeatSelect"></select>
+              <span class="field__hint">Nur bereits freigeschaltete Beats stehen zur Auswahl (siehe Shop).</span>
+            </div>
+
+            <div class="field">
+              <div class="field__head"><span class="field__label">Themenfeld</span></div>
+              <select class="select" id="tourneyTopicSelect">
+                <option value="freestyle">Freestyle (offen)</option>
+                <option value="love">Liebe &amp; Beziehungen</option>
+                <option value="money">Money &amp; Grind</option>
+                <option value="street">Streetlife</option>
+                <option value="motivation">Motivation &amp; Aufstieg</option>
+                <option value="battle">Battle / Diss</option>
+                <option value="random">Zufällig</option>
+              </select>
+            </div>
+
+            <div class="field" style="margin-bottom:0;">
+              <div class="field__head"><span class="field__label">Rundenzahl</span></div>
+              <div class="stepper">
+                <button class="stepper__btn" id="tourneyRoundsMinus" type="button" aria-label="Weniger Runden">−</button>
+                <span class="stepper__value" id="tourneyRoundsValue">3</span>
+                <button class="stepper__btn" id="tourneyRoundsPlus" type="button" aria-label="Mehr Runden">+</button>
+              </div>
+              <span class="field__hint">Jede Runde bekommt denselben Beat und dieselben Reimwörter für alle Teilnehmenden.</span>
+            </div>
+
+            <div class="play-cta" style="margin-top:var(--sp-6);">
+              <button class="btn btn-primary btn-hero" id="createTournamentBtn" type="button">🏆 Turnier erstellen</button>
             </div>
           </div>
         </div>
@@ -116,17 +149,19 @@
       <!-- ---- Turnier beitreten ---- -->
       <div class="menu-panel" data-panel="tournament-join">
         <div class="menu-panel__inner">
-          <div class="card-glass menu-panel__card">
-            <div class="coming-soon">
-              <div class="coming-soon__icon">🔑</div>
-              <h2 class="menu-panel__title" style="justify-content:center;">Turnier-Beitritt kommt bald</h2>
-              <p style="color:var(--text-muted); font-size:var(--fs-sm);">Per Code einem laufenden Turnier beitreten — geplant für ein späteres Modul.</p>
-              <ul class="coming-soon__perks">
-                <li>Beitritt per Einladungs-Code</li>
-                <li>Live-Rangliste während des Turniers</li>
-                <li>Direkt-Duelle gegen andere Teilnehmer:innen</li>
-              </ul>
+          <div class="card-glass menu-panel__card" style="text-align:center;">
+            <h2 class="menu-panel__title" style="justify-content:center;">🔑 Turnier beitreten</h2>
+            <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-5);">Gib den 4-stelligen Raum-Code ein, den du vom Host bekommen hast.</p>
+            <input class="select" id="joinCodeInput" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
+                   placeholder="0000" style="max-width:180px; margin:0 auto var(--sp-5); text-align:center; font-family:var(--font-display); font-size:var(--fs-xl); font-weight:700; letter-spacing:0.3em;" />
+            <div class="play-cta">
+              <button class="btn btn-primary btn-hero" id="joinTournamentBtn" type="button">🔑 Beitreten</button>
             </div>
+            <p style="color:var(--text-dim); font-size:var(--fs-xs); max-width:420px; margin:var(--sp-5) auto 0;">
+              Hinweis: Turniere sind aktuell lokal auf diesem Gerät gespeichert (kein Backend) — ein Code
+              funktioniert nur im selben Browser, in dem das Turnier erstellt wurde. Echtes
+              geräteübergreifendes Multiplayer kommt mit einem Backend.
+            </p>
           </div>
         </div>
       </div>
@@ -272,6 +307,7 @@
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>
   <script src="assets/js/community-data.js"></script>
+  <script src="assets/js/tournament-data.js"></script>
   <script src="assets/js/spark-fx.js"></script>
   <script src="assets/js/app.js"></script>
   <script src="assets/js/home.js"></script>

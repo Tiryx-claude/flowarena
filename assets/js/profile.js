@@ -11,6 +11,10 @@
 
   const $ = (sel) => document.querySelector(sel);
 
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
   const els = {
     creditsValue: $("#creditsValue"),
     avatarBtn: $("#avatarBtn"),
@@ -125,10 +129,10 @@
         <div class="post-card__avatar">${p.authorAvatar}</div>
         <div class="post-card__body">
           <div class="post-card__head">
-            <span class="post-card__author">${p.authorName}</span>
-            <span class="post-card__meta">· ${p.beatName} · ${timeAgo(p.createdAt)}</span>
+            <span class="post-card__author">${escapeHtml(p.authorName)}</span>
+            <span class="post-card__meta">· ${escapeHtml(p.beatName)} · ${timeAgo(p.createdAt)}</span>
           </div>
-          <p class="post-card__excerpt">${p.excerpt}</p>
+          <p class="post-card__excerpt">${escapeHtml(p.excerpt)}</p>
           <div class="post-card__footer">
             <span class="post-card__score">${p.overall} Pkt.</span>
             <span class="like-btn" style="cursor:default;">❤️ ${p.likes}</span>

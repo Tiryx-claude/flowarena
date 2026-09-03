@@ -196,13 +196,12 @@ Anschlusspunkt für alles, was später darauf aufbaut:
   auf — vergibt Credits, aktualisiert Stats, prüft neue Abzeichen. Der Shop
   (`index.html`-Panel + `profile.html`) liest/schreibt denselben
   `FlowProfile`-Store, komplett unabhängig vom Challenge-Ablauf selbst.
-- **Turniere** (noch nicht gebaut, aber vorbereitet): Ein künftiger
-  Turnier-Modus müsste nur (a) `loadSettings()` durch turniervorgegebene
-  Werte ersetzen (Beat/Thema/Schwierigkeit/Strophen vom Turnier statt aus
-  den lokalen Settings) und (b) in `finishChallenge()` zusätzlich zum
-  bestehenden `recordChallengeResult()`-Aufruf das `result`-Objekt an einen
-  Turnier-Endpunkt/-Store melden (analog zu `FlowCommunity.addPost`) — die
-  komplette Strophen-/Zeilen-/BeatClock-/Bewertungs-Logik bliebe unverändert
-  wiederverwendbar. Genau dafür ist `challenge.js` bewusst NICHT an die
-  Startseiten-Einstellungen gekoppelt, sondern nur an die Werte, die
-  `loadSettings()` zurückgibt.
+- **Turniere** (Modul 3, inzwischen gebaut): `tournament.html`/`tournament.js`
+  nutzen genau dieses Prinzip — eigene Einstellungsquelle
+  (`tournament.settings` statt `loadSettings()`), eigene BeatClock-/
+  Word-Rack-/Ball-Instanz pro Runde, und dasselbe `FlowAI.evaluation`-Ergebnis
+  fließt in `FlowTournament.submitRoundResult()` statt in
+  `FlowProfile.recordChallengeResult()` direkt. Details, warum dabei bewusst
+  NICHT `challenge.js` selbst wiederverwendet/refactored wurde (Risiko für
+  den getesteten Solo-Ablauf), sowie die kompletten Fairness-/
+  Multiplayer-Mechanik: [`docs/TOURNAMENTS.md`](TOURNAMENTS.md).
