@@ -17,6 +17,18 @@
        extrahiert, damit sich an der bisherigen Wortwahl nichts ändert)
        =================================================================== */
     de: {
+      meta: {
+        titles: {
+          index: "FlowArena — Reim dich an die Spitze",
+          challenge: "FlowArena — Challenge läuft",
+          tournament: "FlowArena — Turnier-Raum",
+          profile: "FlowArena — Dein Profil",
+          community: "FlowArena — Community",
+          shop: "FlowArena — Shop",
+          datenschutz: "FlowArena — Datenschutzerklärung",
+          agb: "FlowArena — AGB",
+        },
+      },
       common: {
         credits: "Credits",
         profile: "Profil",
@@ -625,6 +637,18 @@
        ENGLISH
        =================================================================== */
     en: {
+      meta: {
+        titles: {
+          index: "FlowArena — Rhyme Your Way to the Top",
+          challenge: "FlowArena — Challenge in Progress",
+          tournament: "FlowArena — Tournament Room",
+          profile: "FlowArena — Your Profile",
+          community: "FlowArena — Community",
+          shop: "FlowArena — Shop",
+          datenschutz: "FlowArena — Privacy Policy",
+          agb: "FlowArena — Terms of Service",
+        },
+      },
       common: {
         credits: "Credits",
         profile: "Profile",
@@ -1233,6 +1257,18 @@
        РУССКИЙ
        =================================================================== */
     ru: {
+      meta: {
+        titles: {
+          index: "FlowArena — Читай до самой вершины",
+          challenge: "FlowArena — Челлендж идёт",
+          tournament: "FlowArena — Турнирная комната",
+          profile: "FlowArena — Твой профиль",
+          community: "FlowArena — Сообщество",
+          shop: "FlowArena — Магазин",
+          datenschutz: "FlowArena — Политика конфиденциальности",
+          agb: "FlowArena — Условия использования",
+        },
+      },
       common: {
         credits: "Кредиты",
         profile: "Профиль",

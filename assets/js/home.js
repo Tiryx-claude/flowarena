@@ -72,7 +72,16 @@
     ball.style.setProperty("--ball-glow", equippedDesign.glow);
 
     const BOXES_PER_LINE = window.FlowData.GAMEPLAY_CONFIG.boxesPerLine; // 5 — identisch zum echten Gameplay
-    const DEMO_WORDS = ["RAUM", "BAUM", "KAUM", "TRAUM", "SCHAUM"];
+    // Rein dekorative Demo-Wörter (kein echtes Gameplay) — richten sich nach
+    // der UI-Sprache, damit die Vorschau nicht wie ein unübersetzter Rest
+    // wirkt. Echte Wortauswahl fürs Gameplay kommt aus rhyme-engine.js
+    // (hier bewusst nicht nachgeladen, nur für diese kleine Vorschau).
+    const DEMO_WORDS_BY_LOCALE = {
+      de: ["RAUM", "BAUM", "KAUM", "TRAUM", "SCHAUM"],
+      en: ["LIGHT", "NIGHT", "RIGHT", "FIGHT", "BRIGHT"],
+      ru: ["СОК", "БОК", "СРОК", "УРОК", "ПОТОК"],
+    };
+    const DEMO_WORDS = DEMO_WORDS_BY_LOCALE[window.FlowI18n.getLocale()] || DEMO_WORDS_BY_LOCALE.de;
     const DEMO_BPM = 100;
     const secPerHop = 60 / DEMO_BPM; // 1 Kästchen pro Beat
     const bounceHeight = 26;
