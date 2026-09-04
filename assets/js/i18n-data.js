@@ -382,6 +382,28 @@
         friendAddedToast: "👥 {{name}} zu deinen Freunden hinzugefügt.",
         nameSavedToast: "✓ Name gespeichert",
       },
+
+      community: {
+        openProfile: "Profil öffnen",
+        profile: "Profil",
+        introText: "Veröffentlichte Takes, Leute finden, Rangliste checken — inklusive ein paar Beispiel-Personen, damit hier nicht gähnende Leere herrscht. Alles lebt lokal in deinem Browser, es gibt (noch) kein echtes Backend.",
+        tabFeed: "📰 Feed",
+        tabLeaderboard: "🏆 Rangliste",
+        tabSearch: "🔍 Suche",
+        scopeAll: "🌍 Alle",
+        scopeFriends: "👥 Nur Freunde",
+        searchPlaceholder: "Namen suchen …",
+        noPostsYet: "Noch keine Posts — sei der/die Erste!",
+        noFriendsLeaderboard: "Noch keine Freunde — schau in der Suche vorbei und füg welche hinzu.",
+        noChallengesYet: "Du hast noch keine Challenge abgeschlossen — dein Bestwert steht noch bei 0.",
+        noPersonFound: "Niemand gefunden. Spiel ein paar Turniere — die Personen-Liste wächst, je mehr du spielst.",
+        seedExcerpts: {
+          "seed-1": "„…und ich glaub an den Weg, auch wenn's grade nicht leicht ist…“",
+          "seed-2": "„Block kennt mein'n Namen, bevor ich ihn sag…“",
+          "seed-3": "„Du kamst mit 'nem Textblatt, ich kam mit 'nem Plan…“",
+          "seed-4": "„Dein Lachen bleibt hängen, so wie 'n guter Refrain…“",
+        },
+      },
     },
 
     /* ===================================================================
@@ -753,6 +775,28 @@
         friendAddedToast: "👥 {{name}} added to your friends.",
         nameSavedToast: "✓ Name saved",
       },
+
+      community: {
+        openProfile: "Open profile",
+        profile: "Profile",
+        introText: "Published takes, find people, check the leaderboard — including a few sample people so it's not empty in here. Everything lives locally in your browser, there's no real backend (yet).",
+        tabFeed: "📰 Feed",
+        tabLeaderboard: "🏆 Leaderboard",
+        tabSearch: "🔍 Search",
+        scopeAll: "🌍 Everyone",
+        scopeFriends: "👥 Friends only",
+        searchPlaceholder: "Search names …",
+        noPostsYet: "No posts yet — be the first!",
+        noFriendsLeaderboard: "No friends yet — check the search and add some.",
+        noChallengesYet: "You haven't completed a challenge yet — your best score is still 0.",
+        noPersonFound: "No one found. Play a few tournaments — the people directory grows the more you play.",
+        seedExcerpts: {
+          "seed-1": "“...and I believe in the path, even when it's not easy right now...”",
+          "seed-2": "“The block knows my name before I say it...”",
+          "seed-3": "“You came with a cheat sheet, I came with a plan...”",
+          "seed-4": "“Your laugh stays with me, like a good hook...”",
+        },
+      },
     },
 
     /* ===================================================================
@@ -1123,6 +1167,28 @@
         friendAddedBtn: "✓ Друг",
         friendAddedToast: "👥 {{name}} добавлен(а) в друзья.",
         nameSavedToast: "✓ Имя сохранено",
+      },
+
+      community: {
+        openProfile: "Открыть профиль",
+        profile: "Профиль",
+        introText: "Опубликованные треки, поиск людей, рейтинг — плюс несколько примеров, чтобы тут не было пусто. Всё живёт локально в твоём браузере, настоящего бэкенда (пока) нет.",
+        tabFeed: "📰 Лента",
+        tabLeaderboard: "🏆 Рейтинг",
+        tabSearch: "🔍 Поиск",
+        scopeAll: "🌍 Все",
+        scopeFriends: "👥 Только друзья",
+        searchPlaceholder: "Поиск имён …",
+        noPostsYet: "Пока нет постов — стань первым!",
+        noFriendsLeaderboard: "Пока нет друзей — загляни в поиск и добавь кого-нибудь.",
+        noChallengesYet: "Ты ещё не завершил ни одного челленджа — твой лучший результат пока 0.",
+        noPersonFound: "Никого не найдено. Сыграй несколько турниров — список людей растёт по мере игры.",
+        seedExcerpts: {
+          "seed-1": "«...и я верю в свой путь, даже когда сейчас нелегко...»",
+          "seed-2": "«Квартал знает моё имя ещё до того, как я его назову...»",
+          "seed-3": "«Ты пришёл со шпаргалкой, я пришёл с планом...»",
+          "seed-4": "«Твой смех остаётся со мной, как хороший хук...»",
+        },
       },
     },
   };

@@ -9,6 +9,7 @@
   const FlowCommunity = window.FlowCommunity;
   const FlowSocial = window.FlowSocial;
   const { findTopicLabel } = window.FlowData;
+  const t = window.FlowI18n.t;
   const profile = FlowProfile.load();
 
   const $ = (sel) => document.querySelector(sel);
@@ -49,10 +50,10 @@
 
   function timeAgo(ts) {
     const mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 60) return `vor ${mins} Min.`;
+    if (mins < 60) return t("common.timeAgoMin", { n: mins });
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `vor ${hours} Std.`;
-    return `vor ${Math.round(hours / 24)} Tag(en)`;
+    if (hours < 24) return t("common.timeAgoHours", { n: hours });
+    return t("common.timeAgoDays", { n: Math.round(hours / 24) });
   }
 
   /* ---------------------------------------------------------------------
@@ -61,7 +62,7 @@
   function renderFeed() {
     const posts = FlowCommunity.loadPosts();
     if (posts.length === 0) {
-      els.feedList.innerHTML = `<p class="empty-hint">Noch keine Posts — sei der/die Erste!</p>`;
+      els.feedList.innerHTML = `<p class="empty-hint">${t("community.noPostsYet")}</p>`;
       return;
     }
     els.feedList.innerHTML = posts.map((p) => {
@@ -76,7 +77,7 @@
           </div>
           <p class="post-card__excerpt">${escapeHtml(p.excerpt)}</p>
           <div class="post-card__footer">
-            <span class="post-card__score">${p.overall} Pkt.</span>
+            <span class="post-card__score">${p.overall} ${t("common.points")}</span>
             <button class="like-btn ${liked ? "is-liked" : ""}" type="button" data-post-id="${p.id}">
               ${liked ? "❤️" : "🤍"} <span class="like-count">${p.likes}</span>
             </button>
@@ -123,7 +124,7 @@
     rows.sort((a, b) => b.score - a.score);
 
     if (rows.length === 0) {
-      els.leaderboardList.innerHTML = `<p class="empty-hint">Noch keine Freunde — schau in der Suche vorbei und füg welche hinzu.</p>`;
+      els.leaderboardList.innerHTML = `<p class="empty-hint">${t("community.noFriendsLeaderboard")}</p>`;
       return;
     }
 
@@ -131,13 +132,13 @@
       <div class="leaderboard-row ${r.isYou ? "is-you" : ""}">
         <span class="leaderboard-row__rank">#${i + 1}</span>
         <span class="leaderboard-row__avatar">${r.avatar}</span>
-        <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.isYou ? " (Du)" : ""}</span>
-        <span class="leaderboard-row__score">${r.score} Pkt.</span>
+        <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.isYou ? ` (${t("common.you")})` : ""}</span>
+        <span class="leaderboard-row__score">${r.score} ${t("common.points")}</span>
       </div>
     `).join("");
 
     if (leaderboardScope === "all" && profile.privacy.showOnLeaderboard && profile.stats.challengesCompleted === 0) {
-      els.leaderboardList.insertAdjacentHTML("beforeend", `<p class="empty-hint" style="margin-top:var(--sp-3);">Du hast noch keine Challenge abgeschlossen — dein Bestwert steht noch bei 0.</p>`);
+      els.leaderboardList.insertAdjacentHTML("beforeend", `<p class="empty-hint" style="margin-top:var(--sp-3);">${t("community.noChallengesYet")}</p>`);
     }
   }
 
@@ -163,7 +164,7 @@
     if (!els.searchResults) return;
     const results = FlowSocial ? FlowSocial.searchPeople(query) : [];
     if (results.length === 0) {
-      els.searchResults.innerHTML = `<p class="empty-hint">Niemand gefunden. Spiel ein paar Turniere — die Personen-Liste wächst, je mehr du spielst.</p>`;
+      els.searchResults.innerHTML = `<p class="empty-hint">${t("community.noPersonFound")}</p>`;
       return;
     }
     els.searchResults.innerHTML = results.map((p) => {
@@ -173,10 +174,10 @@
           <div class="person-card__avatar">${p.avatar}</div>
           <div class="person-card__body">
             <div class="person-card__name">${escapeHtml(p.name)}</div>
-            <div class="person-card__meta">Bestwert ${p.bestScore} Pkt.</div>
+            <div class="person-card__meta">${t("profile.personBestScore", { score: p.bestScore })}</div>
           </div>
           <button class="btn ${friend ? "btn-glass" : "btn-primary"} btn-sm" type="button" data-friend-id="${p.id}" ${friend ? "disabled" : ""}>
-            ${friend ? "✓ Freund" : "+ Freund"}
+            ${friend ? t("profile.friendAddedBtn") : t("profile.addFriendBtn")}
           </button>
         </div>
       `;
@@ -192,7 +193,7 @@
     if (!person) return;
     FlowSocial.addFriend(person);
     window.FlowSound?.playConfirm?.();
-    showToast(`👥 ${person.name} zu deinen Freunden hinzugefügt.`);
+    showToast(t("profile.friendAddedToast", { name: person.name }));
     renderSearch(els.peopleSearchInput?.value || "");
   });
 
@@ -214,6 +215,11 @@
 
   renderFeed();
   renderLeaderboard();
+  window.FlowI18n.onLocaleChange(() => {
+    renderFeed();
+    renderLeaderboard();
+    if (!els.searchView.hidden) renderSearch(els.peopleSearchInput?.value || "");
+  });
 
   // Direktlink von der Startseite (Rangliste-Panel → community.html#leaderboard)
   if (window.location.hash === "#leaderboard") {

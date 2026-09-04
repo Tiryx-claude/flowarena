@@ -42,6 +42,16 @@
     },
   ];
 
+  // Seed-Post-Zitate richten sich nach der aktuellen UI-Sprache (siehe
+  // community.seedExcerpts in assets/js/i18n-data.js) — die deutschen
+  // Texte im SEED_POSTS-Array oben bleiben der Fallback, falls i18n.js
+  // ausnahmsweise noch nicht geladen ist. Autor-Namen sind Eigennamen und
+  // bleiben bewusst unübersetzt (siehe docs/I18N.md).
+  function localizeSeedPosts(posts) {
+    if (!window.FlowI18n) return posts;
+    return posts.map((p) => (p.isSeed ? { ...p, excerpt: window.FlowI18n.t(`community.seedExcerpts.${p.id}`) } : p));
+  }
+
   function loadPosts() {
     let stored = [];
     try {
@@ -49,7 +59,7 @@
     } catch (e) {
       stored = [];
     }
-    return [...SEED_POSTS, ...stored].sort((a, b) => b.createdAt - a.createdAt);
+    return localizeSeedPosts([...SEED_POSTS, ...stored].sort((a, b) => b.createdAt - a.createdAt));
   }
 
   function loadOwnPosts() {

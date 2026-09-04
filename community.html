@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="assets/css/community.css" />
   <link rel="stylesheet" href="assets/css/social.css" />
   <link rel="stylesheet" href="assets/css/ads.css" />
+  <link rel="stylesheet" href="assets/css/i18n.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -30,36 +31,36 @@
       <span>Flow<span class="nav__brand-name">Arena</span></span>
     </div>
     <nav class="nav__links" aria-label="Hauptnavigation">
-      <a class="nav__link" href="index.html">Home</a>
-      <a class="nav__link" href="#">Challenges</a>
-      <a class="nav__link" href="#">Beats</a>
-      <a class="nav__link" href="shop.html">Shop</a>
-      <a class="nav__link" href="community.html">Community</a>
+      <a class="nav__link" href="index.html" data-i18n="nav.home">Home</a>
+      <a class="nav__link" href="#" data-i18n="nav.challenges">Challenges</a>
+      <a class="nav__link" href="#" data-i18n="nav.beats">Beats</a>
+      <a class="nav__link" href="shop.html" data-i18n="nav.shop">Shop</a>
+      <a class="nav__link" href="community.html" data-i18n="nav.community">Community</a>
     </nav>
     <div class="nav__actions">
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label" data-i18n="common.credits">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
       <div class="notif-wrap">
-        <button class="btn-icon" id="notifBellBtn" type="button" aria-label="Benachrichtigungen" title="Benachrichtigungen">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+        <button class="btn-icon" id="notifBellBtn" type="button" data-i18n-attr="aria-label:common.notifications,title:common.notifications">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
         <div class="notif-dropdown" id="notifDropdown" hidden>
-          <div class="notif-dropdown__head"><span>Benachrichtigungen</span><button type="button" id="notifMarkReadBtn">Alle gelesen</button></div>
+          <div class="notif-dropdown__head"><span data-i18n="common.notifications">Benachrichtigungen</span><button type="button" id="notifMarkReadBtn" data-i18n="common.markAllRead">Alle gelesen</button></div>
           <div class="notif-list" id="notifList"></div>
         </div>
       </div>
-      <a class="btn-icon" href="profile.html" aria-label="Profil öffnen" title="Profil" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
+      <a class="btn-icon" href="profile.html" data-i18n-attr="aria-label:community.openProfile,title:community.profile" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
     </div>
   </header>
 
   <main class="page community-page">
-    <h1 style="font-size:var(--fs-2xl); margin-bottom:var(--sp-2);">Community</h1>
-    <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-6); max-width:560px;">
+    <h1 style="font-size:var(--fs-2xl); margin-bottom:var(--sp-2);" data-i18n="nav.community">Community</h1>
+    <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-6); max-width:560px;" data-i18n="community.introText">
       Veröffentlichte Takes, Leute finden, Rangliste checken — inklusive ein paar Beispiel-Personen, damit hier nicht
       gähnende Leere herrscht. Alles lebt lokal in deinem Browser, es gibt (noch) kein echtes Backend.
     </p>
 
     <div class="community-tabs" role="tablist">
-      <button class="community-tabs__opt is-active" id="tabFeed" type="button">📰 Feed</button>
-      <button class="community-tabs__opt" id="tabLeaderboard" type="button">🏆 Rangliste</button>
-      <button class="community-tabs__opt" id="tabSearch" type="button">🔍 Suche</button>
+      <button class="community-tabs__opt is-active" id="tabFeed" type="button" data-i18n="community.tabFeed">📰 Feed</button>
+      <button class="community-tabs__opt" id="tabLeaderboard" type="button" data-i18n="community.tabLeaderboard">🏆 Rangliste</button>
+      <button class="community-tabs__opt" id="tabSearch" type="button" data-i18n="community.tabSearch">🔍 Suche</button>
     </div>
 
     <section id="feedView">
@@ -68,20 +69,22 @@
 
     <section id="leaderboardView" hidden>
       <div class="community-tabs" style="margin-bottom:var(--sp-4);">
-        <button class="community-tabs__opt is-active" id="lbScopeAll" type="button">🌍 Alle</button>
-        <button class="community-tabs__opt" id="lbScopeFriends" type="button">👥 Nur Freunde</button>
+        <button class="community-tabs__opt is-active" id="lbScopeAll" type="button" data-i18n="community.scopeAll">🌍 Alle</button>
+        <button class="community-tabs__opt" id="lbScopeFriends" type="button" data-i18n="community.scopeFriends">👥 Nur Freunde</button>
       </div>
       <div id="leaderboardList"></div>
     </section>
 
     <section id="searchView" hidden>
-      <input class="select search-input-row" id="peopleSearchInput" type="text" placeholder="Namen suchen …" />
+      <input class="select search-input-row" id="peopleSearchInput" type="text" data-i18n-attr="placeholder:community.searchPlaceholder" placeholder="Namen suchen …" />
       <div class="person-list" id="searchResults"></div>
     </section>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="assets/js/i18n-data.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script src="assets/js/sound.js"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>
