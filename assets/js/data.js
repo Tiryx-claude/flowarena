@@ -198,8 +198,21 @@
     return day === 0 || day === 6;
   }
 
+  // localizeCatalogItem: zentrales Muster (wie findTopicLabel/findBadge) —
+  // name/desc kommen aus dem i18n-Dictionary (shop.<category>.<id>.name/
+  // desc), der deutsche Text im jeweiligen Array bleibt der Fallback, falls
+  // i18n.js ausnahmsweise noch nicht geladen ist. Siehe docs/I18N.md.
+  function localizeCatalogItem(category, item) {
+    if (!item || !window.FlowI18n) return item;
+    return {
+      ...item,
+      name: window.FlowI18n.t(`shop.${category}.${item.id}.name`),
+      desc: window.FlowI18n.t(`shop.${category}.${item.id}.desc`),
+    };
+  }
+
   function findBallDesign(id) {
-    return BALL_DESIGNS.find((d) => d.id === id) || BALL_DESIGNS[0];
+    return localizeCatalogItem("balls", BALL_DESIGNS.find((d) => d.id === id) || BALL_DESIGNS[0]);
   }
 
   /* -------------------------------------------------------------------
@@ -254,11 +267,39 @@
   };
 
   function findAnimation(id) {
-    return RESULT_ANIMATIONS.find((a) => a.id === id) || RESULT_ANIMATIONS[0];
+    return localizeCatalogItem("animations", RESULT_ANIMATIONS.find((a) => a.id === id) || RESULT_ANIMATIONS[0]);
   }
 
   function findTheme(id) {
-    return PROFILE_THEMES.find((t) => t.id === id) || PROFILE_THEMES[0];
+    return localizeCatalogItem("themes", PROFILE_THEMES.find((t) => t.id === id) || PROFILE_THEMES[0]);
+  }
+
+  function findPremiumChallenge(id) {
+    return localizeCatalogItem("premiumChallenges", PREMIUM_CHALLENGES.find((c) => c.id === id));
+  }
+
+  function findPaymentMethodLabel(id) {
+    const method = PAYMENT_METHODS.find((m) => m.id === id);
+    if (!method) return id;
+    return window.FlowI18n ? window.FlowI18n.t(`shop.paymentMethods.${id}`) : method.label;
+  }
+
+  function findCreditPackageBonusLabel(pkg) {
+    if (!pkg || !pkg.bonusLabel) return null;
+    return window.FlowI18n ? window.FlowI18n.t(`shop.creditPackages.${pkg.id}.bonusLabel`) : pkg.bonusLabel;
+  }
+
+  function getWeeklyChallengeLabel() {
+    return window.FlowI18n ? window.FlowI18n.t("shop.weeklyChallengeLabel") : WEEKLY_CHALLENGE.label;
+  }
+
+  function getEarlyAccessPreview() {
+    if (!window.FlowI18n) return EARLY_ACCESS_PREVIEW;
+    return {
+      ...EARLY_ACCESS_PREVIEW,
+      name: window.FlowI18n.t("shop.earlyAccessPreview.name"),
+      desc: window.FlowI18n.t("shop.earlyAccessPreview.desc"),
+    };
   }
 
   window.FlowData = {
@@ -286,6 +327,11 @@
     findBallDesign,
     findAnimation,
     findTheme,
+    findPremiumChallenge,
+    findPaymentMethodLabel,
+    findCreditPackageBonusLabel,
+    getWeeklyChallengeLabel,
+    getEarlyAccessPreview,
     isWeekendBonusActive,
   };
 })(window);

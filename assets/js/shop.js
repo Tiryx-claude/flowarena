@@ -16,8 +16,12 @@
   const {
     BEATS, PREMIUM, CREDIT_PACKAGES, BALL_DESIGNS, PREMIUM_CHALLENGES,
     DAILY_LOGIN_REWARDS, WEEKLY_CHALLENGE, isWeekendBonusActive, findTopicLabel,
-    RESULT_ANIMATIONS, PROFILE_THEMES, PAYMENT_METHODS, EARLY_ACCESS_PREVIEW,
+    RESULT_ANIMATIONS, PROFILE_THEMES, PAYMENT_METHODS,
+    findBallDesign, findAnimation, findTheme, findPremiumChallenge,
+    findPaymentMethodLabel, findCreditPackageBonusLabel, getWeeklyChallengeLabel, getEarlyAccessPreview,
   } = window.FlowData;
+  const t = window.FlowI18n.t;
+  const tPlural = window.FlowI18n.tPlural;
   let profile = FlowProfile.load();
 
   const $ = (sel) => document.querySelector(sel);
@@ -77,20 +81,20 @@
       <div class="purchase-modal__icon">${icon}</div>
       <h3 class="purchase-modal__title">${escapeHtml(title)}</h3>
       <div class="purchase-modal__price">${priceLabel}</div>
-      <p class="purchase-modal__note">${note || "Preis vor dem Kauf sichtbar — Demo, keine echte Zahlung."}</p>
+      <p class="purchase-modal__note">${note || t("shop.purchaseDefaultNote")}</p>
       <div class="payment-method-grid" id="paymentMethodGrid">
         ${PAYMENT_METHODS.map((m, i) => `
           <button type="button" class="payment-method-opt ${i === 0 ? "is-selected" : ""}" data-method="${m.id}">
             <span class="payment-method-opt__icon">${m.icon}</span>
-            <span>${m.label}</span>
+            <span>${findPaymentMethodLabel(m.id)}</span>
           </button>
         `).join("")}
       </div>
       <div class="purchase-modal__actions">
-        <button class="btn btn-glass btn-sm" type="button" id="purchaseCancelBtn">Abbrechen</button>
-        <button class="btn btn-primary btn-sm" type="button" id="purchaseConfirmBtn">Kauf bestätigen</button>
+        <button class="btn btn-glass btn-sm" type="button" id="purchaseCancelBtn">${t("common.cancel")}</button>
+        <button class="btn btn-primary btn-sm" type="button" id="purchaseConfirmBtn">${t("shop.confirmPurchaseBtn")}</button>
       </div>
-      <p class="purchase-modal__disclaimer">🔒 Demo — es werden keine echten Zahlungsdaten abgefragt, gespeichert oder verarbeitet.</p>
+      <p class="purchase-modal__disclaimer">${t("shop.purchaseDisclaimer")}</p>
     `;
 
     const grid = els.purchaseModal.querySelector("#paymentMethodGrid");
@@ -121,10 +125,12 @@
     els.purchaseModalOverlay.hidden = false;
   }
 
+  const DATE_LOCALE_MAP = { de: "de-DE", en: "en-GB", ru: "ru-RU" };
   function billingDateLabel(sinceTs) {
     if (!sinceTs) return null;
     const next = new Date(sinceTs + 30 * 24 * 60 * 60 * 1000);
-    return next.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const locale = DATE_LOCALE_MAP[window.FlowI18n.getLocale()] || "de-DE";
+    return next.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
   /* ---------------------------------------------------------------------
@@ -135,31 +141,31 @@
       const nextBilling = billingDateLabel(profile.premiumSince);
       els.premiumBlock.innerHTML = `
         <div class="premium-hero premium-hero--active">
-          <div class="premium-hero__badge">👑 Premium aktiv</div>
-          <p style="color:var(--text-muted); font-size:var(--fs-sm);">Keine Werbung, alle Premium-Beats, alle Ball-Designs/Animationen/Profil-Designs, alle Premium-Challenges, Early Access und bis zu 10 Strophen pro Challenge.</p>
-          ${nextBilling ? `<p style="color:var(--text-dim); font-size:var(--fs-xs); margin-top:var(--sp-2);">Simulierte nächste Abrechnung: ${nextBilling} (${PREMIUM.priceLabel}) — bricht ab, sobald du kündigst.</p>` : ""}
-          <button class="btn btn-glass btn-sm" id="cancelPremiumBtn" type="button" style="margin-top:var(--sp-4); border-color:rgba(255,75,92,0.4); color:#ff8a97;">Abo kündigen</button>
-          <p class="premium-card__note">Demo-Status, lokal in diesem Browser gespeichert — keine echte Zahlung, kein echtes Abo. Jederzeit mit einem Klick kündbar, keine Mindestlaufzeit.</p>
+          <div class="premium-hero__badge">${t("shop.premiumActiveBadge")}</div>
+          <p style="color:var(--text-muted); font-size:var(--fs-sm);">${t("shop.premiumActiveDesc")}</p>
+          ${nextBilling ? `<p style="color:var(--text-dim); font-size:var(--fs-xs); margin-top:var(--sp-2);">${t("shop.nextBillingNote", { date: nextBilling, price: PREMIUM.priceLabel })}</p>` : ""}
+          <button class="btn btn-glass btn-sm" id="cancelPremiumBtn" type="button" style="margin-top:var(--sp-4); border-color:rgba(255,75,92,0.4); color:#ff8a97;">${t("shop.cancelBtn")}</button>
+          <p class="premium-card__note">${t("shop.premiumDemoNote")}</p>
         </div>
       `;
       const cancelBtn = $("#cancelPremiumBtn");
       cancelBtn?.addEventListener("click", () => {
         if (cancelBtn.dataset.confirming !== "true") {
           cancelBtn.dataset.confirming = "true";
-          cancelBtn.textContent = "Wirklich kündigen? Nochmal klicken zum Bestätigen";
+          cancelBtn.textContent = t("shop.confirmCancelBtn");
           setTimeout(() => {
             if (cancelBtn.dataset.confirming === "true") {
               cancelBtn.dataset.confirming = "false";
-              cancelBtn.textContent = "Abo kündigen";
+              cancelBtn.textContent = t("shop.cancelBtn");
             }
           }, 4000);
           return;
         }
         FlowProfile.cancelPremiumDemo(profile);
-        FlowPurchases?.addPurchase({ icon: "👑", label: "Premium gekündigt", priceLabel: "—", method: "—" });
+        FlowPurchases?.addPurchase({ icon: "👑", label: t("shop.premiumCancelledPurchaseLabel"), priceLabel: "—", method: "—" });
         window.FlowSound?.playClick?.();
-        showToast("Premium gekündigt — ab sofort wieder Free (keine Nachzahlung, keine Sperrfrist).");
-        FlowSocial?.addNotification({ icon: "👑", text: "Premium gekündigt — Free-Tarif ist ab sofort aktiv." });
+        showToast(t("shop.premiumCancelledToast"));
+        FlowSocial?.addNotification({ icon: "👑", text: t("shop.premiumCancelledNotification") });
         refreshTopbar();
         renderAll();
       });
@@ -169,18 +175,18 @@
       <div class="premium-hero">
         <div class="premium-hero__price">${PREMIUM.priceLabel}<span>${PREMIUM.billingLabel}</span></div>
         <ul class="premium-card__perks">
-          <li>Keine Werbung mehr</li>
-          <li>Unbegrenzt Challenges (Free: ${window.FlowData.FREE_DAILY_CHALLENGE_LIMIT}/Tag)</li>
-          <li>Alle Premium-Beats sofort freigeschaltet</li>
-          <li>Alle Premium-Ball-Designs &amp; -Animationen &amp; -Profil-Designs</li>
-          <li>Alle Premium-Challenges freigeschaltet</li>
-          <li>Früher Zugang zu neuen Features (Early Access)</li>
-          <li>Bis zu 10 statt 5 Strophen pro Challenge</li>
-          <li>👑 Premium-Badge auf deinem Profil</li>
+          <li>${t("shop.noAdsPerk")}</li>
+          <li>${t("shop.unlimitedChallengesPerk", { limit: window.FlowData.FREE_DAILY_CHALLENGE_LIMIT })}</li>
+          <li>${t("shop.allBeatsPerk")}</li>
+          <li>${t("shop.allCosmeticsPerk")}</li>
+          <li>${t("shop.allChallengesPerk")}</li>
+          <li>${t("shop.earlyAccessPerk")}</li>
+          <li>${t("shop.moreVersesPerk")}</li>
+          <li>${t("shop.premiumBadgePerk")}</li>
         </ul>
-        <p class="premium-hero__no-advantage">⚖️ Kein Gameplay-Vorteil: gleiche Reimwörter, gleiche Bewertung, gleiche Chancen im Wettbewerb wie Free.</p>
-        <button class="btn btn-primary" id="premiumBtn" type="button">Premium aktivieren (Demo)</button>
-        <p class="premium-card__note">Jederzeit kündbar, keine Mindestlaufzeit. Reiner Demo-Schalter für diesen Prototyp — es wird keine Zahlung verarbeitet und nichts abgebucht.</p>
+        <p class="premium-hero__no-advantage">${t("shop.noAdvantageNote")}</p>
+        <button class="btn btn-primary" id="premiumBtn" type="button">${t("shop.activatePremiumBtn")}</button>
+        <p class="premium-card__note">${t("shop.premiumFooterNote")}</p>
       </div>
     `;
     $("#premiumBtn")?.addEventListener("click", () => {
@@ -190,10 +196,10 @@
         priceLabel: `${PREMIUM.priceLabel} ${PREMIUM.billingLabel}`,
         onConfirm: (method) => {
           FlowProfile.unlockPremiumDemo(profile);
-          FlowPurchases?.addPurchase({ icon: "👑", label: "Premium aktiviert", priceLabel: PREMIUM.priceLabel, method: method.label });
+          FlowPurchases?.addPurchase({ icon: "👑", label: t("shop.premiumActivatedPurchaseLabel"), priceLabel: PREMIUM.priceLabel, method: findPaymentMethodLabel(method.id) });
           window.FlowSound?.playConfirm?.();
-          showToast("👑 Premium aktiviert (Demo)!");
-          FlowSocial?.addNotification({ icon: "👑", text: "Premium aktiviert (Demo) — keine Werbung mehr, alle Beats/Ball-Designs/Challenges freigeschaltet." });
+          showToast(t("shop.premiumActivatedToast"));
+          FlowSocial?.addNotification({ icon: "👑", text: t("shop.premiumActivatedNotification") });
           refreshTopbar();
           renderAll();
         },
@@ -208,11 +214,11 @@
     els.creditPackages.innerHTML = CREDIT_PACKAGES.map((pkg) => `
       <div class="shop-card">
         <div class="shop-card__head">
-          <span class="shop-card__name">💎 ${pkg.credits} Credits</span>
+          <span class="shop-card__name">${t("shop.creditPackageName", { n: pkg.credits })}</span>
         </div>
-        ${pkg.bonusLabel ? `<span class="shop-card__meta" style="color:var(--neon-blue);">${pkg.bonusLabel}</span>` : ""}
+        ${pkg.bonusLabel ? `<span class="shop-card__meta" style="color:var(--neon-blue);">${findCreditPackageBonusLabel(pkg)}</span>` : ""}
         <div class="shop-card__action">
-          <button class="btn btn-primary btn-sm" type="button" data-buy-credits="${pkg.id}">${pkg.priceLabel} — Kaufen (Demo)</button>
+          <button class="btn btn-primary btn-sm" type="button" data-buy-credits="${pkg.id}">${t("shop.buyBtn", { price: pkg.priceLabel })}</button>
         </div>
       </div>
     `).join("");
@@ -222,13 +228,13 @@
         const pkg = CREDIT_PACKAGES.find((p) => p.id === btn.dataset.buyCredits);
         openPurchaseModal({
           icon: "💎",
-          title: `${pkg.credits} Credits`,
+          title: t("shop.creditPackageName", { n: pkg.credits }),
           priceLabel: pkg.priceLabel,
           onConfirm: (method) => {
             FlowProfile.purchaseCreditsDemo(profile, pkg);
-            FlowPurchases?.addPurchase({ icon: "💎", label: `${pkg.credits} Credits gekauft`, priceLabel: pkg.priceLabel, method: method.label });
+            FlowPurchases?.addPurchase({ icon: "💎", label: t("shop.creditsPurchasedLabel", { n: pkg.credits }), priceLabel: pkg.priceLabel, method: findPaymentMethodLabel(method.id) });
             window.FlowSound?.playConfirm?.();
-            showToast(`💎 +${pkg.credits} Credits gutgeschrieben (Demo-Kauf, keine echte Zahlung).`);
+            showToast(t("shop.creditsPurchasedToast", { n: pkg.credits }));
             refreshTopbar();
             renderPurchaseHistory();
           },
@@ -249,11 +255,11 @@
             <span class="shop-card__name">${escapeHtml(beat.name)}</span>
             <span class="shop-card__meta">${beat.bpm} BPM</span>
           </div>
-          <span class="shop-card__meta">${escapeHtml(beat.category)}${beat.premiumOnly ? " · 👑 Premium-Beat" : ""}</span>
+          <span class="shop-card__meta">${escapeHtml(beat.category)}${beat.premiumOnly ? t("shop.premiumBeatTag") : ""}</span>
           <div class="shop-card__action">
             ${unlocked
-              ? `<span class="badge">✓ Freigeschaltet</span>`
-              : `<button class="btn btn-glass btn-sm" type="button" data-shop-beat="${beat.id}">🔒 Freischalten — ${beat.unlockCost} 💎</button>`}
+              ? `<span class="badge">${t("shop.unlockedBadge")}</span>`
+              : `<button class="btn btn-glass btn-sm" type="button" data-shop-beat="${beat.id}">${t("shop.unlockCostBtn", { cost: beat.unlockCost })}</button>`}
           </div>
         </div>
       `;
@@ -263,15 +269,15 @@
       btn.addEventListener("click", () => {
         const beat = BEATS.find((b) => b.id === btn.dataset.shopBeat);
         if (FlowProfile.unlockBeat(profile, beat)) {
-          FlowPurchases?.addPurchase({ icon: "🎵", label: `Beat „${beat.name}“ freigeschaltet`, priceLabel: `${beat.unlockCost} 💎`, method: "Credits" });
+          FlowPurchases?.addPurchase({ icon: "🎵", label: t("shop.beatUnlockedPurchaseLabel", { name: beat.name }), priceLabel: `${beat.unlockCost} 💎`, method: t("common.credits") });
           window.FlowSound?.playConfirm?.();
-          showToast(`🎵 ${beat.name} freigeschaltet!`);
+          showToast(t("shop.beatUnlockedToast", { name: beat.name }));
           refreshTopbar();
           renderBeats();
           renderPurchaseHistory();
         } else {
           window.FlowSound?.playClick?.();
-          showToast(`🔒 Nicht genug Credits (${profile.credits}/${beat.unlockCost} 💎).`);
+          showToast(t("shop.notEnoughCreditsToast", { have: profile.credits, cost: beat.unlockCost }));
         }
       });
     });
@@ -281,18 +287,19 @@
      Ball-Designs
      --------------------------------------------------------------------- */
   function renderBalls() {
-    els.ballCatalog.innerHTML = BALL_DESIGNS.map((design) => {
+    els.ballCatalog.innerHTML = BALL_DESIGNS.map((raw) => {
+      const design = findBallDesign(raw.id);
       const unlocked = FlowProfile.isBallDesignUnlocked(profile, design);
       const equipped = profile.activeBallDesignId === design.id;
       let actionHtml;
       if (equipped) {
-        actionHtml = `<span class="badge">✓ Ausgerüstet</span>`;
+        actionHtml = `<span class="badge">${t("shop.equippedBadge")}</span>`;
       } else if (unlocked) {
-        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-equip-ball="${design.id}">Auswählen</button>`;
+        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-equip-ball="${design.id}">${t("shop.selectBtn")}</button>`;
       } else if (design.premiumOnly) {
-        actionHtml = `<span class="badge" style="opacity:0.7;">🔒 Nur mit Premium</span>`;
+        actionHtml = `<span class="badge" style="opacity:0.7;">${t("shop.premiumOnlyBadge")}</span>`;
       } else {
-        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-unlock-ball="${design.id}">🔒 Freischalten — ${design.price} 💎</button>`;
+        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-unlock-ball="${design.id}">${t("shop.unlockCostBtn", { cost: design.price })}</button>`;
       }
       return `
         <div class="shop-card ball-card">
@@ -302,7 +309,7 @@
           <div class="shop-card__head">
             <span class="shop-card__name">${escapeHtml(design.name)}</span>
           </div>
-          <span class="shop-card__meta">${escapeHtml(design.desc)}${design.premiumOnly ? " · 👑 Premium-exklusiv" : ""}</span>
+          <span class="shop-card__meta">${escapeHtml(design.desc)}${design.premiumOnly ? t("shop.premiumExclusiveTag") : ""}</span>
           <div class="shop-card__action">${actionHtml}</div>
         </div>
       `;
@@ -310,26 +317,26 @@
 
     els.ballCatalog.querySelectorAll("[data-equip-ball]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const design = BALL_DESIGNS.find((d) => d.id === btn.dataset.equipBall);
+        const design = findBallDesign(btn.dataset.equipBall);
         FlowProfile.setActiveBallDesign(profile, design);
         window.FlowSound?.playSelect?.();
-        showToast(`⚪ ${design.name} ausgerüstet.`);
+        showToast(t("shop.ballEquippedToast", { name: design.name }));
         renderBalls();
       });
     });
     els.ballCatalog.querySelectorAll("[data-unlock-ball]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const design = BALL_DESIGNS.find((d) => d.id === btn.dataset.unlockBall);
+        const design = findBallDesign(btn.dataset.unlockBall);
         if (FlowProfile.unlockBallDesign(profile, design)) {
-          FlowPurchases?.addPurchase({ icon: "⚪", label: `Ball-Design „${design.name}“ freigeschaltet`, priceLabel: `${design.price} 💎`, method: "Credits" });
+          FlowPurchases?.addPurchase({ icon: "⚪", label: t("shop.ballUnlockedPurchaseLabel", { name: design.name }), priceLabel: `${design.price} 💎`, method: t("common.credits") });
           window.FlowSound?.playConfirm?.();
-          showToast(`⚪ ${design.name} freigeschaltet!`);
+          showToast(t("shop.ballUnlockedToast", { name: design.name }));
           refreshTopbar();
           renderBalls();
           renderPurchaseHistory();
         } else {
           window.FlowSound?.playClick?.();
-          showToast(`🔒 Nicht genug Credits (${profile.credits}/${design.price} 💎).`);
+          showToast(t("shop.notEnoughCreditsToast", { have: profile.credits, cost: design.price }));
         }
       });
     });
@@ -340,18 +347,19 @@
      --------------------------------------------------------------------- */
   function renderAnimations() {
     if (!els.animationCatalog) return;
-    els.animationCatalog.innerHTML = RESULT_ANIMATIONS.map((anim) => {
+    els.animationCatalog.innerHTML = RESULT_ANIMATIONS.map((raw) => {
+      const anim = findAnimation(raw.id);
       const unlocked = FlowProfile.isAnimationUnlocked(profile, anim);
       const equipped = profile.activeAnimationId === anim.id;
       let actionHtml;
       if (equipped) {
-        actionHtml = `<span class="badge">✓ Ausgerüstet</span>`;
+        actionHtml = `<span class="badge">${t("shop.equippedBadge")}</span>`;
       } else if (unlocked) {
-        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-equip-anim="${anim.id}">Auswählen</button>`;
+        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-equip-anim="${anim.id}">${t("shop.selectBtn")}</button>`;
       } else if (anim.premiumOnly) {
-        actionHtml = `<span class="badge" style="opacity:0.7;">🔒 Nur mit Premium</span>`;
+        actionHtml = `<span class="badge" style="opacity:0.7;">${t("shop.premiumOnlyBadge")}</span>`;
       } else {
-        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-unlock-anim="${anim.id}">🔒 Freischalten — ${anim.price} 💎</button>`;
+        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-unlock-anim="${anim.id}">${t("shop.unlockCostBtn", { cost: anim.price })}</button>`;
       }
       return `
         <div class="shop-card ball-card">
@@ -369,26 +377,26 @@
 
     els.animationCatalog.querySelectorAll("[data-equip-anim]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const anim = RESULT_ANIMATIONS.find((a) => a.id === btn.dataset.equipAnim);
+        const anim = findAnimation(btn.dataset.equipAnim);
         FlowProfile.setActiveAnimation(profile, anim);
         window.FlowSound?.playSelect?.();
-        showToast(`✨ ${anim.name} ausgerüstet.`);
+        showToast(t("shop.animEquippedToast", { name: anim.name }));
         renderAnimations();
       });
     });
     els.animationCatalog.querySelectorAll("[data-unlock-anim]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const anim = RESULT_ANIMATIONS.find((a) => a.id === btn.dataset.unlockAnim);
+        const anim = findAnimation(btn.dataset.unlockAnim);
         if (FlowProfile.unlockAnimation(profile, anim)) {
-          FlowPurchases?.addPurchase({ icon: "✨", label: `Animation „${anim.name}“ freigeschaltet`, priceLabel: `${anim.price} 💎`, method: "Credits" });
+          FlowPurchases?.addPurchase({ icon: "✨", label: t("shop.animUnlockedPurchaseLabel", { name: anim.name }), priceLabel: `${anim.price} 💎`, method: t("common.credits") });
           window.FlowSound?.playConfirm?.();
-          showToast(`✨ ${anim.name} freigeschaltet!`);
+          showToast(t("shop.animUnlockedToast", { name: anim.name }));
           refreshTopbar();
           renderAnimations();
           renderPurchaseHistory();
         } else {
           window.FlowSound?.playClick?.();
-          showToast(`🔒 Nicht genug Credits (${profile.credits}/${anim.price} 💎).`);
+          showToast(t("shop.notEnoughCreditsToast", { have: profile.credits, cost: anim.price }));
         }
       });
     });
@@ -399,18 +407,19 @@
      --------------------------------------------------------------------- */
   function renderThemes() {
     if (!els.themeCatalog) return;
-    els.themeCatalog.innerHTML = PROFILE_THEMES.map((theme) => {
+    els.themeCatalog.innerHTML = PROFILE_THEMES.map((raw) => {
+      const theme = findTheme(raw.id);
       const unlocked = FlowProfile.isThemeUnlocked(profile, theme);
       const equipped = profile.activeThemeId === theme.id;
       let actionHtml;
       if (equipped) {
-        actionHtml = `<span class="badge">✓ Ausgerüstet</span>`;
+        actionHtml = `<span class="badge">${t("shop.equippedBadge")}</span>`;
       } else if (unlocked) {
-        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-equip-theme="${theme.id}">Auswählen</button>`;
+        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-equip-theme="${theme.id}">${t("shop.selectBtn")}</button>`;
       } else if (theme.premiumOnly) {
-        actionHtml = `<span class="badge" style="opacity:0.7;">🔒 Nur mit Premium</span>`;
+        actionHtml = `<span class="badge" style="opacity:0.7;">${t("shop.premiumOnlyBadge")}</span>`;
       } else {
-        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-unlock-theme="${theme.id}">🔒 Freischalten — ${theme.price} 💎</button>`;
+        actionHtml = `<button class="btn btn-glass btn-sm" type="button" data-unlock-theme="${theme.id}">${t("shop.unlockCostBtn", { cost: theme.price })}</button>`;
       }
       return `
         <div class="shop-card ball-card">
@@ -426,26 +435,26 @@
 
     els.themeCatalog.querySelectorAll("[data-equip-theme]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const theme = PROFILE_THEMES.find((t) => t.id === btn.dataset.equipTheme);
+        const theme = findTheme(btn.dataset.equipTheme);
         FlowProfile.setActiveTheme(profile, theme);
         window.FlowSound?.playSelect?.();
-        showToast(`🎨 ${theme.name} ausgerüstet.`);
+        showToast(t("shop.themeEquippedToast", { name: theme.name }));
         renderThemes();
       });
     });
     els.themeCatalog.querySelectorAll("[data-unlock-theme]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const theme = PROFILE_THEMES.find((t) => t.id === btn.dataset.unlockTheme);
+        const theme = findTheme(btn.dataset.unlockTheme);
         if (FlowProfile.unlockTheme(profile, theme)) {
-          FlowPurchases?.addPurchase({ icon: "🎨", label: `Profil-Design „${theme.name}“ freigeschaltet`, priceLabel: `${theme.price} 💎`, method: "Credits" });
+          FlowPurchases?.addPurchase({ icon: "🎨", label: t("shop.themeUnlockedPurchaseLabel", { name: theme.name }), priceLabel: `${theme.price} 💎`, method: t("common.credits") });
           window.FlowSound?.playConfirm?.();
-          showToast(`🎨 ${theme.name} freigeschaltet!`);
+          showToast(t("shop.themeUnlockedToast", { name: theme.name }));
           refreshTopbar();
           renderThemes();
           renderPurchaseHistory();
         } else {
           window.FlowSound?.playClick?.();
-          showToast(`🔒 Nicht genug Credits (${profile.credits}/${theme.price} 💎).`);
+          showToast(t("shop.notEnoughCreditsToast", { have: profile.credits, cost: theme.price }));
         }
       });
     });
@@ -455,21 +464,22 @@
      Premium-Challenges
      --------------------------------------------------------------------- */
   function renderPremiumChallenges() {
-    const difficultyLabel = { leicht: "Leicht", mittel: "Mittel", schwer: "Schwer" };
-    els.premiumChallengeCatalog.innerHTML = PREMIUM_CHALLENGES.map((pc) => {
+    els.premiumChallengeCatalog.innerHTML = PREMIUM_CHALLENGES.map((raw) => {
+      const pc = findPremiumChallenge(raw.id);
       const beat = BEATS.find((b) => b.id === pc.beatId);
+      const verseWord = tPlural("challenge.verse", pc.verses);
       return `
         <div class="shop-card">
           <div class="shop-card__head">
             <span class="shop-card__name">${escapeHtml(pc.name)}</span>
-            <span class="shop-card__meta">${difficultyLabel[pc.difficulty] || pc.difficulty}</span>
+            <span class="shop-card__meta">${t(`common.difficulty.${pc.difficulty}`)}</span>
           </div>
           <span class="shop-card__meta">${escapeHtml(pc.desc)}</span>
-          <span class="shop-card__meta">${beat?.name || pc.beatId} · ${findTopicLabel(pc.topic)} · ${pc.verses} Strophen</span>
+          <span class="shop-card__meta">${beat?.name || pc.beatId} · ${findTopicLabel(pc.topic)} · ${pc.verses} ${verseWord}</span>
           <div class="shop-card__action">
             ${profile.premium
-              ? `<button class="btn btn-primary btn-sm" type="button" data-play-challenge="${pc.id}">▶️ Jetzt spielen</button>`
-              : `<span class="badge" style="opacity:0.7;">🔒 Nur mit Premium</span>`}
+              ? `<button class="btn btn-primary btn-sm" type="button" data-play-challenge="${pc.id}">${t("shop.playChallengeBtn")}</button>`
+              : `<span class="badge" style="opacity:0.7;">${t("shop.premiumOnlyBadge")}</span>`}
           </div>
         </div>
       `;
@@ -477,11 +487,11 @@
 
     els.premiumChallengeCatalog.querySelectorAll("[data-play-challenge]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const pc = PREMIUM_CHALLENGES.find((p) => p.id === btn.dataset.playChallenge);
+        const pc = findPremiumChallenge(btn.dataset.playChallenge);
         const settings = window.FlowData.loadSettings();
         window.FlowData.saveSettings({ ...settings, difficulty: pc.difficulty, beatId: pc.beatId, topic: pc.topic, verses: pc.verses });
         window.FlowSound?.playConfirm?.();
-        showToast(`🏅 ${pc.name} wird vorbereitet …`);
+        showToast(t("shop.challengePreparingToast", { name: pc.name }));
         setTimeout(() => { window.location.href = "challenge.html"; }, 350);
       });
     });
@@ -492,7 +502,7 @@
      --------------------------------------------------------------------- */
   function renderEarlyAccess() {
     if (!els.earlyAccessBlock) return;
-    const p = EARLY_ACCESS_PREVIEW;
+    const p = getEarlyAccessPreview();
     els.earlyAccessBlock.innerHTML = `
       <div class="shop-card early-access-card">
         <div class="shop-card__head">
@@ -501,8 +511,8 @@
         <span class="shop-card__meta">${escapeHtml(p.desc)}</span>
         <div class="shop-card__action">
           ${profile.premium
-            ? `<span class="badge">✓ Freigeschaltet (Vorschau)</span>`
-            : `<span class="badge" style="opacity:0.7;">🔒 Nur mit Premium</span>`}
+            ? `<span class="badge">${t("shop.earlyAccessUnlockedBadge")}</span>`
+            : `<span class="badge" style="opacity:0.7;">${t("shop.premiumOnlyBadge")}</span>`}
         </div>
       </div>
     `;
@@ -517,18 +527,18 @@
       return;
     }
     els.eventBanner.innerHTML = `
-      <div class="event-banner">🎉 Wochenend-Bonus aktiv — +25% Credits auf Challenges &amp; Turniere (heute &amp; morgen, nach deiner lokalen Uhrzeit).</div>
+      <div class="event-banner">${t("shop.weekendBonusBanner")}</div>
     `;
   }
 
   function renderDailyLimitStatus() {
     if (!els.dailyLimitStatus) return;
     if (profile.premium) {
-      els.dailyLimitStatus.innerHTML = `<p class="shop-section__hint" style="margin-bottom:var(--sp-5);">👑 Mit Premium: unbegrenzt Challenges pro Tag.</p>`;
+      els.dailyLimitStatus.innerHTML = `<p class="shop-section__hint" style="margin-bottom:var(--sp-5);">${t("shop.unlimitedChallengesNote")}</p>`;
       return;
     }
     const check = FlowProfile.canStartChallenge(profile);
-    els.dailyLimitStatus.innerHTML = `<p class="shop-section__hint" style="margin-bottom:var(--sp-5);">🎤 Heute noch ${check.remaining} von ${check.limit} kostenlosen Challenges übrig.</p>`;
+    els.dailyLimitStatus.innerHTML = `<p class="shop-section__hint" style="margin-bottom:var(--sp-5);">${t("shop.remainingChallengesNote", { remaining: check.remaining, limit: check.limit })}</p>`;
   }
 
   function renderLoginStreak() {
@@ -538,13 +548,13 @@
     const cycleDay = streak > 0 ? ((streak - 1) % DAILY_LOGIN_REWARDS.length) + 1 : 0;
     const days = DAILY_LOGIN_REWARDS.map((r) => `
       <div class="login-day ${r.day === cycleDay ? "is-current" : ""} ${r.day < cycleDay ? "is-reached" : ""}">
-        <div class="login-day__num">Tag ${r.day}</div>
+        <div class="login-day__num">${t("shop.dayLabel", { n: r.day })}</div>
         <div class="login-day__reward">${r.ballDesignChance ? "🎨" : "💎"} ${r.credits}</div>
       </div>
     `).join("");
     els.loginStreak.innerHTML = `
       <div class="login-streak__days">${days}</div>
-      <p class="login-streak__caption">Aktuelle Serie: ${streak} Tag${streak === 1 ? "" : "e"} am Stück.</p>
+      <p class="login-streak__caption">${tPlural("shop.streakCaption", streak, { n: streak })}</p>
     `;
   }
 
@@ -553,10 +563,10 @@
     const progress = Math.min(wc.progress || 0, WEEKLY_CHALLENGE.target);
     const pct = Math.round((progress / WEEKLY_CHALLENGE.target) * 100);
     els.weeklyChallengeBlock.innerHTML = `
-      <p style="font-size:var(--fs-sm); color:var(--text-muted); margin-bottom:var(--sp-2);">${WEEKLY_CHALLENGE.label}</p>
+      <p style="font-size:var(--fs-sm); color:var(--text-muted); margin-bottom:var(--sp-2);">${getWeeklyChallengeLabel()}</p>
       <div class="weekly-progress"><div class="weekly-progress__fill" style="width:${pct}%;"></div></div>
       <p style="font-size:var(--fs-xs); color:var(--text-dim); margin-top:var(--sp-2);">
-        ${wc.completed ? `✓ Belohnung eingesammelt: +${WEEKLY_CHALLENGE.creditsReward} 💎 (diese Woche)` : `${progress}/${WEEKLY_CHALLENGE.target} Challenges — Belohnung: +${WEEKLY_CHALLENGE.creditsReward} 💎`}
+        ${wc.completed ? t("shop.weeklyRewardCollected", { n: WEEKLY_CHALLENGE.creditsReward }) : t("shop.weeklyRewardProgress", { progress, target: WEEKLY_CHALLENGE.target, n: WEEKLY_CHALLENGE.creditsReward })}
       </p>
     `;
   }
@@ -566,18 +576,18 @@
      --------------------------------------------------------------------- */
   function timeAgo(ts) {
     const mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 1) return "gerade eben";
-    if (mins < 60) return `vor ${mins} Min.`;
+    if (mins < 1) return t("common.justNow");
+    if (mins < 60) return t("common.timeAgoMin", { n: mins });
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `vor ${hours} Std.`;
-    return `vor ${Math.round(hours / 24)} Tag(en)`;
+    if (hours < 24) return t("common.timeAgoHours", { n: hours });
+    return t("common.timeAgoDays", { n: Math.round(hours / 24) });
   }
 
   function renderPurchaseHistory() {
     if (!els.purchaseHistory) return;
     const list = FlowPurchases?.loadPurchases() || [];
     if (list.length === 0) {
-      els.purchaseHistory.innerHTML = `<p class="empty-hint">Noch keine Käufe — hier landet jede Demo-Aktion aus diesem Shop.</p>`;
+      els.purchaseHistory.innerHTML = `<p class="empty-hint">${t("shop.noPurchasesYet")}</p>`;
       return;
     }
     els.purchaseHistory.innerHTML = list.map((p) => `
@@ -610,6 +620,7 @@
   }
 
   renderAll();
+  window.FlowI18n.onLocaleChange(renderAll);
 
   // Ankerlinks aus der Werbung (#premium, #balls, …) sanft anspringen.
   if (window.location.hash) {

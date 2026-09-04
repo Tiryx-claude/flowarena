@@ -354,7 +354,7 @@
       profile.weeklyChallenge.completed = true;
       addCredits(profile, def.creditsReward);
       save(profile);
-      return { completed: true, label: def.label, creditsReward: def.creditsReward };
+      return { completed: true, label: window.FlowData.getWeeklyChallengeLabel(), creditsReward: def.creditsReward };
     }
     save(profile);
     return { completed: false };
