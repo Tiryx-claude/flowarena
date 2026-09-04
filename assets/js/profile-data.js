@@ -313,7 +313,7 @@
       if (locked.length > 0) {
         const pick = locked[Math.floor(Math.random() * locked.length)];
         profile.unlockedBallDesignIds.push(pick.id);
-        unlockedBallDesign = pick;
+        unlockedBallDesign = window.FlowData.findBallDesign(pick.id);
       }
     }
 

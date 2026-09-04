@@ -380,6 +380,7 @@
         addFriendBtn: "+ Freund",
         friendAddedBtn: "✓ Freund",
         friendAddedToast: "👥 {{name}} zu deinen Freunden hinzugefügt.",
+        friendAddedNotification: "{{name}} ist jetzt in deiner Freundesliste.",
         nameSavedToast: "✓ Name gespeichert",
       },
 
@@ -408,6 +409,17 @@
       legal: {
         privacyLink: "🔒 Datenschutzerklärung",
         termsLink: "📜 AGB",
+      },
+
+      ads: {
+        label: "📢 Werbung (Demo) · nur für Free-Accounts",
+        skipBtn: "Überspringen ({{n}})",
+        skipBtnReady: "Überspringen ✕",
+        slots: {
+          premium: { title: "FlowArena Premium", text: "Keine Werbung mehr, exklusive Beats, Ball-Designs & Challenges.", cta: "Zu Premium →" },
+          shop: { title: "Neu im Shop", text: "Frische Ball-Designs sind da — hol dir deinen Look für die Bühne.", cta: "Shop öffnen →" },
+          tournament: { title: "Turnier-Saison", text: "Turniere spielen, Community-Ruhm sichern — jetzt mitmachen.", cta: "Turnier erstellen →" },
+        },
       },
 
       shop: {
@@ -512,6 +524,8 @@
         weeklyRewardCollected: "✓ Belohnung eingesammelt: +{{n}} 💎 (diese Woche)",
         weeklyRewardProgress: "{{progress}}/{{target}} Challenges — Belohnung: +{{n}} 💎",
         weeklyChallengeLabel: "Schließe diese Woche 3 Challenges ab",
+        dailyBonusNotification: "Tages-Bonus (Tag {{day}}, Serie {{streak}}): +{{credits}} Credits{{bonus}}",
+        dailyBonusBallDesignSuffix: " + neues Ball-Design „{{name}}“!",
 
         noPurchasesYet: "Noch keine Käufe — hier landet jede Demo-Aktion aus diesem Shop.",
 
@@ -927,6 +941,7 @@
         addFriendBtn: "+ Friend",
         friendAddedBtn: "✓ Friend",
         friendAddedToast: "👥 {{name}} added to your friends.",
+        friendAddedNotification: "{{name}} is now on your friends list.",
         nameSavedToast: "✓ Name saved",
       },
 
@@ -955,6 +970,17 @@
       legal: {
         privacyLink: "🔒 Privacy policy",
         termsLink: "📜 Terms of service",
+      },
+
+      ads: {
+        label: "📢 Ad (demo) · free accounts only",
+        skipBtn: "Skip ({{n}})",
+        skipBtnReady: "Skip ✕",
+        slots: {
+          premium: { title: "FlowArena Premium", text: "No more ads, exclusive beats, ball designs & challenges.", cta: "Go Premium →" },
+          shop: { title: "New in the shop", text: "Fresh ball designs are here — get your look for the stage.", cta: "Open shop →" },
+          tournament: { title: "Tournament season", text: "Play tournaments, earn community glory — join now.", cta: "Create tournament →" },
+        },
       },
 
       shop: {
@@ -1059,6 +1085,8 @@
         weeklyRewardCollected: "✓ Reward collected: +{{n}} 💎 (this week)",
         weeklyRewardProgress: "{{progress}}/{{target}} challenges — reward: +{{n}} 💎",
         weeklyChallengeLabel: "Complete 3 challenges this week",
+        dailyBonusNotification: "Daily bonus (day {{day}}, streak {{streak}}): +{{credits}} Credits{{bonus}}",
+        dailyBonusBallDesignSuffix: " + new ball design “{{name}}”!",
 
         noPurchasesYet: "No purchases yet — every demo action from this shop lands here.",
 
@@ -1474,6 +1502,7 @@
         addFriendBtn: "+ Друг",
         friendAddedBtn: "✓ Друг",
         friendAddedToast: "👥 {{name}} добавлен(а) в друзья.",
+        friendAddedNotification: "{{name}} теперь в твоём списке друзей.",
         nameSavedToast: "✓ Имя сохранено",
       },
 
@@ -1502,6 +1531,17 @@
       legal: {
         privacyLink: "🔒 Политика конфиденциальности",
         termsLink: "📜 Условия использования",
+      },
+
+      ads: {
+        label: "📢 Реклама (демо) · только для Free-аккаунтов",
+        skipBtn: "Пропустить ({{n}})",
+        skipBtnReady: "Пропустить ✕",
+        slots: {
+          premium: { title: "FlowArena Premium", text: "Без рекламы, эксклюзивные биты, дизайны мяча и челленджи.", cta: "К Premium →" },
+          shop: { title: "Новое в магазине", text: "Появились свежие дизайны мяча — забери свой образ для сцены.", cta: "Открыть магазин →" },
+          tournament: { title: "Сезон турниров", text: "Играй турниры, зарабатывай славу в сообществе — присоединяйся сейчас.", cta: "Создать турнир →" },
+        },
       },
 
       shop: {
@@ -1606,6 +1646,8 @@
         weeklyRewardCollected: "✓ Награда получена: +{{n}} 💎 (на этой неделе)",
         weeklyRewardProgress: "{{progress}}/{{target}} челленджей — награда: +{{n}} 💎",
         weeklyChallengeLabel: "Заверши 3 челленджа на этой неделе",
+        dailyBonusNotification: "Ежедневный бонус (день {{day}}, серия {{streak}}): +{{credits}} кредитов{{bonus}}",
+        dailyBonusBallDesignSuffix: " + новый дизайн мяча «{{name}}»!",
 
         noPurchasesYet: "Пока нет покупок — сюда попадает каждое демо-действие из этого магазина.",
 

@@ -120,7 +120,8 @@
     if (list.some((f) => f.id === person.id)) return false;
     list.push({ id: person.id, name: person.name, avatar: person.avatar, addedAt: Date.now() });
     saveFriends(list);
-    addNotification({ icon: "👥", text: `${person.name} ist jetzt in deiner Freundesliste.` });
+    const text = window.FlowI18n ? window.FlowI18n.t("profile.friendAddedNotification", { name: person.name }) : `${person.name} ist jetzt in deiner Freundesliste.`;
+    addNotification({ icon: "👥", text });
     return true;
   }
 

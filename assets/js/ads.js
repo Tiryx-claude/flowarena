@@ -29,10 +29,11 @@
   const COOLDOWN_MS = 90 * 1000;
   const STORAGE_KEY = "flowarena.ads.lastShown.v1";
 
+  const t = window.FlowI18n.t;
   const AD_SLOTS = [
-    { icon: "👑", title: "FlowArena Premium", text: "Keine Werbung mehr, exklusive Beats, Ball-Designs & Challenges.", cta: "Zu Premium →", href: "shop.html#premium" },
-    { icon: "🎨", title: "Neu im Shop", text: "Frische Ball-Designs sind da — hol dir deinen Look für die Bühne.", cta: "Shop öffnen →", href: "shop.html#balls" },
-    { icon: "🏆", title: "Turnier-Saison", text: "Turniere spielen, Community-Ruhm sichern — jetzt mitmachen.", cta: "Turnier erstellen →", href: "index.html" },
+    { icon: "👑", key: "premium", href: "shop.html#premium" },
+    { icon: "🎨", key: "shop", href: "shop.html#balls" },
+    { icon: "🏆", key: "tournament", href: "index.html" },
   ];
 
   function lastShown() {
@@ -48,13 +49,13 @@
     overlay.className = "ad-overlay";
     overlay.innerHTML = `
       <div class="ad-card">
-        <div class="ad-card__label">📢 Werbung (Demo) · nur für Free-Accounts</div>
+        <div class="ad-card__label">${t("ads.label")}</div>
         <div class="ad-card__icon">${slot.icon}</div>
-        <div class="ad-card__title">${slot.title}</div>
-        <p class="ad-card__text">${slot.text}</p>
+        <div class="ad-card__title">${t(`ads.slots.${slot.key}.title`)}</div>
+        <p class="ad-card__text">${t(`ads.slots.${slot.key}.text`)}</p>
         <div class="ad-card__actions">
-          <a class="btn btn-primary btn-sm" href="${slot.href}">${slot.cta}</a>
-          <button class="btn btn-glass btn-sm" type="button" id="adSkipBtn" disabled>Überspringen (<span id="adSkipCount">3</span>)</button>
+          <a class="btn btn-primary btn-sm" href="${slot.href}">${t(`ads.slots.${slot.key}.cta`)}</a>
+          <button class="btn btn-glass btn-sm" type="button" id="adSkipBtn" disabled>${t("ads.skipBtn", { n: `<span id="adSkipCount">3</span>` })}</button>
         </div>
       </div>
     `;
@@ -71,7 +72,7 @@
         clearInterval(timer);
         if (skipBtn) {
           skipBtn.disabled = false;
-          skipBtn.textContent = "Überspringen ✕";
+          skipBtn.textContent = t("ads.skipBtnReady");
         }
       }
     }, 1000);

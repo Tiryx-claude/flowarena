@@ -23,11 +23,12 @@
   const creditsEl = document.getElementById("creditsValue");
   if (creditsEl) creditsEl.textContent = String(profile.credits);
 
+  const t = window.FlowI18n.t;
   const bonusText = result.unlockedBallDesign
-    ? ` + neues Ball-Design „${result.unlockedBallDesign.name}“!`
+    ? t("shop.dailyBonusBallDesignSuffix", { name: result.unlockedBallDesign.name })
     : "";
   window.FlowSocial?.addNotification({
     icon: "🎁",
-    text: `Tages-Bonus (Tag ${result.day}, Serie ${result.streak}): +${result.creditsEarned} Credits${bonusText}`,
+    text: t("shop.dailyBonusNotification", { day: result.day, streak: result.streak, credits: result.creditsEarned, bonus: bonusText }),
   });
 })();
