@@ -36,7 +36,7 @@
 
   function defaultProfile() {
     return {
-      displayName: "Anonymer MC",
+      displayName: window.FlowI18n?.t("profile.defaultDisplayName") || "Anonymer MC",
       avatar: AVATAR_OPTIONS[0],
       credits: 40, // kleines Startguthaben, damit man direkt etwas ausprobieren kann
       premium: false,
@@ -396,10 +396,24 @@
     BADGES.forEach((b) => {
       if (checks[b.id] && !profile.earnedBadgeIds.includes(b.id)) {
         profile.earnedBadgeIds.push(b.id);
-        newly.push(b);
+        newly.push(findBadge(b.id));
       }
     });
     return newly;
+  }
+
+  // Name/Beschreibung kommen aus dem i18n-Dictionary (badges.<id>.name/desc),
+  // BADGES bleibt die stabile, sprachneutrale Quelle für id/icon + deutscher
+  // Fallback-Text, falls i18n.js ausnahmsweise noch nicht geladen ist —
+  // gleiches Zentralisierungs-Muster wie findTopicLabel() in data.js.
+  function findBadge(id) {
+    const base = BADGES.find((b) => b.id === id) || { id, icon: "🏅", name: id, desc: "" };
+    if (!window.FlowI18n) return base;
+    return {
+      ...base,
+      name: window.FlowI18n.t(`badges.${id}.name`),
+      desc: window.FlowI18n.t(`badges.${id}.desc`),
+    };
   }
 
   /**
@@ -485,6 +499,7 @@
     STORAGE_KEY,
     AVATAR_OPTIONS,
     BADGES,
+    findBadge,
     load,
     save,
     addCredits,

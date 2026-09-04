@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="assets/css/social.css" />
   <link rel="stylesheet" href="assets/css/beat-ball.css" />
   <link rel="stylesheet" href="assets/css/ads.css" />
+  <link rel="stylesheet" href="assets/css/i18n.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -32,18 +33,18 @@
       <span>Flow<span class="nav__brand-name">Arena</span></span>
     </div>
     <nav class="nav__links" aria-label="Hauptnavigation">
-      <a class="nav__link" href="index.html">Home</a>
-      <a class="nav__link" href="#">Challenges</a>
-      <a class="nav__link" href="#">Beats</a>
-      <a class="nav__link" href="shop.html">Shop</a>
-      <a class="nav__link" href="community.html">Community</a>
+      <a class="nav__link" href="index.html" data-i18n="nav.home">Home</a>
+      <a class="nav__link" href="#" data-i18n="nav.challenges">Challenges</a>
+      <a class="nav__link" href="#" data-i18n="nav.beats">Beats</a>
+      <a class="nav__link" href="shop.html" data-i18n="nav.shop">Shop</a>
+      <a class="nav__link" href="community.html" data-i18n="nav.community">Community</a>
     </nav>
     <div class="nav__actions">
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label" data-i18n="common.credits">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
       <div class="notif-wrap">
-        <button class="btn-icon" id="notifBellBtn" type="button" aria-label="Benachrichtigungen" title="Benachrichtigungen">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+        <button class="btn-icon" id="notifBellBtn" type="button" data-i18n-attr="aria-label:common.notifications,title:common.notifications">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
         <div class="notif-dropdown" id="notifDropdown" hidden>
-          <div class="notif-dropdown__head"><span>Benachrichtigungen</span><button type="button" id="notifMarkReadBtn">Alle gelesen</button></div>
+          <div class="notif-dropdown__head"><span data-i18n="common.notifications">Benachrichtigungen</span><button type="button" id="notifMarkReadBtn" data-i18n="common.markAllRead">Alle gelesen</button></div>
           <div class="notif-list" id="notifList"></div>
         </div>
       </div>
@@ -54,13 +55,13 @@
     <!-- ============ PROFILE HEADER ============ -->
     <section class="card-glass profile-header" id="profileHeader">
       <div class="profile-avatar-wrap">
-        <button class="profile-avatar" id="avatarBtn" type="button" aria-label="Avatar ändern" title="Avatar ändern">🎤</button>
+        <button class="profile-avatar" id="avatarBtn" type="button" data-i18n-attr="aria-label:profile.changeAvatar,title:profile.changeAvatar">🎤</button>
         <div class="avatar-picker" id="avatarPicker" hidden></div>
       </div>
       <div class="profile-header__body">
-        <input class="profile-name-input" id="displayNameInput" type="text" maxlength="24" value="Anonymer MC" aria-label="Anzeigename" />
+        <input class="profile-name-input" id="displayNameInput" type="text" maxlength="24" value="Anonymer MC" data-i18n-attr="aria-label:profile.displayNameLabel" />
         <div class="profile-header__badges" id="profileStatusBadges"></div>
-        <p class="profile-header__hint">Dieses Profil lebt nur in diesem Browser — es gibt (noch) keine echten Accounts. Name und Avatar werden lokal gespeichert.</p>
+        <p class="profile-header__hint" data-i18n="profile.localProfileHint">Dieses Profil lebt nur in diesem Browser — es gibt (noch) keine echten Accounts. Name und Avatar werden lokal gespeichert.</p>
       </div>
     </section>
 
@@ -74,45 +75,45 @@
 
     <!-- ============ BADGES ============ -->
     <section class="card-glass">
-      <h2 class="section-title">🏅 Abzeichen</h2>
+      <h2 class="section-title" data-i18n="profile.badgesTitle">🏅 Abzeichen</h2>
       <div class="badge-grid" id="badgeGrid"></div>
     </section>
 
     <!-- ============ AUSRÜSTUNG (Ball-Design, Animation, Profil-Design) ============ -->
     <section class="card-glass">
-      <h2 class="section-title">🎨 Ausrüstung</h2>
+      <h2 class="section-title" data-i18n="profile.equipmentTitle">🎨 Ausrüstung</h2>
       <div class="equipped-ball" id="equippedBall"></div>
-      <a class="btn btn-glass btn-sm" href="shop.html#balls" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);">Ball-Design ändern →</a>
+      <a class="btn btn-glass btn-sm" href="shop.html#balls" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);" data-i18n="profile.changeBallDesign">Ball-Design ändern →</a>
 
       <div class="equipped-ball" id="equippedAnimation" style="margin-top:var(--sp-5);"></div>
-      <a class="btn btn-glass btn-sm" href="shop.html#animations" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);">Animation ändern →</a>
+      <a class="btn btn-glass btn-sm" href="shop.html#animations" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);" data-i18n="profile.changeAnimation">Animation ändern →</a>
 
       <div class="equipped-ball" id="equippedTheme" style="margin-top:var(--sp-5);"></div>
-      <a class="btn btn-glass btn-sm" href="shop.html#themes" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);">Profil-Design ändern →</a>
+      <a class="btn btn-glass btn-sm" href="shop.html#themes" style="text-decoration:none; display:inline-block; margin-top:var(--sp-4);" data-i18n="profile.changeTheme">Profil-Design ändern →</a>
     </section>
 
     <!-- ============ MEINE POSTS ============ -->
     <section class="card-glass">
-      <h2 class="section-title">📤 Meine veröffentlichten Takes</h2>
-      <div id="ownPosts"><p class="empty-hint">Noch nichts veröffentlicht — nach einer Challenge kannst du deinen Take mit „Veröffentlichen" in die Community stellen.</p></div>
+      <h2 class="section-title" data-i18n="profile.myPostsTitle">📤 Meine veröffentlichten Takes</h2>
+      <div id="ownPosts"><p class="empty-hint" data-i18n="profile.noPostsYet">Noch nichts veröffentlicht — nach einer Challenge kannst du deinen Take mit „Veröffentlichen" in die Community stellen.</p></div>
     </section>
 
     <!-- ============ FREUNDE ============ -->
     <section class="card-glass">
-      <h2 class="section-title">👥 Freunde</h2>
-      <input class="select search-input-row" id="friendSearchInput" type="text" placeholder="Namen suchen, um Freunde hinzuzufügen …" />
+      <h2 class="section-title" data-i18n="profile.friendsTitle">👥 Freunde</h2>
+      <input class="select search-input-row" id="friendSearchInput" type="text" data-i18n-attr="placeholder:profile.friendSearchPlaceholder" placeholder="Namen suchen, um Freunde hinzuzufügen …" />
       <div class="person-list" id="friendSearchResults" hidden></div>
       <div id="friendsList"></div>
     </section>
 
     <!-- ============ DATENSCHUTZ ============ -->
     <section class="card-glass">
-      <h2 class="section-title">🔒 Datenschutz</h2>
+      <h2 class="section-title" data-i18n="profile.privacyTitle">🔒 Datenschutz</h2>
 
       <div class="privacy-row">
         <div>
-          <div class="privacy-row__label">In der Rangliste anzeigen</div>
-          <div class="privacy-row__hint">Wenn aus, taucht "Du" in keiner Rangliste (Startseite/Community) mehr auf.</div>
+          <div class="privacy-row__label" data-i18n="profile.showInLeaderboardLabel">In der Rangliste anzeigen</div>
+          <div class="privacy-row__hint" data-i18n="profile.showInLeaderboardHint">Wenn aus, taucht "Du" in keiner Rangliste (Startseite/Community) mehr auf.</div>
         </div>
         <label class="toggle" id="privacyLeaderboardToggle" role="switch" aria-checked="true">
           <span class="toggle__track"><span class="toggle__thumb"></span></span>
@@ -121,8 +122,8 @@
 
       <div class="privacy-row">
         <div>
-          <div class="privacy-row__label">Aktivität für Freunde sichtbar</div>
-          <div class="privacy-row__hint">Symbolische Einstellung — ohne echtes Backend hat das aktuell keine sichtbare Wirkung, ist aber schon vorbereitet.</div>
+          <div class="privacy-row__label" data-i18n="profile.activityVisibleLabel">Aktivität für Freunde sichtbar</div>
+          <div class="privacy-row__hint" data-i18n="profile.activityVisibleHint">Symbolische Einstellung — ohne echtes Backend hat das aktuell keine sichtbare Wirkung, ist aber schon vorbereitet.</div>
         </div>
         <label class="toggle" id="privacyActivityToggle" role="switch" aria-checked="true">
           <span class="toggle__track"><span class="toggle__thumb"></span></span>
@@ -130,18 +131,20 @@
       </div>
 
       <div class="danger-zone">
-        <div class="danger-zone__title">⚠️ Alle lokalen Daten löschen</div>
-        <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+        <div class="danger-zone__title" data-i18n="profile.dangerZoneTitle">⚠️ Alle lokalen Daten löschen</div>
+        <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-4);" data-i18n="profile.dangerZoneText">
           Löscht Profil, Credits, Abzeichen, Community-Posts, Turniere und Freunde unwiderruflich aus diesem Browser.
           Das kann nicht rückgängig gemacht werden.
         </p>
-        <button class="btn btn-glass btn-sm" id="resetDataBtn" type="button" style="border-color:rgba(255,75,92,0.4); color:#ff8a97;">Alle Daten löschen</button>
+        <button class="btn btn-glass btn-sm" id="resetDataBtn" type="button" style="border-color:rgba(255,75,92,0.4); color:#ff8a97;" data-i18n="profile.resetDataBtn">Alle Daten löschen</button>
       </div>
     </section>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="assets/js/i18n-data.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script src="assets/js/sound.js"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>
