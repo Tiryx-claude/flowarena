@@ -34,6 +34,10 @@
   padding: 56px var(--sp-4) var(--sp-6);
 }
 
+/* Zeigt EINE Zeile auf einmal: 4 leere Takt-Kästchen + 1 Wort-Kästchen —
+   exakt dieselbe Mechanik wie das echte Gameplay (assets/css/challenge.css
+   .word-slot--tact/--word), damit die Vorschau in Sekunden erklärt, wie
+   sich eine echte Runde anfühlt (siehe docs/GAMEPLAY.md §3). */
 .preview-box {
   position: relative;
   min-width: 64px;
@@ -46,18 +50,51 @@
   font-weight: 700;
   font-size: var(--fs-sm);
   color: var(--text-muted);
-  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease, opacity 220ms ease;
+}
+
+.preview-box--tact {
+  min-width: 40px;
+  min-height: 40px;
+  opacity: 0.5;
+}
+
+.preview-box__tact-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: background 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+}
+
+.preview-box--word {
+  min-width: 84px;
 }
 
 /* "glüht wie Magma", wenn der Ball auftrifft (per JS getriggert) —
    Farbwerte kommen aus assets/css/beat-ball.css (geteilt mit der echten
-   Challenge-Bühne, damit Vorschau und Gameplay optisch identisch sind). */
-.preview-box.is-hit {
+   Challenge-Bühne, damit Vorschau und Gameplay optisch identisch sind).
+   Bei Takt-Kästchen ein dezenterer Blau-Puls statt vollem Magma-Glow. */
+.preview-box--word.is-hit {
   color: var(--magma-text);
   background: var(--magma-bg);
   border-color: var(--magma-border);
   box-shadow: var(--magma-glow);
   transform: translateY(-3px) scale(1.08);
+}
+
+.preview-box--tact.is-hit {
+  opacity: 1;
+  border-color: var(--border-strong);
+  transform: scale(1.06);
+}
+.preview-box--tact.is-hit .preview-box__tact-dot {
+  background: var(--neon-blue);
+  transform: scale(1.6);
+  box-shadow: 0 0 8px rgba(41, 211, 255, 0.8);
 }
 
 /* .beat-ball, .spark-layer, .pv-spark → assets/css/beat-ball.css */
@@ -71,7 +108,8 @@
 
 @media (max-width: 560px) {
   .preview-track { gap: var(--sp-2); padding: 48px var(--sp-2) var(--sp-5); }
-  .preview-box { min-width: 48px; font-size: var(--fs-xs); padding: var(--sp-2) 4px; }
+  .preview-box--word { min-width: 48px; font-size: var(--fs-xs); padding: var(--sp-2) 4px; }
+  .preview-box--tact { min-width: 30px; min-height: 30px; }
 }
 
 /* ---------- Menü-Leiste ---------- */

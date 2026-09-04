@@ -266,20 +266,36 @@
     measureResizeTimer = setTimeout(measureBoxCenters, 150);
   });
 
-  function updateBall(phase, lineInStanza) {
+  /** @param beatsIntoLine - Fließkomma-Beatzahl seit Zeilenbeginn (0..BEATS_PER_LINE) */
+  function updateBall(beatsIntoLine, boxIndex) {
     if (!els.gameBall || !boxCenters.length) return;
-    const target = boxCenters[lineInStanza] || boxCenters[boxCenters.length - 1];
+    const target = boxCenters[boxIndex] || boxCenters[boxCenters.length - 1];
     if (!target) return;
-    const frac = ((phase % 1) + 1) % 1;
+    const frac = ((beatsIntoLine % 1) + 1) % 1;
     const bounce = Math.sin(frac * Math.PI);
     const y = target.y - BALL_BOUNCE_HEIGHT * bounce;
     els.gameBall.style.transform = `translate(${(target.x - BALL_RADIUS).toFixed(1)}px, ${(y - BALL_RADIUS * 2).toFixed(1)}px)`;
   }
 
-  function spawnLandingSparks(lineInStanza) {
-    const target = boxCenters[lineInStanza];
+  // Größerer Funken-Ausschlag beim Wort-Kästchen (letzte Position) als bei
+  // den 4 reinen Takt-Kästchen davor — betont den eigentlichen "Treffer".
+  function spawnLandingSparks(boxIndex) {
+    const target = boxCenters[boxIndex];
     if (!target) return;
-    window.FlowSparkFX?.spawnSparks(els.gameSparkLayer, target.x, target.y + 6, { count: 9, minDist: 18, maxDist: 34 });
+    const isWordBox = boxIndex === BEATS_PER_LINE - 1;
+    window.FlowSparkFX?.spawnSparks(els.gameSparkLayer, target.x, target.y + 6, {
+      count: isWordBox ? 14 : 7,
+      minDist: isWordBox ? 20 : 16,
+      maxDist: isWordBox ? 40 : 28,
+    });
+  }
+
+  // Paint-only Klassenwechsel (siehe .word-slot-Kommentar in challenge.css) —
+  // markiert, auf welchem der 5 Kästchen der Ball gerade "steht".
+  function setActiveBox(boxIndex) {
+    $$("#wordRack .word-slot").forEach((el, i) => {
+      el.classList.toggle("is-active", i === boxIndex);
+    });
   }
 
   /* ---------------------------------------------------------------------
@@ -317,24 +333,40 @@
   /* ---------------------------------------------------------------------
      Word-Rack Rendering
      --------------------------------------------------------------------- */
-  function renderVerseBadge(stanzaIndex) {
+  function renderVerseBadge(stanzaIndex, lineInStanza) {
     const ending = resolvedStanzas[stanzaIndex]?.ending || "…";
-    els.verseBadge.textContent = `Strophe ${stanzaIndex + 1} von ${totalStanzas} · Reimschema ${ending}`;
+    els.verseBadge.textContent = `Strophe ${stanzaIndex + 1} von ${totalStanzas} · Zeile ${lineInStanza + 1} von ${LINES_PER_STANZA} · Reimschema ${ending}`;
     els.verseChipValue.textContent = `${stanzaIndex + 1}/${totalStanzas}`;
   }
 
+  // JEDE Zeile bekommt ihre eigene frische Reihe von BEATS_PER_LINE (5)
+  // Kästchen: die ersten 4 sind reine Takt-Kästchen (immer leer), nur das
+  // letzte zeigt das Reimwort dieser Zeile — von Zeilenbeginn an sichtbar
+  // (der Ball "landet" später nur noch beat-genau darauf, siehe
+  // docs/GAMEPLAY.md §3/§4). Gilt identisch in jedem Spielmodus.
   function renderWordRack(stanzaIndex, lineInStanza) {
     const stanza = resolvedStanzas[stanzaIndex];
     if (!stanza) return; // noch nicht geladen (sollte praktisch nie sichtbar werden)
-    els.wordRack.innerHTML = stanza.words.map((word, i) => {
-      const state = i < lineInStanza ? "is-done" : i === lineInStanza ? "is-active" : "is-upcoming";
-      return `
-        <div class="word-slot ${state}">
-          <span class="word-slot__index">${i + 1}</span>
-          <span class="word-slot__word">${word.toUpperCase()}</span>
-        </div>
-      `;
-    }).join("");
+    const word = stanza.words[lineInStanza];
+    const boxes = [];
+    for (let i = 0; i < BEATS_PER_LINE; i++) {
+      if (i === BEATS_PER_LINE - 1) {
+        boxes.push(`
+          <div class="word-slot word-slot--word">
+            <span class="word-slot__index">${i + 1}</span>
+            <span class="word-slot__word">${word.toUpperCase()}</span>
+          </div>
+        `);
+      } else {
+        boxes.push(`
+          <div class="word-slot word-slot--tact">
+            <span class="word-slot__index">${i + 1}</span>
+            <span class="word-slot__tact-dot"></span>
+          </div>
+        `);
+      }
+    }
+    els.wordRack.innerHTML = boxes.join("");
   }
 
   let verseBannerEl = null;
@@ -356,12 +388,13 @@
      --------------------------------------------------------------------- */
   let globalLineIndex = 0; // 0-basiert, über die GESAMTE Challenge gezählt
   let displayedLineIndex = -1; // zuletzt gerenderte Zeile (vermeidet Doppel-Renders)
+  let displayedBoxIndex = -1; // zuletzt "getroffenes" Kästchen INNERHALB der Zeile
   let finished = false;
 
   function startFrameLoop() {
     function frame() {
       if (!clock || !clock.running) return;
-      const phase = clock.currentBeatPhase();
+      const phase = clock.currentBeatPhase(); // kontinuierliche Beat-Zahl seit Challenge-Start
 
       const lineStart = clock.lineTime(globalLineIndex);
       const lineEnd = clock.lineTime(globalLineIndex + 1);
@@ -372,14 +405,26 @@
       const lineInStanza = globalLineIndex % LINES_PER_STANZA;
 
       if (displayedLineIndex !== globalLineIndex && resolvedStanzas[stanzaIndex]) {
-        renderVerseBadge(stanzaIndex);
+        renderVerseBadge(stanzaIndex, lineInStanza);
         renderWordRack(stanzaIndex, lineInStanza);
         measureBoxCenters(); // Kästchen-Positionen frisch nach dem Rendern messen
-        spawnLandingSparks(lineInStanza); // Ball "landet" auf dem neuen Kästchen
         displayedLineIndex = globalLineIndex;
+        displayedBoxIndex = -1; // erzwingt sofortiges Landing auf Kästchen 1 der neuen Zeile
       }
 
-      updateBall(phase, lineInStanza);
+      // Beat-genaue Position INNERHALB der Zeile (0..BEATS_PER_LINE-1) — der
+      // Ball springt jeden Beat ein Kästchen weiter, landet erst beim letzten
+      // (Index BEATS_PER_LINE-1) auf dem Reimwort. Siehe docs/GAMEPLAY.md §3.
+      const beatsIntoLine = phase - globalLineIndex * BEATS_PER_LINE;
+      const boxIndex = Math.min(BEATS_PER_LINE - 1, Math.max(0, Math.floor(beatsIntoLine)));
+
+      updateBall(beatsIntoLine, boxIndex);
+
+      if (boxIndex !== displayedBoxIndex) {
+        spawnLandingSparks(boxIndex);
+        setActiveBox(boxIndex);
+        displayedBoxIndex = boxIndex;
+      }
 
       if (!finished && clock.now() >= lineEnd) {
         advancePastLine(stanzaIndex, lineInStanza);
@@ -447,14 +492,17 @@
 
     globalLineIndex = 0;
     displayedLineIndex = -1;
+    displayedBoxIndex = -1;
     finished = false;
 
     showScreen("live");
-    renderVerseBadge(0);
+    renderVerseBadge(0, 0);
     renderWordRack(0, 0);
     measureBoxCenters();
     spawnLandingSparks(0);
+    setActiveBox(0);
     displayedLineIndex = 0; // initiales Rendern schon erledigt — Frame-Loop soll es nicht wiederholen
+    displayedBoxIndex = 0;
     startBeatClock();
 
     if (micGranted) {

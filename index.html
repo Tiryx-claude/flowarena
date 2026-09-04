@@ -59,19 +59,17 @@
 
       <!-- ============ GAMEPLAY-VORSCHAU ============ -->
       <div class="gameplay-preview">
-        <span class="preview-bpm-tag">100 BPM · Beispiel-Strophe</span>
+        <span class="preview-bpm-tag">100 BPM · Beispiel-Zeile</span>
+        <!-- Kästchen werden per JS erzeugt (home.js) — 4 leere Takt-Kästchen
+             + 1 Wort-Kästchen, exakt wie im echten Gameplay (challenge.js). -->
         <div class="preview-track" id="previewTrack">
-          <div class="preview-box">RAUM</div>
-          <div class="preview-box">BAUM</div>
-          <div class="preview-box">KAUM</div>
-          <div class="preview-box">TRAUM</div>
-          <div class="preview-box">SCHAUM</div>
           <div class="beat-ball" id="previewBall" aria-hidden="true"></div>
           <div class="spark-layer" id="previewSparkLayer" aria-hidden="true"></div>
         </div>
         <p class="preview-caption">
-          So läuft's: dein Ball tanzt im Takt des Beats von Wort zu Wort — du rappst jede Zeile frei
-          und landest genau auf dem markierten Wort. 5 Wörter, 5 Zeilen, eine Reimfamilie pro Strophe.
+          So läuft's: jede Zeile hat 5 Kästchen — die ersten 4 geben nur den Takt vor, im 5. wartet
+          dein Reimwort. Der Ball hüpft im Beat mit, du rappst frei und landest das Wort genau im
+          letzten Kästchen. 5 Zeilen pro Strophe, danach eine neue Reimfamilie.
         </p>
       </div>
     </section>

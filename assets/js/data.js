@@ -19,7 +19,14 @@
      ------------------------------------------------------------------- */
   const GAMEPLAY_CONFIG = {
     linesPerStanza: 5, // jede Zeile bekommt genau EIN Endwort
-    beatsPerLine: 4, // musikalisches Timing: 1 Takt (4 Beats) pro Zeile
+    // boxesPerLine: JEDE Zeile hat genau so viele Kästchen — die ersten
+    // (boxesPerLine - 1) sind IMMER leer und dienen nur als BPM-Taktanzeige,
+    // nur das LETZTE Kästchen zeigt das Reimwort. Der Ball springt im
+    // BPM-Takt durch alle Kästchen einer Zeile (1 Kästchen pro Beat), landet
+    // exakt im letzten Kästchen auf dem Reimwort. Gilt identisch in JEDEM
+    // Spielmodus (Solo, Turnier, Freundes-Duell — siehe docs/GAMEPLAY.md §3).
+    boxesPerLine: 5,
+    beatsPerLine: 5, // = boxesPerLine: 1 Beat pro Kästchen, siehe oben
     minStanzas: 1,
     maxStanzas: 10,
     freeMaxStanzas: 5, // Modul 4: ohne Premium bei 5 Strophen gedeckelt

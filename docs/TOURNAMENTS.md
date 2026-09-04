@@ -27,6 +27,19 @@ kann, ohne dass `tournament.html`/`tournament.js` strukturell umgebaut werden
 müssten — nur `tournament-data.js`s Funktionen würden gegen API-Calls
 ausgetauscht.
 
+**Begriffe/Modi:** "privates Turnier" (Raum-Code manuell teilen) und
+"Freundes-Duell" (Host lädt eine:n gespeicherte:n Freund:in direkt aus der
+Lobby ein, siehe §2 unten) laufen beide über exakt dasselbe `tournament.js`/
+`tournament-data.js` — es ist derselbe Code-Pfad, nur unterschiedlich
+befüllt (Zufalls-Bots vs. eine bekannte Person). Ein echtes "öffentliches
+Match" (offene Matchmaking-Queue ohne Code, fremde Mitspieler:innen ohne
+Einladung) gibt es in diesem Prototyp **noch nicht** — dafür bräuchte es
+zwingend ein Backend (echte gleichzeitig online Spieler:innen über
+Geräte hinweg finden), siehe §1. Die Gameplay-Mechanik selbst
+(Kästchen/Ball/Timing, `docs/GAMEPLAY.md` §3) ist aber schon jetzt so
+gebaut, dass ein künftiger öffentlicher Matchmaking-Modus sie 1:1
+übernehmen könnte.
+
 ## 2. Ablauf
 
 ```

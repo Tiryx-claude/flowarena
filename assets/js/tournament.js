@@ -298,8 +298,10 @@
   let rafId = null;
   let boxCenters = [];
   let currentRoundWords = null;
+  let currentRoundIdx = 0;
   let lineIndexInRound = 0;
   let displayedLine = -1;
+  let displayedBoxIndex = -1; // zuletzt "getroffenes" Kästchen INNERHALB der Zeile
 
   function measureBoxCenters() {
     if (!els.wordRackWrap) return;
@@ -314,33 +316,65 @@
     window.__tResizeT = setTimeout(measureBoxCenters, 150);
   });
 
-  function updateBall(phase) {
+  /** @param beatsIntoLine - Fließkomma-Beatzahl seit Zeilenbeginn (0..BEATS_PER_LINE) */
+  function updateBall(beatsIntoLine, boxIndex) {
     if (!els.gameBall || !boxCenters.length) return;
-    const target = boxCenters[lineIndexInRound] || boxCenters[boxCenters.length - 1];
+    const target = boxCenters[boxIndex] || boxCenters[boxCenters.length - 1];
     if (!target) return;
-    const frac = ((phase % 1) + 1) % 1;
+    const frac = ((beatsIntoLine % 1) + 1) % 1;
     const bounce = Math.sin(frac * Math.PI);
     const y = target.y - BALL_BOUNCE_HEIGHT * bounce;
     els.gameBall.style.transform = `translate(${(target.x - BALL_RADIUS).toFixed(1)}px, ${(y - BALL_RADIUS * 2).toFixed(1)}px)`;
   }
 
-  function spawnLandingSparks() {
-    const target = boxCenters[lineIndexInRound];
+  // Größerer Funken-Ausschlag beim Wort-Kästchen (letzte Position) als bei
+  // den 4 reinen Takt-Kästchen davor — identisches Prinzip wie challenge.js.
+  function spawnLandingSparks(boxIndex) {
+    const target = boxCenters[boxIndex];
     if (!target) return;
-    window.FlowSparkFX?.spawnSparks(els.gameSparkLayer, target.x, target.y + 6, { count: 9, minDist: 18, maxDist: 34 });
+    const isWordBox = boxIndex === BEATS_PER_LINE - 1;
+    window.FlowSparkFX?.spawnSparks(els.gameSparkLayer, target.x, target.y + 6, {
+      count: isWordBox ? 14 : 7,
+      minDist: isWordBox ? 20 : 16,
+      maxDist: isWordBox ? 40 : 28,
+    });
   }
 
+  function setActiveBox(boxIndex) {
+    $$("#wordRack .word-slot").forEach((el, i) => {
+      el.classList.toggle("is-active", i === boxIndex);
+    });
+  }
+
+  // JEDE Zeile bekommt ihre eigene frische Reihe von BEATS_PER_LINE (5)
+  // Kästchen: die ersten 4 sind reine Takt-Kästchen (immer leer), nur das
+  // letzte zeigt das Reimwort dieser Zeile — identisches Prinzip wie
+  // challenge.js, siehe docs/GAMEPLAY.md §3 ("gilt für alle Spielmodi").
   function renderWordRack() {
     if (!currentRoundWords) return;
-    els.wordRack.innerHTML = currentRoundWords.words.map((word, i) => {
-      const state = i < lineIndexInRound ? "is-done" : i === lineIndexInRound ? "is-active" : "is-upcoming";
-      return `
-        <div class="word-slot ${state}">
-          <span class="word-slot__index">${i + 1}</span>
-          <span class="word-slot__word">${escapeHtml(word.toUpperCase())}</span>
-        </div>
-      `;
-    }).join("");
+    const word = currentRoundWords.words[lineIndexInRound];
+    const boxes = [];
+    for (let i = 0; i < BEATS_PER_LINE; i++) {
+      if (i === BEATS_PER_LINE - 1) {
+        boxes.push(`
+          <div class="word-slot word-slot--word">
+            <span class="word-slot__index">${i + 1}</span>
+            <span class="word-slot__word">${escapeHtml(word.toUpperCase())}</span>
+          </div>
+        `);
+      } else {
+        boxes.push(`
+          <div class="word-slot word-slot--tact">
+            <span class="word-slot__index">${i + 1}</span>
+            <span class="word-slot__tact-dot"></span>
+          </div>
+        `);
+      }
+    }
+    els.wordRack.innerHTML = boxes.join("");
+    if (els.roundLiveBadge && tournament) {
+      els.roundLiveBadge.textContent = `Runde ${currentRoundIdx + 1} von ${tournament.rounds.length} · Zeile ${lineIndexInRound + 1} von ${LINES_PER_ROUND} · Reimschema ${currentRoundWords.ending}`;
+    }
   }
 
   function renderRoundProgress(container, currentIndex) {
@@ -387,7 +421,7 @@
   function startFrameLoop() {
     function frame() {
       if (!clock || !clock.running) return;
-      const phase = clock.currentBeatPhase();
+      const phase = clock.currentBeatPhase(); // kontinuierliche Beat-Zahl seit Rundenstart
 
       const lineStart = clock.lineTime(lineIndexInRound);
       const lineEnd = clock.lineTime(lineIndexInRound + 1);
@@ -397,10 +431,22 @@
       if (displayedLine !== lineIndexInRound) {
         renderWordRack();
         measureBoxCenters();
-        spawnLandingSparks();
         displayedLine = lineIndexInRound;
+        displayedBoxIndex = -1; // erzwingt sofortiges Landing auf Kästchen 1 der neuen Zeile
       }
-      updateBall(phase);
+
+      // Beat-genaue Position INNERHALB der Zeile (0..BEATS_PER_LINE-1) —
+      // identisches Prinzip wie challenge.js, siehe docs/GAMEPLAY.md §3.
+      const beatsIntoLine = phase - lineIndexInRound * BEATS_PER_LINE;
+      const boxIndex = Math.min(BEATS_PER_LINE - 1, Math.max(0, Math.floor(beatsIntoLine)));
+
+      updateBall(beatsIntoLine, boxIndex);
+
+      if (boxIndex !== displayedBoxIndex) {
+        spawnLandingSparks(boxIndex);
+        setActiveBox(boxIndex);
+        displayedBoxIndex = boxIndex;
+      }
 
       if (clock.now() >= lineEnd) {
         if (lineIndexInRound < LINES_PER_ROUND - 1) {
@@ -431,8 +477,10 @@
 
   async function beginRound(roundIndex) {
     currentRoundWords = tournament.rounds[roundIndex];
+    currentRoundIdx = roundIndex;
     lineIndexInRound = 0;
     displayedLine = -1;
+    displayedBoxIndex = -1;
 
     els.roundIntroBadge.textContent = `Runde ${roundIndex + 1} von ${tournament.rounds.length}`;
     els.roundLiveBadge.textContent = `Runde ${roundIndex + 1} von ${tournament.rounds.length} · Reimschema ${currentRoundWords.ending}`;
@@ -444,8 +492,10 @@
     showScreen("roundLive");
     renderWordRack();
     measureBoxCenters();
-    spawnLandingSparks();
+    spawnLandingSparks(0);
+    setActiveBox(0);
     displayedLine = 0;
+    displayedBoxIndex = 0;
     startRoundRecording();
     if (micGranted && window.FlowAI.speech?.isSupported) window.FlowAI.speech.start();
     startBeatClockForRound();

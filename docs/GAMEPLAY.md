@@ -13,6 +13,20 @@ eine Strophe. Der Mensch improvisiert und spricht den kompletten Text selbst,
 live ins Mikrofon. Es gibt **kein Texteingabefeld** — die Seite zeigt nur die
 Endwörter an.
 
+**Diese Gameplay-Mechanik gilt identisch für ALLE Spielmodi** — egal ob
+Einzelspieler, öffentliches Match, privates Turnier oder Freundes-Duell (alle
+drei Mehrspieler-Varianten laufen technisch über dasselbe `tournament.js`,
+siehe `docs/TOURNAMENTS.md`/`docs/SOCIAL.md`). Der **einzige** Unterschied
+zwischen den Modi liegt in der **Bewertung am Ende**:
+
+| Modus | Bewertung |
+|---|---|
+| Einzelspieler | Die KI bewertet den Rap (8 Dimensionen) und gibt Feedback/Kommentar. |
+| Mehrspieler (Match/Turnier/Duell) | Die Community stimmt per Voting über die Aufnahmen der Teilnehmenden ab (KI-Score fließt zusätzlich als Basis in den Gesamtstand ein, siehe `docs/TOURNAMENTS.md` §3). |
+
+Kästchen, Ball, Timing, Strophen-/Zeilenregeln, Reimwort-Vergabe und
+Schwierigkeitsgrad sind in jedem Modus exakt gleich — siehe Abschnitt 3.
+
 ## 2. Ablauf (State Machine)
 
 ```
@@ -27,22 +41,44 @@ intro → countdown (3,2,1,Los!) → live (Strophen × Zeilen, beat-getaktet) �
 - **evaluating**: kurze simulierte Ladezeit (Platzhalter-Statustexte), danach Bewertung.
 - **results**: Score, 8-dimensionale Bewertung, KI-Kommentar, Transkript, Audio-Player.
 
-## 3. Strophen- & Zeilenregeln — JEDE Zeile hat ein Endwort
+## 3. Kästchen-, Zeilen- & Strophenregeln (gilt für JEDEN Spielmodus)
 
-- Jede Strophe hat `GAMEPLAY_CONFIG.linesPerStanza` Zeilen (Standard: **5**).
-- **Alle 5 Zeilen** bekommen je ein eigenes, vorgegebenes Endwort — nicht nur
-  die letzte. Alle 5 Wörter einer Strophe kommen aus derselben Reim-Familie
-  (gleiche Endung, z.B. „-eit").
-- Das Word-Rack zeigt **alle 5 Wörter gleichzeitig** an:
-  `[ RAUM ] [ BAUM ] [ KAUM ] [ TRAUM ] [ SCHAUM ]` — erledigte Zeilen
-  abgeschwächt mit Haken, die aktive Zeile groß/glühend hervorgehoben,
-  kommende Zeilen dezent im Hintergrund (`assets/css/challenge.css → .word-slot`).
-- Jede neue Strophe bekommt garantiert eine **andere Reim-Familie** als alle
-  vorherigen Strophen dieser Challenge (`excludeFamilyIds` in
-  [`rhyme-engine.js`](../assets/js/rhyme-engine.js)), bis der Wortvorrat
-  erschöpft ist — dann Reset.
-- Strophenanzahl kommt aus den Modul-1-Einstellungen (`verses`,
-  `GAMEPLAY_CONFIG.minStanzas`–`maxStanzas`, aktuell 1–10).
+**Wichtig:** Diese Kästchen-/Ball-Mechanik ist identisch in **jedem
+Spielmodus** — Einzelspieler (`challenge.js`), Turnier/öffentliches Match/
+privates Turnier/Freundes-Duell (`tournament.js`, das Turnier-Lobbys sowohl
+über einen privat geteilten Code als auch über die "Freund einladen"-Funktion
+unterstützt, siehe `docs/TOURNAMENTS.md`/`docs/SOCIAL.md`). Nur die
+**Bewertung am Ende** unterscheidet sich zwischen den Modi (siehe Abschnitt
+"Unterschied zwischen den Modi" unten) — die eigentliche Gameplay-Mechanik
+bleibt überall exakt gleich.
+
+- Jede Strophe hat `GAMEPLAY_CONFIG.linesPerStanza` Zeilen (Standard: **5**)
+  und damit 5 Endwörter aus derselben Reim-Familie (gleiche Endung, z.B. „-eit").
+- **Jede Zeile hat genau `GAMEPLAY_CONFIG.boxesPerLine` Kästchen (Standard: 5)**
+  — unabhängig von der Strophengröße (reiner Zufall, dass beide Zahlen 5
+  sind: Zeilen/Strophe und Kästchen/Zeile sind zwei getrennte Werte).
+  - Die **ersten `boxesPerLine - 1` Kästchen (Standard: 4) sind IMMER leer**
+    und dienen nur als BPM-Taktanzeige — kein Text, nur ein pulsierender
+    Punkt (`.word-slot--tact` in `assets/css/challenge.css`).
+  - **Nur das letzte Kästchen** (Index `boxesPerLine - 1`) zeigt das
+    Reimwort dieser Zeile (`.word-slot--word`) — sichtbar ab Zeilenbeginn,
+    damit genug Zeit bleibt, die Zeile darauf hin zu planen.
+  - Der Ball springt **im BPM-Takt über alle `boxesPerLine` Kästchen** —
+    ein Kästchen pro Beat, `renderWordRack()`/`updateBall()` in
+    `challenge.js` (bzw. dasselbe Prinzip in `tournament.js`). Man rappt
+    frei während der ersten 4 Beats/Kästchen und landet das Reimwort exakt,
+    wenn der Ball im 5. Kästchen ankommt.
+  - Jede neue Zeile bekommt ihre **eigene, frische Reihe** dieser
+    `boxesPerLine` Kästchen (nicht alle 5 Zeilen-Wörter der Strophe
+    gleichzeitig sichtbar) — Fortschritt innerhalb der Strophe zeigt
+    stattdessen der Badge „Strophe X von Y · Zeile A von 5 · Reimschema …“.
+- Nach jeder abgeschlossenen Strophe wird automatisch eine **neue,
+  garantiert andere Reim-Familie** samt neuem Reimschema generiert
+  (`excludeFamilyIds` in [`rhyme-engine.js`](../assets/js/rhyme-engine.js)),
+  bis der Wortvorrat erschöpft ist — dann Reset.
+- Strophenanzahl wird vor Spielstart gewählt (z.B. 3, 4 oder 5) —
+  `GAMEPLAY_CONFIG.minStanzas`–`maxStanzas`, aktuell 1–10, Free-Deckel bei 5
+  (`freeMaxStanzas`, siehe `docs/SHOP.md`).
 
 ## 4. Timing — strikt BPM-synchron, kein freier Modus mehr
 
@@ -50,8 +86,10 @@ Es gibt **keine** "Timer-Unterstützung an/aus"-Option mehr (Modul-2-Rewrite):
 Der Zeilenwechsel ist immer exakt an den Beat gekoppelt, das ist jetzt die
 Kernmechanik selbst, nicht mehr optional.
 
-- `GAMEPLAY_CONFIG.beatsPerLine` (Standard: **4** = ein Takt) legt fest, nach
-  wie vielen Beats eine Zeile endet.
+- `GAMEPLAY_CONFIG.beatsPerLine` (Standard: **5**, = `boxesPerLine`, siehe
+  Abschnitt 3) legt fest, nach wie vielen Beats eine Zeile endet — ein Beat
+  pro Kästchen, der Ball braucht also `beatsPerLine` Beats, um einmal durch
+  die ganze Zeile (4 Takt-Kästchen + 1 Wort-Kästchen) zu hüpfen.
 - `msPerBeat = 60000 / bpm`, `lineDuration = beatsPerLine × msPerBeat`.
 - Der BPM-Wert kommt direkt vom gewählten Beat (`Beat.bpm` in `data.js`) —
   90 BPM läuft spürbar langsamer als 150 BPM, siehe Abschnitt 6.
@@ -81,21 +119,32 @@ derselben Uhr, nach der der Web-Audio-Scheduler selbst Töne abspielt:
   Zeilen-Timer-Leiste, und den Zeilenwechsel-Check
   (`clock.now() >= clock.lineTime(n+1)`).
 
-**Ball-Verhalten (Modul-2-Rewrite):** Statt mehrerer dekorativer Figuren/
-Balken gibt es genau **ein** Element — einen weißen Ball
-(`assets/css/beat-ball.css`), der auf dem aktuell aktiven Wort-Kästchen
-**jeden einzelnen Beat** hoch- und runterhüpft (vertikal, aus
-`currentBeatPhase() % 1`) und **exakt beim Zeilenwechsel** zum nächsten
-Kästchen springt (horizontal, `updateBall()` in `challenge.js`). Die
+**Ball-Verhalten (Modul-2-Rewrite, Kästchen-Redesign siehe Abschnitt 3):**
+Statt mehrerer dekorativer Figuren/Balken gibt es genau **ein** Element —
+einen weißen Ball (`assets/css/beat-ball.css`, Skin je nach Shop-Auswahl,
+siehe `docs/SHOP.md`). Er hüpft **jeden einzelnen Beat** vertikal (aus
+`currentBeatPhase() % 1`, genauer: `beatsIntoLine % 1`) UND springt dabei
+**bei jedem Beat auch horizontal zum jeweils nächsten der 5 Kästchen einer
+Zeile** (`updateBall(beatsIntoLine, boxIndex)` in `challenge.js`, wobei
+`boxIndex = floor(beatsIntoLine)`) — landet also 4× auf einem leeren
+Takt-Kästchen und beim 5. Beat exakt auf dem Wort-Kästchen. Die
 Kästchen-Positionen werden per `getBoundingClientRect()` gemessen
-(`measureBoxCenters()`), einmalig direkt nach jedem Zeilenwechsel-Render —
-`.word-slot` transitioniert deshalb bewusst **nur** paint-Eigenschaften
-(Farbe/Schatten/Transform), nie layoutverändernde wie `font-size`/`padding`,
-damit die gemessene Position stabil bleibt und die Reihe nicht "hüpft". Bei
-jeder Landung: **Funken** (`assets/js/spark-fx.js`) + das Kästchen glüht wie
-**Magma** (`--magma-*`-Variablen, geteilt mit der Homepage-Vorschau, siehe
-`docs/DESIGN_SYSTEM.md`). Bewusst nur EIN Anker statt mehrerer bewegter
-Elemente — klares Rhythmusgefühl ohne Ablenkung vom eigentlichen Rap.
+(`measureBoxCenters()`), einmalig direkt nach jedem Zeilenwechsel-Render (die
+5 Kästchen werden pro Zeile komplett neu erzeugt) — `.word-slot`
+transitioniert deshalb bewusst **nur** paint-Eigenschaften (Farbe/Schatten/
+Transform), nie layoutverändernde wie `font-size`/`padding`, damit die
+gemessene Position stabil bleibt und die Reihe nicht "hüpft". Bei **jeder**
+Landung (auch auf den Takt-Kästchen): **Funken** (`assets/js/spark-fx.js`) —
+auf dem Wort-Kästchen deutlich größer/mehr als auf den Takt-Kästchen, um den
+eigentlichen "Treffer" hervorzuheben — und das Kästchen glüht kurz (Wort-
+Kästchen: volles Magma-Glühen, `--magma-*`-Variablen, geteilt mit der
+Homepage-Vorschau, siehe `docs/DESIGN_SYSTEM.md`; Takt-Kästchen: dezenterer
+Blau-Puls). Bewusst nur EIN Anker statt mehrerer bewegter Elemente — klares
+Rhythmusgefühl ohne Ablenkung vom eigentlichen Rap. **Identisch implementiert
+in `tournament.js`** (siehe `docs/TOURNAMENTS.md` §5, warum dort bewusst
+eigenständig statt geteilt) und als Lehrbeispiel in der Homepage-Vorschau
+(`home.js`, `index.html`), damit man den echten Rhythmus schon vor dem
+ersten Klick auf "Challenge starten" sieht.
 
 Der Beat-Klick-Track selbst ist weiterhin ein **synthetischer Platzhalter**
 (`FlowSound.playBeatTick`, siehe `assets/js/sound.js`) — es liegen noch keine

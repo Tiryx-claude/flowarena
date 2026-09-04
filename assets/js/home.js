@@ -51,12 +51,17 @@
      Kästchen glühen wie Magma bei Kontakt, Funken beim Aufprall. Rein
      dekorativ (keine Audio-Wiedergabe nötig), läuft sofort beim Laden.
      --------------------------------------------------------------------- */
+  // Zeigt IMMER genau EINE Zeile: boxesPerLine (5) Kästchen, die ersten 4
+  // leer (nur Taktanzeige), das letzte mit dem Reimwort — identische
+  // Mechanik wie das echte Gameplay (challenge.js), damit die Vorschau
+  // wortwörtlich vorführt, wie sich eine echte Zeile anfühlt (siehe
+  // docs/GAMEPLAY.md §3, "gilt für alle Spielmodi"). Nach jeder Zeile
+  // wechselt das Demo-Wort (rein dekorativ, kein echtes Gameplay).
   function initGameplayPreview() {
     const track = $("#previewTrack");
     const ball = $("#previewBall");
     const sparkLayer = $("#previewSparkLayer");
-    const boxes = $$(".preview-box");
-    if (!track || !ball || !boxes.length) return;
+    if (!track || !ball || !sparkLayer) return;
 
     // Modul 5: die Vorschau zeigt dasselbe Ball-Design, das im echten
     // Gameplay aktiv ist — ein kleiner, ehrlicher Vorgeschmack auf den
@@ -65,31 +70,53 @@
     ball.style.setProperty("--ball-gradient", equippedDesign.gradient);
     ball.style.setProperty("--ball-glow", equippedDesign.glow);
 
+    const BOXES_PER_LINE = window.FlowData.GAMEPLAY_CONFIG.boxesPerLine; // 5 — identisch zum echten Gameplay
+    const DEMO_WORDS = ["RAUM", "BAUM", "KAUM", "TRAUM", "SCHAUM"];
     const DEMO_BPM = 100;
-    const secPerHop = 60 / DEMO_BPM; // ein Kästchen pro Beat
-    const hopCount = boxes.length; // inkl. Rücksprung vom letzten zum ersten
-    const cycleSec = secPerHop * hopCount;
+    const secPerHop = 60 / DEMO_BPM; // 1 Kästchen pro Beat
     const bounceHeight = 26;
 
+    let boxes = [];
     let centers = [];
+    let demoWordIndex = 0;
+
+    function renderLine() {
+      const word = DEMO_WORDS[demoWordIndex % DEMO_WORDS.length];
+      const html = [];
+      for (let i = 0; i < BOXES_PER_LINE; i++) {
+        if (i === BOXES_PER_LINE - 1) {
+          html.push(`<div class="preview-box preview-box--word">${word}</div>`);
+        } else {
+          html.push(`<div class="preview-box preview-box--tact"><span class="preview-box__tact-dot"></span></div>`);
+        }
+      }
+      track.innerHTML = html.join("");
+      track.appendChild(ball);
+      track.appendChild(sparkLayer);
+      measure();
+    }
+
     function measure() {
+      boxes = $$(".preview-box");
       const trackRect = track.getBoundingClientRect();
       centers = boxes.map((b) => {
         const r = b.getBoundingClientRect();
-        return {
-          x: r.left - trackRect.left + r.width / 2,
-          y: r.top - trackRect.top,
-        };
+        return { x: r.left - trackRect.left + r.width / 2, y: r.top - trackRect.top };
       });
     }
-    measure();
+
+    renderLine();
     window.addEventListener("resize", () => {
       clearTimeout(window.__pvResizeT);
       window.__pvResizeT = setTimeout(measure, 150);
     });
 
-    function spawnSparks(x, y) {
-      window.FlowSparkFX?.spawnSparks(sparkLayer, x, y, { count: 7, minDist: 16, maxDist: 30 });
+    function spawnSparks(x, y, isWordBox) {
+      window.FlowSparkFX?.spawnSparks(sparkLayer, x, y, {
+        count: isWordBox ? 12 : 6,
+        minDist: isWordBox ? 18 : 14,
+        maxDist: isWordBox ? 34 : 26,
+      });
     }
 
     let lastLandedIndex = -1;
@@ -98,32 +125,36 @@
     const start = performance.now();
     function frame(now) {
       if (!centers.length) { requestAnimationFrame(frame); return; }
-      const elapsed = ((now - start) / 1000) % cycleSec;
-      const hopFloat = elapsed / secPerHop;
-      const hopIndex = Math.floor(hopFloat) % hopCount;
+
+      const elapsedInLine = ((now - start) / 1000) % (secPerHop * BOXES_PER_LINE);
+      const hopFloat = elapsedInLine / secPerHop;
+      const boxIndex = Math.min(BOXES_PER_LINE - 1, Math.floor(hopFloat));
       const frac = hopFloat - Math.floor(hopFloat);
 
-      const fromI = hopIndex;
-      const toI = (hopIndex + 1) % hopCount;
-      const from = centers[fromI];
-      const to = centers[toI];
-      if (!from || !to) { requestAnimationFrame(frame); return; }
+      const isNewLanding = boxIndex !== lastLandedIndex;
+      if (isNewLanding && boxIndex === 0 && lastLandedIndex === BOXES_PER_LINE - 1) {
+        // Zeile fertig durchlaufen — neues Demo-Wort für die "nächste Zeile".
+        demoWordIndex++;
+        renderLine();
+      }
 
-      const x = from.x + (to.x - from.x) * frac;
+      const target = centers[boxIndex];
+      if (!target) { requestAnimationFrame(frame); return; }
+
       const bounce = Math.sin(frac * Math.PI);
-      const y = from.y - bounceHeight * bounce;
+      const y = target.y - bounceHeight * bounce;
+      ball.style.transform = `translate(${target.x - 10}px, ${y - 22}px)`;
 
-      ball.style.transform = `translate(${x - 10}px, ${y - 22}px)`;
-
-      // Landung erkannt (frac springt von nahe 1 zurück auf 0 → neues Hop)
-      if (frac < 0.06 && lastLandedIndex !== fromI) {
-        lastLandedIndex = fromI;
-        const landed = boxes[fromI];
-        landed.classList.add("is-hit");
-        spawnSparks(from.x, from.y + 6);
-        // Bewusst stumm — reine Deko, kein Autoplay-Sound ohne Nutzer-Geste nötig.
-        clearTimeout(hitTimer);
-        hitTimer = setTimeout(() => landed.classList.remove("is-hit"), secPerHop * 900);
+      if (isNewLanding) {
+        lastLandedIndex = boxIndex;
+        const landed = boxes[boxIndex];
+        if (landed) {
+          landed.classList.add("is-hit");
+          spawnSparks(target.x, target.y + 6, boxIndex === BOXES_PER_LINE - 1);
+          // Bewusst stumm — reine Deko, kein Autoplay-Sound ohne Nutzer-Geste nötig.
+          clearTimeout(hitTimer);
+          hitTimer = setTimeout(() => landed.classList.remove("is-hit"), secPerHop * 900);
+        }
       }
 
       requestAnimationFrame(frame);
