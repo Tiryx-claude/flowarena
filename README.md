@@ -7,7 +7,7 @@ Posts und werden bewertet.
 Der Name **FlowArena** ist ein Platzhalter — leicht austauschbar (Branding
 lebt zentral in `assets/css/tokens.css` + `index.html`-Titel/Logo).
 
-## Aktueller Stand: Modul 1–6 + Turniere + Social — Design-System, Spielablauf, KI, Community, Multiplayer, Freunde, Shop & Monetarisierung
+## Aktueller Stand: Modul 1–7 + Turniere + Social — Design-System, Spielablauf, KI, Community, Multiplayer, Freunde, Shop & Monetarisierung, Mehrsprachigkeit
 
 Alle Module sind als eigenständiger **HTML/CSS/JS-Prototyp ohne
 Build-Tooling** umgesetzt, weil auf dieser Maschine kein Node.js installiert
@@ -48,13 +48,16 @@ assets/css/tournament.css       Lobby, Spieler-Karten, Voting, Sieger-Reveal
 assets/css/shop.css             Shop-Sektionen, Kosmetik-Karten, Kaufbestätigung, Kaufhistorie, Belohnungen, Fairness-Hinweis
 assets/css/ads.css              Werbe-Overlay (nur Free-Accounts, nie in Gameplay-Seiten)
 assets/css/legal.css            Rechtliche Seiten (Datenschutz, AGB)
+assets/css/i18n.css             Erststart-Sprachwahl + Sprachumschalter im Einstellungs-Drawer
+assets/js/i18n.js               i18n-Engine: t()/tPick()/tList()/tPlural(), Sprachwahl, data-i18n-Anwendung
+assets/js/i18n-data.js          Von Hand kuratierte DE/EN/RU-Übersetzungswörterbücher
 assets/js/data.js              Gemeinsame Daten (Beats, Themen, Settings, GAMEPLAY_CONFIG, Shop-/Kosmetik-Kataloge, Zahlungsmethoden)
 assets/js/app.js               Startseiten-State, Rendering, Event-Handling
 assets/js/home.js               Menü-Akkordeon-Logik, Gameplay-Vorschau-Animation, Mini-Panels
 assets/js/spark-fx.js           Geteilte Funken-Partikel-Logik (Vorschau + echtes Gameplay)
 assets/js/beat-clock.js         BeatClock: drift-freie BPM-Uhr (AudioContext-basiert)
 assets/js/challenge.js         Spielablauf-State-Machine, Ball-Animation, Aufnahme, Ergebnis-Inszenierung
-assets/js/rhyme-engine.js       Kuratierte Reimwort-Datenbank (Daten für den lokalen Provider)
+assets/js/rhyme-engine.js       Kuratierte Reimwort-Datenbanken pro Sprache (DE/EN/RU, Daten für den lokalen Provider)
 assets/js/ai/registry.js        KI-Provider-Interfaces (RhymeProvider, EvaluationProvider, SpeechProvider)
 assets/js/ai/rhyme-provider.local.js       Reimwörter — lokale Heuristik
 assets/js/ai/evaluation-provider.local.js  Bewertung (8 Dimensionen) — lokale Heuristik
@@ -80,6 +83,7 @@ docs/COMMUNITY.md               Profil/Credits/Premium/Community — Mechanik & 
 docs/TOURNAMENTS.md             Turniere/Multiplayer — Mechanik & Grenzen dieses Prototyps
 docs/SOCIAL.md                  Freunde/Suche/Benachrichtigungen/Datenschutz — Mechanik & Grenzen
 docs/SHOP.md                    Shop/Premium/Credits/Werbung — Mechanik, Belohnungen & "Niemals Pay-to-Win"
+docs/I18N.md                    Mehrsprachigkeit — Architektur, data-i18n-Regel, Gameplay-Konsistenz über alle Sprachen
 scripts/serve.ps1              Minimaler statischer Dev-Server (PowerShell)
 ```
 
@@ -89,9 +93,23 @@ Siehe [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) für die UI-Richtlinien,
 KI-Provider-Architektur, [`docs/COMMUNITY.md`](docs/COMMUNITY.md) für
 Profil/Credits/Premium/Community, [`docs/TOURNAMENTS.md`](docs/TOURNAMENTS.md)
 für Turniere/Multiplayer, [`docs/SOCIAL.md`](docs/SOCIAL.md) für
-Freunde/Suche/Benachrichtigungen/Datenschutz und [`docs/SHOP.md`](docs/SHOP.md)
-für Shop/Premium/Credits/Werbung (jeweils inkl. ehrlicher Grenzen dieses
-Prototyps).
+Freunde/Suche/Benachrichtigungen/Datenschutz, [`docs/SHOP.md`](docs/SHOP.md)
+für Shop/Premium/Credits/Werbung und [`docs/I18N.md`](docs/I18N.md) für die
+Mehrsprachigkeit (Deutsch/Englisch/Russisch) — jeweils inkl. ehrlicher
+Grenzen dieses Prototyps.
+
+## Mehrsprachigkeit (Modul 7)
+
+FlowArena unterstützt **Deutsch, Englisch und Russisch** durchgängig — Menüs,
+Buttons, Einstellungen, Hinweise, Fehlermeldungen, KI-Feedback,
+Benachrichtigungen, Reimwörter/Reimschemata und Rechtstexte. Der Nutzer/die
+Nutzerin wählt die Sprache beim ersten Start (blockierende Auswahl, keine
+automatische Übernahme der Browsersprache ohne Bestätigung) und kann sie
+jederzeit im Einstellungs-Drawer wechseln — wirkt sofort, ohne Reload.
+Gameplay, Beats und Bewertung funktionieren strukturell identisch in allen
+drei Sprachen (siehe [`docs/I18N.md`](docs/I18N.md) Abschnitt 8). Jede
+Sprache hat eine eigene, von Hand kuratierte Reimwort-Datenbank (keine
+Übersetzung der deutschen Wörter — das würde sich nicht mehr reimen).
 
 ## Geplante Architektur (nächste Module)
 
@@ -154,3 +172,4 @@ Die Tailwind-Migration der Design-Tokens ist bereits in
 10. ✅ Community & Profil, Ausbau: Freundessystem, Personen-Suche, Benachrichtigungen, Datenschutzeinstellungen — nahtlos mit Turnieren verzahnt (lokal, siehe docs/SOCIAL.md)
 11. ✅ Shop, Premium, Credits & Werbung (lokal simuliert — Ball-Designs, Premium-Challenges, Tages-/Wochen-Belohnungen, Wochenend-Bonus, Demo-Werbung; niemals Pay-to-Win, siehe docs/SHOP.md)
 12. ✅ Faires Monetarisierungssystem, Ausbau: kündbares Premium, Ergebnis-Animationen, Profil-Designs, Early Access, Free-Tageslimit für Challenges, Zahlungsmethoden-Auswahl mit Kaufbestätigung, Kaufhistorie, Datenschutz-/AGB-Seiten (lokal simuliert, niemals Pay-to-Win, siehe docs/SHOP.md)
+13. ✅ Mehrsprachigkeit (Deutsch/Englisch/Russisch) — Erststart-Sprachwahl, jederzeit wechselbar, komplette UI + eigene Reimwort-Datenbanken pro Sprache + lokalisiertes KI-Feedback, Gameplay/Beats/Bewertung strukturell identisch in allen Sprachen (siehe docs/I18N.md)
