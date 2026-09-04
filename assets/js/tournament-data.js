@@ -22,15 +22,17 @@
   const STORAGE_KEY = "flowarena.tournaments.v1";
   const ME_ID = "me"; // Diese eine echte Person in diesem Browser — egal ob Host oder Beigetretene:r
 
+  // Bot-Namen sind Eigennamen (Rapper-Handles) — bewusst NICHT übersetzt,
+  // bleiben in jeder Sprache identisch (siehe docs/I18N.md).
   const BOT_NAMES = ["MC Vega", "Lyrika", "Flowzone", "Kleiner Reim", "Silbensturm", "Reimrakete", "Bar-Baron", "Nachtschicht"];
   const BOT_AVATARS = ["🤖", "👾", "🎮", "🦾", "🧠", "🕹️"];
-  const BOT_EXCERPTS = [
-    "„...bleib auf der Spur, so wie ich's geplant hab...\"",
-    "„...jede Zeile sitzt, kein Zufall, nur Plan...\"",
-    "„...der Beat trägt mich, ich zähl nicht die Zeit...\"",
-    "„...ruhig im Kopf, laut im Ton, das ist mein Style...\"",
-    "„...ich reim mich durch, so wie ich's immer tu...\"",
-  ];
+  // Bot-"Zitate" richten sich nach der aktuellen UI-Sprache — siehe
+  // tournament.botExcerpts in assets/js/i18n-data.js (Fallback für den
+  // seltenen Fall, dass i18n.js noch nicht geladen ist).
+  function pickBotExcerpt() {
+    if (window.FlowI18n?.tPick) return window.FlowI18n.tPick("tournament.botExcerpts");
+    return "„...bleib auf der Spur, so wie ich's geplant hab...“";
+  }
 
   function loadAll() {
     try {
@@ -198,7 +200,7 @@
       const overall = 55 + Math.floor(Math.random() * 40);
       round.submissions[p.id] = {
         overall,
-        excerpt: BOT_EXCERPTS[Math.floor(Math.random() * BOT_EXCERPTS.length)],
+        excerpt: pickBotExcerpt(),
         isBot: true,
         votes: 0,
         votedBy: [],

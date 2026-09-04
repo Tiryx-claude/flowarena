@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="assets/css/community.css" />
   <link rel="stylesheet" href="assets/css/tournament.css" />
   <link rel="stylesheet" href="assets/css/social.css" />
+  <link rel="stylesheet" href="assets/css/i18n.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -32,12 +33,12 @@
       <span>Flow<span class="nav__brand-name">Arena</span></span>
     </a>
     <div class="nav__actions">
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
-      <span class="chip" style="cursor:default;" id="roomCodeChip"><span class="chip__dot"></span><span class="chip__label">Raum</span><span class="chip__value" id="roomCodeChipValue">----</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label" data-i18n="common.credits">Credits</span><span class="chip__value" id="creditsValue">–</span></span>
+      <span class="chip" style="cursor:default;" id="roomCodeChip"><span class="chip__dot"></span><span class="chip__label" data-i18n="tournament.roomLabel">Raum</span><span class="chip__value" id="roomCodeChipValue">----</span></span>
       <div class="notif-wrap">
-        <button class="btn-icon" id="notifBellBtn" type="button" aria-label="Benachrichtigungen" title="Benachrichtigungen">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+        <button class="btn-icon" id="notifBellBtn" type="button" data-i18n-attr="aria-label:common.notifications,title:common.notifications">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
         <div class="notif-dropdown" id="notifDropdown" hidden>
-          <div class="notif-dropdown__head"><span>Benachrichtigungen</span><button type="button" id="notifMarkReadBtn">Alle gelesen</button></div>
+          <div class="notif-dropdown__head"><span data-i18n="common.notifications">Benachrichtigungen</span><button type="button" id="notifMarkReadBtn" data-i18n="common.markAllRead">Alle gelesen</button></div>
           <div class="notif-list" id="notifList"></div>
         </div>
       </div>
@@ -48,36 +49,36 @@
     <!-- ============ NICHT GEFUNDEN ============ -->
     <section id="screenNotFound" hidden style="text-align:center; padding-top:var(--sp-16);">
       <div class="coming-soon__icon">🔍</div>
-      <h1 style="font-size:var(--fs-xl); margin:var(--sp-4) 0;">Turnier nicht gefunden</h1>
-      <p style="color:var(--text-muted); font-size:var(--fs-sm); max-width:420px; margin:0 auto var(--sp-6);">
+      <h1 style="font-size:var(--fs-xl); margin:var(--sp-4) 0;" data-i18n="tournament.notFoundTitle">Turnier nicht gefunden</h1>
+      <p style="color:var(--text-muted); font-size:var(--fs-sm); max-width:420px; margin:0 auto var(--sp-6);" data-i18n="tournament.notFoundText">
         Kein Turnier mit diesem Code gespeichert. Denk dran: Turniere sind aktuell lokal auf
         diesem Gerät gespeichert — ein Code funktioniert nur im selben Browser, in dem das
         Turnier erstellt wurde (siehe docs/TOURNAMENTS.md).
       </p>
-      <a class="btn btn-primary" href="index.html">🏠 Zur Startseite</a>
+      <a class="btn btn-primary" href="index.html" data-i18n="common.homeLink">🏠 Zur Startseite</a>
     </section>
 
     <!-- ============ LOBBY ============ -->
     <section id="screenLobby" hidden>
       <div class="card-glass room-code-card">
-        <div class="room-code-label">Raum-Code</div>
+        <div class="room-code-label" data-i18n="tournament.roomCodeLabel">Raum-Code</div>
         <div class="room-code-value" id="roomCodeValue">----</div>
-        <p class="room-code-hint">Gib diesen Code an andere weiter, damit sie über „Turnier beitreten" mitmachen können (funktioniert aktuell nur im selben Browser, siehe Hinweis unten).</p>
+        <p class="room-code-hint" data-i18n="tournament.roomCodeHint">Gib diesen Code an andere weiter, damit sie über „Turnier beitreten" mitmachen können (funktioniert aktuell nur im selben Browser, siehe Hinweis unten).</p>
       </div>
 
-      <h2 class="section-title" style="text-align:center;">👥 Teilnehmende</h2>
+      <h2 class="section-title" style="text-align:center;" data-i18n="tournament.participantsTitle">👥 Teilnehmende</h2>
       <div class="player-grid" id="playerGrid"></div>
 
       <div class="lobby-actions" id="hostLobbyActions" hidden>
-        <button class="btn btn-glass" id="inviteFriendBtn" type="button">👥 Freund einladen</button>
-        <button class="btn btn-glass" id="addBotsBtn" type="button">🎲 Bots hinzufügen (Demo)</button>
-        <button class="btn btn-primary" id="startTournamentBtn" type="button" disabled>▶️ Turnier starten</button>
+        <button class="btn btn-glass" id="inviteFriendBtn" type="button" data-i18n="tournament.inviteFriendBtn">👥 Freund einladen</button>
+        <button class="btn btn-glass" id="addBotsBtn" type="button" data-i18n="tournament.addBotsBtn">🎲 Bots hinzufügen (Demo)</button>
+        <button class="btn btn-primary" id="startTournamentBtn" type="button" disabled data-i18n="tournament.startBtn">▶️ Turnier starten</button>
       </div>
       <div class="person-list" id="inviteFriendPanel" hidden style="max-width:420px; margin:var(--sp-4) auto 0;"></div>
-      <p id="waitingHint" hidden style="text-align:center; color:var(--text-dim); font-size:var(--fs-sm); margin-top:var(--sp-6);">⏳ Warte, bis der Host das Turnier startet …</p>
+      <p id="waitingHint" hidden style="text-align:center; color:var(--text-dim); font-size:var(--fs-sm); margin-top:var(--sp-6);" data-i18n="tournament.waitingHostHint">⏳ Warte, bis der Host das Turnier startet …</p>
 
       <p style="text-align:center; margin-top:var(--sp-8);">
-        <button class="stage-exit" id="leaveLobbyBtn" type="button">Turnier verlassen</button>
+        <button class="stage-exit" id="leaveLobbyBtn" type="button" data-i18n="tournament.leaveLobbyBtn">Turnier verlassen</button>
       </p>
     </section>
 
@@ -85,7 +86,7 @@
     <section id="screenRoundIntro" hidden style="text-align:center;">
       <span class="badge" id="roundIntroBadge">Runde 1 von 3</span>
       <div class="countdown-number" id="countdownNumber" style="margin-top:var(--sp-6);">3</div>
-      <p class="countdown-label" id="countdownLabel">Alle Teilnehmenden rappen dieselben Wörter …</p>
+      <p class="countdown-label" id="countdownLabel" data-i18n="tournament.roundIntroLabel">Alle Teilnehmenden rappen dieselben Wörter …</p>
     </section>
 
     <!-- ============ RUNDE LIVE ============ -->
@@ -94,7 +95,7 @@
       <div class="verse-meta" style="justify-content:center;">
         <span class="badge" id="roundLiveBadge">Runde 1 von 3 · Reimschema</span>
       </div>
-      <p class="live-hint">Rap frei — beende jede Zeile mit dem markierten Wort. Alle im Turnier bekommen dieselben Wörter.</p>
+      <p class="live-hint" data-i18n="tournament.liveHint">Rap frei — beende jede Zeile mit dem markierten Wort. Alle im Turnier bekommen dieselben Wörter.</p>
 
       <div class="word-rack-wrap" id="wordRackWrap">
         <div class="word-rack" id="wordRack"></div>
@@ -110,16 +111,16 @@
     <!-- ============ RUNDEN-AUSWERTUNG / VOTING ============ -->
     <section id="screenRoundVoting" hidden>
       <div class="round-progress" id="roundProgressVoting"></div>
-      <h2 class="section-title" style="text-align:center;">🗳️ Runde <span id="votingRoundNumber">1</span> — Takes &amp; Voting</h2>
-      <p style="text-align:center; color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+      <h2 class="section-title" style="text-align:center;"><span data-i18n="tournament.votingTitlePrefix">🗳️ Runde</span> <span id="votingRoundNumber">1</span> <span data-i18n="tournament.votingTitleSuffix">— Takes &amp; Voting</span></h2>
+      <p style="text-align:center; color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-4);" data-i18n="tournament.botTakesHint">
         Bot-Takes sind Demo-Simulationen (kein echtes Audio) — deiner ist der einzige echte Take, den du dir anhören kannst.
       </p>
       <div class="submission-list" id="submissionList"></div>
 
       <div class="lobby-actions" id="hostVotingActions" hidden>
-        <button class="btn btn-primary" id="nextRoundBtn" type="button">Nächste Runde →</button>
+        <button class="btn btn-primary" id="nextRoundBtn" type="button" data-i18n="tournament.nextRoundBtn">Nächste Runde →</button>
       </div>
-      <p id="waitingVoteHint" hidden style="text-align:center; color:var(--text-dim); font-size:var(--fs-sm); margin-top:var(--sp-4);">⏳ Warte auf den Host für die nächste Runde …</p>
+      <p id="waitingVoteHint" hidden style="text-align:center; color:var(--text-dim); font-size:var(--fs-sm); margin-top:var(--sp-4);" data-i18n="tournament.waitingVoteHint">⏳ Warte auf den Host für die nächste Runde …</p>
     </section>
 
     <!-- ============ FINALE / SIEGER ============ -->
@@ -128,24 +129,26 @@
         <div class="score-burst" id="winnerBurst" aria-hidden="true"></div>
         <div class="winner-banner__avatar" id="winnerAvatar">🏆</div>
         <div class="winner-banner__title" id="winnerName">—</div>
-        <p style="color:var(--text-muted); font-size:var(--fs-sm);">gewinnt das Turnier!</p>
+        <p style="color:var(--text-muted); font-size:var(--fs-sm);" data-i18n="tournament.winsText">gewinnt das Turnier!</p>
       </div>
 
-      <h2 class="section-title" style="text-align:center;">Gesamtstand</h2>
+      <h2 class="section-title" style="text-align:center;" data-i18n="tournament.standingsTitle">Gesamtstand</h2>
       <div id="standingsList"></div>
 
       <div class="lobby-actions">
-        <button class="btn btn-glass" id="saveClipBtn" type="button">⬇️ Meinen Take als Clip speichern</button>
-        <button class="btn btn-primary" id="shareResultBtn" type="button">📤 Ergebnis in der Community teilen</button>
+        <button class="btn btn-glass" id="saveClipBtn" type="button" data-i18n="tournament.saveClipBtn">⬇️ Meinen Take als Clip speichern</button>
+        <button class="btn btn-primary" id="shareResultBtn" type="button" data-i18n="tournament.shareResultBtn">📤 Ergebnis in der Community teilen</button>
       </div>
       <div class="lobby-actions">
-        <a class="btn btn-glass" href="index.html" style="text-decoration:none;">🏠 Zur Startseite</a>
+        <a class="btn btn-glass" href="index.html" style="text-decoration:none;" data-i18n="common.homeLink">🏠 Zur Startseite</a>
       </div>
     </section>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="assets/js/i18n-data.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script src="assets/js/sound.js"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>

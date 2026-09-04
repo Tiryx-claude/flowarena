@@ -18,6 +18,7 @@
 
   const FlowSocial = window.FlowSocial;
   if (!FlowSocial) return;
+  const t = window.FlowI18n.t;
 
   const bellBtn = document.getElementById("notifBellBtn");
   const badge = document.getElementById("notifBadge");
@@ -32,11 +33,11 @@
 
   function timeAgo(ts) {
     const mins = Math.round((Date.now() - ts) / 60000);
-    if (mins < 1) return "gerade eben";
-    if (mins < 60) return `vor ${mins} Min.`;
+    if (mins < 1) return t("common.justNow");
+    if (mins < 60) return t("common.timeAgoMin", { n: mins });
     const hours = Math.round(mins / 60);
-    if (hours < 24) return `vor ${hours} Std.`;
-    return `vor ${Math.round(hours / 24)} Tag(en)`;
+    if (hours < 24) return t("common.timeAgoHours", { n: hours });
+    return t("common.timeAgoDays", { n: Math.round(hours / 24) });
   }
 
   function renderBadge() {
@@ -52,7 +53,7 @@
   function renderList() {
     const items = FlowSocial.loadNotifications();
     if (items.length === 0) {
-      list.innerHTML = `<p class="empty-hint" style="padding:var(--sp-4);">Noch keine Benachrichtigungen — spiel eine Challenge oder ein Turnier, und hier passiert was.</p>`;
+      list.innerHTML = `<p class="empty-hint" style="padding:var(--sp-4);">${t("common.noNotifications")}</p>`;
       return;
     }
     list.innerHTML = items.map((n) => `
@@ -96,4 +97,5 @@
   // Badge-Zähler live halten, falls sich in einem anderen Tab desselben
   // Browsers etwas ändert (localStorage-"storage"-Event).
   window.addEventListener("storage", () => renderBadge());
+  window.FlowI18n.onLocaleChange(() => { if (!dropdown.hidden) renderList(); });
 })(window);

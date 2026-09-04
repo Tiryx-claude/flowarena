@@ -11,6 +11,7 @@
   "use strict";
 
   const { GAMEPLAY_CONFIG, findBeat, findTopicLabel, loadSettings } = window.FlowData;
+  const t = window.FlowI18n.t;
   const FlowProfile = window.FlowProfile;
   const FlowTournament = window.FlowTournament;
   const FlowCommunity = window.FlowCommunity;
@@ -159,7 +160,7 @@
       <div class="player-card ${p.isHost ? "is-host" : ""}">
         <div class="player-card__avatar">${p.avatar}</div>
         <div class="player-card__name">${escapeHtml(p.name)}</div>
-        <div class="player-card__tag">${p.isHost ? "👑 Host" : p.isFriendInvite ? "👥 Freund (Demo)" : p.isBot ? "🤖 Bot (Demo)" : "Spieler:in"}</div>
+        <div class="player-card__tag">${p.isHost ? t("tournament.tags.host") : p.isFriendInvite ? t("tournament.tags.friend") : p.isBot ? t("tournament.tags.bot") : t("tournament.tags.player")}</div>
       </div>
     `).join("");
   }
@@ -185,14 +186,14 @@
     const invitable = friends.filter((f) => !alreadyIn.has(f.name));
 
     if (invitable.length === 0) {
-      els.inviteFriendPanel.innerHTML = `<p class="empty-hint" style="text-align:center;">${friends.length === 0 ? "Noch keine Freunde — füg welche in deinem Profil hinzu." : "Alle deine Freunde sind schon im Raum."}</p>`;
+      els.inviteFriendPanel.innerHTML = `<p class="empty-hint" style="text-align:center;">${friends.length === 0 ? t("tournament.noFriendsYet") : t("tournament.allFriendsInRoom")}</p>`;
       return;
     }
     els.inviteFriendPanel.innerHTML = invitable.map((f) => `
       <div class="card-glass person-card">
         <div class="person-card__avatar">${f.avatar}</div>
         <div class="person-card__body"><div class="person-card__name">${escapeHtml(f.name)}</div></div>
-        <button class="btn btn-primary btn-sm" type="button" data-invite-friend="${f.id}">Einladen</button>
+        <button class="btn btn-primary btn-sm" type="button" data-invite-friend="${f.id}">${t("tournament.inviteBtn")}</button>
       </div>
     `).join("");
   }
@@ -230,7 +231,7 @@
 
   els.startTournamentBtn?.addEventListener("click", async () => {
     els.startTournamentBtn.disabled = true;
-    els.startTournamentBtn.textContent = "Wird vorbereitet …";
+    els.startTournamentBtn.textContent = t("tournament.preparingBtn");
     tournament = await FlowTournament.startTournament(tournament.code, GAMEPLAY_CONFIG);
     await initLiveFlow();
   });
@@ -391,7 +392,11 @@
     }
     els.wordRack.innerHTML = boxes.join("");
     if (els.roundLiveBadge && tournament) {
-      els.roundLiveBadge.textContent = `Runde ${currentRoundIdx + 1} von ${tournament.rounds.length} · Strophe ${stanzaIdx + 1} von ${STANZAS_PER_ROUND} · Zeile ${lineInStanza + 1} von ${LINES_PER_STANZA} · Reimschema ${stanza.ending}`;
+      els.roundLiveBadge.textContent = t("tournament.roundLiveBadgeFull", {
+        round: currentRoundIdx + 1, total: tournament.rounds.length,
+        stanza: stanzaIdx + 1, stanzaTotal: STANZAS_PER_ROUND,
+        line: lineInStanza + 1, lines: LINES_PER_STANZA, ending: stanza.ending,
+      });
     }
 
     // "Neue Zeile rutscht sanft in Position" — identisches Prinzip wie challenge.js.
@@ -450,16 +455,18 @@
 
   function runCountdown() {
     return new Promise((resolve) => {
-      const sequence = ["3", "2", "1", "Los!"];
+      const goValue = t("challenge.countdownGoValue");
+      const sequence = ["3", "2", "1", goValue];
       let i = 0;
       function step() {
         const value = sequence[i];
+        const isGo = i === sequence.length - 1;
         els.countdownNumber.textContent = value;
         els.countdownNumber.style.animation = "none";
         void els.countdownNumber.offsetWidth;
         els.countdownNumber.style.animation = "";
-        playIfEnabled(() => window.FlowSound?.playCountdown(value === "Los!"));
-        els.countdownLabel.textContent = value === "Los!" ? "Beat läuft — alle rappen jetzt!" : "Mikro checken, Beat kommt gleich …";
+        playIfEnabled(() => window.FlowSound?.playCountdown(isGo));
+        els.countdownLabel.textContent = isGo ? t("tournament.countdownGoLabel") : t("challenge.countdownPreLabel");
         i++;
         if (i < sequence.length) setTimeout(step, 800);
         else setTimeout(resolve, 550);
@@ -526,7 +533,9 @@
           if (crossedIntoNewStanza) {
             playIfEnabled(window.FlowSound?.playConfirm);
             const nextEnding = currentRound?.stanzas[finishedStanzaIdx + 1]?.ending;
-            flashVerseBanner(`✓ Strophe ${finishedStanzaIdx + 1} geschafft${nextEnding ? ` — neues Reimschema „${nextEnding}“` : ""}`);
+            flashVerseBanner(nextEnding
+              ? t("challenge.stanzaCompleteBannerWithScheme", { n: finishedStanzaIdx + 1, ending: nextEnding })
+              : t("challenge.stanzaCompleteBanner", { n: finishedStanzaIdx + 1 }));
           } else {
             playIfEnabled(window.FlowSound?.playSelect);
           }
@@ -546,7 +555,7 @@
   async function initLiveFlow() {
     const granted = await requestMic();
     if (!granted) {
-      showToast("🎙️ Kein Mikrofonzugriff — du kannst trotzdem mitmachen, nur ohne Aufnahme/echtes Transkript.");
+      showToast(t("tournament.micDenied"));
     }
     // Speech-Recognition wird pro Runde in beginRound() (neu) gestartet,
     // damit jede Runde ihr eigenes, sauberes Transkript bekommt.
@@ -560,8 +569,8 @@
     displayedLine = -1;
     displayedBoxIndex = -1;
 
-    els.roundIntroBadge.textContent = `Runde ${roundIndex + 1} von ${tournament.rounds.length}`;
-    els.roundLiveBadge.textContent = `Runde ${roundIndex + 1} von ${tournament.rounds.length} · Strophe 1 von ${STANZAS_PER_ROUND} · Reimschema ${currentRound.stanzas[0].ending}`;
+    els.roundIntroBadge.textContent = t("tournament.roundBadge", { round: roundIndex + 1, total: tournament.rounds.length });
+    els.roundLiveBadge.textContent = t("tournament.roundLiveBadgeInit", { round: roundIndex + 1, total: tournament.rounds.length, stanzaTotal: STANZAS_PER_ROUND, ending: currentRound.stanzas[0].ending });
     renderRoundProgress(els.roundProgressLive, roundIndex);
 
     showScreen("roundIntro");
@@ -636,19 +645,19 @@
           <div class="post-card__avatar">${player.avatar}</div>
           <div class="post-card__body">
             <div class="post-card__head">
-              <span class="post-card__author">${escapeHtml(player.name)}${isMe ? " (Du)" : ""}</span>
+              <span class="post-card__author">${escapeHtml(player.name)}${isMe ? ` (${t("common.you")})` : ""}</span>
             </div>
             ${sub ? `
-              <p class="post-card__excerpt">${sub.excerpt ? escapeHtml(sub.excerpt) : "Kein Transkript verfügbar."}</p>
+              <p class="post-card__excerpt">${sub.excerpt ? escapeHtml(sub.excerpt) : t("tournament.noTranscript")}</p>
               ${isMe && sub.audioUrl ? `<audio controls src="${sub.audioUrl}" style="width:100%; height:36px; margin:var(--sp-2) 0;"></audio>` : ""}
-              ${player.isBot ? `<span class="bot-take-badge">🤖 Simulierter Take (Demo)</span>` : ""}
+              ${player.isBot ? `<span class="bot-take-badge">${t("tournament.botTakeBadge")}</span>` : ""}
               <div class="post-card__footer" style="margin-top:var(--sp-3);">
-                <span class="post-card__score">${sub.overall} Pkt.</span>
+                <span class="post-card__score">${sub.overall} ${t("common.points")}</span>
                 ${!isMe
                   ? `<button class="like-btn ${voted ? "is-liked" : ""}" type="button" data-vote-player="${player.id}">${voted ? "❤️" : "🤍"} <span class="like-count">${sub.votes || 0}</span></button>`
                   : `<span class="like-btn" style="cursor:default;">❤️ ${sub.votes || 0}</span>`}
               </div>
-            ` : `<p class="post-card__excerpt">Noch keine Einreichung …</p>`}
+            ` : `<p class="post-card__excerpt">${t("tournament.noSubmissionYet")}</p>`}
           </div>
         </div>
       `;
@@ -657,7 +666,7 @@
     if (isHost) {
       els.hostVotingActions.hidden = false;
       els.waitingVoteHint.hidden = true;
-      els.nextRoundBtn.textContent = tournament.currentRoundIndex >= tournament.rounds.length - 1 ? "🏁 Turnier beenden" : "Nächste Runde →";
+      els.nextRoundBtn.textContent = tournament.currentRoundIndex >= tournament.rounds.length - 1 ? t("tournament.finishBtn") : t("tournament.nextRoundBtn");
     } else {
       els.hostVotingActions.hidden = true;
       els.waitingVoteHint.hidden = false;
@@ -713,15 +722,15 @@
     const winner = standings[0];
 
     if (els.winnerAvatar) els.winnerAvatar.textContent = winner?.avatar || "🏆";
-    if (els.winnerName) els.winnerName.textContent = winner ? `${winner.name}${winner.id === FlowTournament.ME_ID ? " (Du)" : ""}` : "—";
+    if (els.winnerName) els.winnerName.textContent = winner ? `${winner.name}${winner.id === FlowTournament.ME_ID ? ` (${t("common.you")})` : ""}` : "—";
 
     if (els.standingsList) {
       els.standingsList.innerHTML = standings.map((r, i) => `
         <div class="leaderboard-row ${r.id === FlowTournament.ME_ID ? "is-you" : ""}">
           <span class="leaderboard-row__rank">#${i + 1}</span>
           <span class="leaderboard-row__avatar">${r.avatar}</span>
-          <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.id === FlowTournament.ME_ID ? " (Du)" : ""}${r.isBot ? " 🤖" : ""}</span>
-          <span class="leaderboard-row__score">${r.totalScore} Pkt. · ${r.totalVotes} ❤️</span>
+          <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.id === FlowTournament.ME_ID ? ` (${t("common.you")})` : ""}${r.isBot ? " 🤖" : ""}</span>
+          <span class="leaderboard-row__score">${r.totalScore} ${t("common.points")} · ${r.totalVotes} ❤️</span>
         </div>
       `).join("");
     }
@@ -732,7 +741,7 @@
 
     if (tournament.shared && els.shareResultBtn) {
       els.shareResultBtn.disabled = true;
-      els.shareResultBtn.textContent = "✓ Geteilt";
+      els.shareResultBtn.textContent = t("tournament.sharedBtn");
     }
 
     const progress = FlowProfile.recordTournamentResult(profile, { code: tournament.code, won });
@@ -742,30 +751,30 @@
     // bei jedem Neuladen des Finale-Screens (siehe Dedup in recordTournamentResult).
     if (progress.creditsEarned > 0) {
       const myRank = FlowTournament.computeStandings(tournament).findIndex((r) => r.id === FlowTournament.ME_ID) + 1;
-      const bonusNote = progress.weekendBonusApplied ? " (inkl. 🎉 Wochenend-Bonus)" : "";
+      const bonusNote = progress.weekendBonusApplied ? t("challenge.weekendBonusSuffix") : "";
       window.FlowSocial?.addNotification({
         icon: won ? "🏆" : "🎤",
         text: (won
-          ? `Du hast das Turnier ${tournament.code} gewonnen!`
-          : `Turnier ${tournament.code} beendet — Platz ${myRank} von ${standings.length}.`) + ` +${progress.creditsEarned} 💎${bonusNote}`,
+          ? t("tournament.wonNotification", { code: tournament.code })
+          : t("tournament.finishedNotification", { code: tournament.code, rank: myRank, total: standings.length })) + ` +${progress.creditsEarned} 💎${bonusNote}`,
       });
     }
     if (progress.newBadges.length) {
-      showToast(`🏅 Neues Abzeichen: ${progress.newBadges[0].name}!`);
+      showToast(t("tournament.newBadgeToast", { name: progress.newBadges[0].name }));
       progress.newBadges.forEach((b) => {
-        window.FlowSocial?.addNotification({ icon: b.icon, text: `Neues Abzeichen freigeschaltet: ${b.name}` });
+        window.FlowSocial?.addNotification({ icon: b.icon, text: t("challenge.newBadgeNotification", { name: b.name }) });
       });
     }
     // Modul 5: kosmetischer Bonus bei einem Sieg (Chance auf ein neues
     // Ball-Design, siehe FlowProfile.maybeAwardCosmetic).
     if (progress.cosmeticReward) {
-      window.FlowSocial?.addNotification({ icon: "🎨", text: `Bonus-Belohnung: Ball-Design „${progress.cosmeticReward.name}“ freigeschaltet!` });
+      window.FlowSocial?.addNotification({ icon: "🎨", text: t("tournament.cosmeticRewardNotification", { name: progress.cosmeticReward.name }) });
     }
   }
 
   els.saveClipBtn?.addEventListener("click", () => {
     if (!lastOwnAudioUrl) {
-      showToast("Keine Aufnahme verfügbar (kein Mikrofonzugriff während des Turniers).");
+      showToast(t("tournament.noRecordingToast"));
       return;
     }
     const a = document.createElement("a");
@@ -792,8 +801,8 @@
       bpm: b.bpm,
       overall: standings[myIndex]?.totalScore || 0,
       excerpt: won
-        ? `„🏆 Turniersieg im Raum ${tournament.code}!“`
-        : `„Turnier ${tournament.code} beendet — Platz ${myIndex + 1} von ${standings.length}.“`,
+        ? t("tournament.shareExcerptWon", { code: tournament.code })
+        : t("tournament.shareExcerptLost", { code: tournament.code, rank: myIndex + 1, total: standings.length }),
     });
     FlowProfile.addCredits(profile, 10);
     refreshTopbar();
@@ -801,9 +810,9 @@
     tournament.shared = true;
     FlowTournament.saveTournament(tournament);
     els.shareResultBtn.disabled = true;
-    els.shareResultBtn.textContent = "✓ Geteilt";
+    els.shareResultBtn.textContent = t("tournament.sharedBtn");
     playIfEnabled(window.FlowSound?.playConfirm);
-    showToast("📤 Ergebnis in der Community geteilt! +10 💎");
+    showToast(t("tournament.shareToast"));
   });
 
   window.addEventListener("beforeunload", () => {
