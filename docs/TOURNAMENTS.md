@@ -66,13 +66,23 @@ index.html (erstellen/beitreten)
   simulierte Mitspieler:in hinzufügen (`isFriendInvite`-Kennzeichnung statt
   generischem Bot-Tag).
 - **Runden**: `FlowTournament.startTournament()` generiert **alle** Runden
-  im Voraus über `FlowAI.rhyme.generateStanza()` — **eine Reim-Familie pro
-  Runde, garantiert dieselben 5 Wörter für alle Teilnehmenden** dieser Runde
-  (Fairness). Die Live-Runde nutzt exakt dieselbe BPM-präzise Ball-/
-  Word-Rack-Mechanik wie die Solo-Challenge (siehe `docs/GAMEPLAY.md`,
-  Abschnitt 5) — eigenständig in `tournament.js` reimplementiert statt
-  `challenge.js` zu refactoren, um den getesteten Solo-Ablauf nicht
-  anzufassen (siehe Abschnitt 5 unten).
+  im Voraus über `FlowAI.rhyme.generateStanza()`. **Eine Runde besteht aus
+  `GAMEPLAY_CONFIG.stanzasPerTournamentRound` (3) Strophen hintereinander**
+  (`round.stanzas[]`, je 5 Zeilen à 5 Kästchen — identische Kästchen-/
+  Ball-Mechanik wie die Solo-Challenge, siehe `docs/GAMEPLAY.md` §3) — der
+  Beat läuft dabei **ohne Unterbrechung** durch, eine einzige BeatClock/
+  Aufnahme für die ganze Runde. Nach jeder abgeschlossenen Strophe werden
+  automatisch 5 neue Reimwörter + ein neues Reimschema generiert (eigenes
+  Übergangs-Banner, exakt wie beim Strophenwechsel in der Solo-Challenge).
+  **Jede Strophe garantiert dieselben 5 Wörter für alle Teilnehmenden**
+  dieser Runde (Fairness); jede Reim-Familie ist über das **gesamte
+  Turnier** hinweg einzigartig (über alle Runden UND Strophen). Die
+  Live-Runde nutzt exakt dieselbe BPM-präzise Ball-/Word-Rack-Mechanik wie
+  die Solo-Challenge (siehe `docs/GAMEPLAY.md` §3/§5) — eigenständig in
+  `tournament.js` reimplementiert statt `challenge.js` zu refactoren, um
+  den getesteten Solo-Ablauf nicht anzufassen (siehe Abschnitt 5 unten).
+  Bewertet wird am Ende die **gesamte Runde** (alle 3 Strophen zusammen als
+  eine Aufnahme/ein Take), nicht jede Strophe einzeln.
 - **"Gleichzeitig"**: Die eine echte Person rappt live (Mikrofon, echte
   Aufnahme, echtes Transkript falls unterstützt). Bot-Einreichungen werden
   mit einer kleinen Zufalls-Verzögerung (1,2–3,2s) im Hintergrund simuliert,

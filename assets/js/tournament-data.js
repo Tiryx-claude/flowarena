@@ -143,25 +143,34 @@
   }
 
   /**
-   * Generiert alle Runden (gleiche Reimwörter für ALLE Teilnehmenden pro
-   * Runde, neue Reimfamilie je Runde) und startet Runde 1.
-   * @param {Object} gameplayConfig - GAMEPLAY_CONFIG aus data.js (linesPerStanza)
+   * Generiert alle Runden und startet Runde 1. JEDE Runde besteht aus
+   * gameplayConfig.stanzasPerTournamentRound (3) Strophen hintereinander —
+   * gleiche Reimwörter/Reimschema pro Strophe für ALLE Teilnehmenden
+   * (Fairness), automatisch eine neue Reim-Familie pro Strophe (nicht nur
+   * pro Runde), garantiert einzigartig über das GESAMTE Turnier hinweg
+   * (usedFamilyIds wächst über alle Runden UND Strophen).
+   * @param {Object} gameplayConfig - GAMEPLAY_CONFIG aus data.js (linesPerStanza, stanzasPerTournamentRound)
    */
   async function startTournament(code, gameplayConfig) {
     const t = loadTournament(code);
     if (!t) return null;
 
+    const stanzasPerRound = gameplayConfig.stanzasPerTournamentRound || 3;
     const usedFamilyIds = [];
     const rounds = [];
     for (let i = 0; i < t.settings.roundsTotal; i++) {
-      const result = await window.FlowAI.rhyme.generateStanza({
-        difficulty: t.settings.difficulty,
-        topic: t.settings.topic,
-        excludeFamilyIds: usedFamilyIds,
-        count: gameplayConfig.linesPerStanza,
-      });
-      usedFamilyIds.push(result.familyId);
-      rounds.push({ roundIndex: i, words: result.words, ending: result.ending, familyId: result.familyId, submissions: {} });
+      const stanzas = [];
+      for (let s = 0; s < stanzasPerRound; s++) {
+        const result = await window.FlowAI.rhyme.generateStanza({
+          difficulty: t.settings.difficulty,
+          topic: t.settings.topic,
+          excludeFamilyIds: usedFamilyIds,
+          count: gameplayConfig.linesPerStanza,
+        });
+        usedFamilyIds.push(result.familyId);
+        stanzas.push({ words: result.words, ending: result.ending, familyId: result.familyId });
+      }
+      rounds.push({ roundIndex: i, stanzas, submissions: {} });
     }
 
     t.rounds = rounds;

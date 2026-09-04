@@ -290,7 +290,12 @@
      challenge.js, siehe docs/GAMEPLAY.md Abschnitt 5)
      --------------------------------------------------------------------- */
   const beat = findBeat((tournament && tournament.settings.beatId) || "b2");
-  const LINES_PER_ROUND = GAMEPLAY_CONFIG.linesPerStanza;
+  const LINES_PER_STANZA = GAMEPLAY_CONFIG.linesPerStanza;
+  // EINE Runde = stanzasPerTournamentRound (3) Strophen hintereinander, beat-
+  // genau OHNE Unterbrechung (eine einzige BeatClock/Aufnahme für die ganze
+  // Runde) — siehe docs/TOURNAMENTS.md.
+  const STANZAS_PER_ROUND = GAMEPLAY_CONFIG.stanzasPerTournamentRound;
+  const LINES_PER_ROUND = LINES_PER_STANZA * STANZAS_PER_ROUND;
   const BEATS_PER_LINE = GAMEPLAY_CONFIG.beatsPerLine;
   const BALL_BOUNCE_HEIGHT = 26;
   const BALL_RADIUS = 10;
@@ -298,9 +303,9 @@
   let clock = null;
   let rafId = null;
   let boxCenters = [];
-  let currentRoundWords = null;
+  let currentRound = null; // die ganze Runde: { roundIndex, stanzas: [...], submissions }
   let currentRoundIdx = 0;
-  let lineIndexInRound = 0;
+  let lineIndexInRound = 0; // 0..LINES_PER_ROUND-1, über ALLE Strophen der Runde durchgezählt
   let displayedLine = -1;
   let displayedBoxIndex = -1; // zuletzt "getroffenes" Kästchen INNERHALB der Zeile
 
@@ -347,13 +352,25 @@
     });
   }
 
+  // Position INNERHALB der Runde in (Strophe, Zeile-in-Strophe) aufgelöst —
+  // eine Runde zählt lineIndexInRound 0..LINES_PER_ROUND-1 durch, über ALLE
+  // STANZAS_PER_ROUND Strophen hinweg, ohne dass der Beat je stoppt.
+  function currentStanza() {
+    if (!currentRound) return null;
+    const stanzaIdx = Math.floor(lineIndexInRound / LINES_PER_STANZA);
+    return currentRound.stanzas[stanzaIdx];
+  }
+
   // JEDE Zeile bekommt ihre eigene frische Reihe von BEATS_PER_LINE (5)
   // Kästchen: die ersten 4 sind reine Takt-Kästchen (immer leer), nur das
   // letzte zeigt das Reimwort dieser Zeile — identisches Prinzip wie
   // challenge.js, siehe docs/GAMEPLAY.md §3 ("gilt für alle Spielmodi").
   function renderWordRack() {
-    if (!currentRoundWords) return;
-    const word = currentRoundWords.words[lineIndexInRound];
+    const stanza = currentStanza();
+    if (!stanza) return;
+    const stanzaIdx = Math.floor(lineIndexInRound / LINES_PER_STANZA);
+    const lineInStanza = lineIndexInRound % LINES_PER_STANZA;
+    const word = stanza.words[lineInStanza];
     const boxes = [];
     for (let i = 0; i < BEATS_PER_LINE; i++) {
       if (i === BEATS_PER_LINE - 1) {
@@ -374,7 +391,7 @@
     }
     els.wordRack.innerHTML = boxes.join("");
     if (els.roundLiveBadge && tournament) {
-      els.roundLiveBadge.textContent = `Runde ${currentRoundIdx + 1} von ${tournament.rounds.length} · Zeile ${lineIndexInRound + 1} von ${LINES_PER_ROUND} · Reimschema ${currentRoundWords.ending}`;
+      els.roundLiveBadge.textContent = `Runde ${currentRoundIdx + 1} von ${tournament.rounds.length} · Strophe ${stanzaIdx + 1} von ${STANZAS_PER_ROUND} · Zeile ${lineInStanza + 1} von ${LINES_PER_STANZA} · Reimschema ${stanza.ending}`;
     }
 
     // "Neue Zeile rutscht sanft in Position" — identisches Prinzip wie challenge.js.
@@ -385,16 +402,20 @@
     }
   }
 
-  // Zeigt die nächsten bis zu 3 Zeilen DIESER Runde leicht transparent an —
-  // identisches Prinzip wie challenge.js (rein dekorativ, nie für die
-  // Ball-Positionierung genutzt).
+  // Zeigt die nächsten bis zu 3 Zeilen DIESER Strophe leicht transparent an
+  // — identisches Prinzip wie challenge.js (rein dekorativ, nie für die
+  // Ball-Positionierung genutzt, bewusst nur innerhalb der aktuellen
+  // Strophe, siehe docs/GAMEPLAY.md §3).
   function renderLinePreview() {
-    if (!els.linePreviewList || !currentRoundWords) return;
+    if (!els.linePreviewList) return;
+    const stanza = currentStanza();
+    if (!stanza) { els.linePreviewList.innerHTML = ""; return; }
+    const lineInStanza = lineIndexInRound % LINES_PER_STANZA;
     const upcoming = [];
     for (let offset = 1; offset <= 3; offset++) {
-      const idx = lineIndexInRound + offset;
-      if (idx >= LINES_PER_ROUND) break;
-      upcoming.push({ idx, word: currentRoundWords.words[idx] });
+      const idx = lineInStanza + offset;
+      if (idx >= LINES_PER_STANZA) break;
+      upcoming.push({ idx, word: stanza.words[idx] });
     }
     els.linePreviewList.innerHTML = upcoming.map((u, depth) => {
       const opacity = (0.55 - depth * 0.15).toFixed(2);
@@ -406,6 +427,18 @@
         </div>
       `;
     }).join("");
+  }
+
+  let verseBannerEl = null;
+  function flashVerseBanner(text) {
+    if (!verseBannerEl) {
+      verseBannerEl = document.createElement("div");
+      verseBannerEl.className = "verse-banner glass";
+      document.body.appendChild(verseBannerEl);
+    }
+    verseBannerEl.textContent = text;
+    verseBannerEl.classList.add("is-visible");
+    setTimeout(() => verseBannerEl.classList.remove("is-visible"), 1300);
   }
 
   function renderRoundProgress(container, currentIndex) {
@@ -482,8 +515,21 @@
 
       if (clock.now() >= lineEnd) {
         if (lineIndexInRound < LINES_PER_ROUND - 1) {
+          const finishedLineInStanza = lineIndexInRound % LINES_PER_STANZA;
+          const finishedStanzaIdx = Math.floor(lineIndexInRound / LINES_PER_STANZA);
           lineIndexInRound++;
-          playIfEnabled(window.FlowSound?.playSelect);
+
+          // Strophenwechsel INNERHALB der Runde — der Beat läuft ohne
+          // Unterbrechung weiter, nur Reimwörter/Reimschema wechseln
+          // (siehe docs/TOURNAMENTS.md/docs/GAMEPLAY.md §3).
+          const crossedIntoNewStanza = finishedLineInStanza === LINES_PER_STANZA - 1;
+          if (crossedIntoNewStanza) {
+            playIfEnabled(window.FlowSound?.playConfirm);
+            const nextEnding = currentRound?.stanzas[finishedStanzaIdx + 1]?.ending;
+            flashVerseBanner(`✓ Strophe ${finishedStanzaIdx + 1} geschafft${nextEnding ? ` — neues Reimschema „${nextEnding}“` : ""}`);
+          } else {
+            playIfEnabled(window.FlowSound?.playSelect);
+          }
         } else {
           finishRoundLive();
           return;
@@ -508,14 +554,14 @@
   }
 
   async function beginRound(roundIndex) {
-    currentRoundWords = tournament.rounds[roundIndex];
+    currentRound = tournament.rounds[roundIndex];
     currentRoundIdx = roundIndex;
     lineIndexInRound = 0;
     displayedLine = -1;
     displayedBoxIndex = -1;
 
     els.roundIntroBadge.textContent = `Runde ${roundIndex + 1} von ${tournament.rounds.length}`;
-    els.roundLiveBadge.textContent = `Runde ${roundIndex + 1} von ${tournament.rounds.length} · Reimschema ${currentRoundWords.ending}`;
+    els.roundLiveBadge.textContent = `Runde ${roundIndex + 1} von ${tournament.rounds.length} · Strophe 1 von ${STANZAS_PER_ROUND} · Reimschema ${currentRound.stanzas[0].ending}`;
     renderRoundProgress(els.roundProgressLive, roundIndex);
 
     showScreen("roundIntro");
@@ -547,13 +593,15 @@
     window.FlowAI.speech?.stop();
     if (audioUrl) lastOwnAudioUrl = audioUrl;
 
+    // Eine Runde = STANZAS_PER_ROUND (3) Strophen — die Bewertung fließt
+    // über die GESAMTE Runde (alle Strophen zusammen), nicht nur die letzte.
     const result = await window.FlowAI.evaluation.evaluate({
       transcript,
       difficulty: tournament.settings.difficulty,
       topic: tournament.settings.topic,
-      totalVerses: 1,
-      usedFamilyIds: [currentRoundWords.familyId],
-      allEndWords: currentRoundWords.words,
+      totalVerses: STANZAS_PER_ROUND,
+      usedFamilyIds: currentRound.stanzas.map((s) => s.familyId),
+      allEndWords: currentRound.stanzas.flatMap((s) => s.words),
       roastMode: false,
     });
 

@@ -30,6 +30,14 @@
     minStanzas: 1,
     maxStanzas: 10,
     freeMaxStanzas: 5, // Modul 4: ohne Premium bei 5 Strophen gedeckelt
+    // Turnier-Runden (tournament-data.js/tournament.js): EINE Runde besteht
+    // aus stanzasPerTournamentRound (3) Strophen hintereinander, beat-genau
+    // OHNE Unterbrechung (eine einzige BeatClock/Aufnahme pro Runde). Nach
+    // jeder abgeschlossenen Strophe werden automatisch 5 neue Reimwörter +
+    // ein neues Reimschema generiert — exakt dieselbe Strophen-Logik wie in
+    // der Solo-Challenge, nur pro Turnier-Runde statt pro ganzer Challenge.
+    // Siehe docs/TOURNAMENTS.md.
+    stanzasPerTournamentRound: 3,
   };
 
   // audioUrl: Pfad zur Beat-Audiodatei (z.B. "/beats/dark-trap.mp3").
