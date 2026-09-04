@@ -69,6 +69,7 @@
     roundProgressLive: $("#roundProgressLive"),
     roundLiveBadge: $("#roundLiveBadge"),
     wordRackWrap: $("#wordRackWrap"),
+    linePreviewList: $("#linePreviewList"),
     wordRack: $("#wordRack"),
     gameBall: $("#gameBall"),
     gameSparkLayer: $("#gameSparkLayer"),
@@ -375,6 +376,36 @@
     if (els.roundLiveBadge && tournament) {
       els.roundLiveBadge.textContent = `Runde ${currentRoundIdx + 1} von ${tournament.rounds.length} · Zeile ${lineIndexInRound + 1} von ${LINES_PER_ROUND} · Reimschema ${currentRoundWords.ending}`;
     }
+
+    // "Neue Zeile rutscht sanft in Position" — identisches Prinzip wie challenge.js.
+    if (els.wordRackWrap) {
+      els.wordRackWrap.classList.remove("is-entering");
+      void els.wordRackWrap.offsetWidth; // Reflow erzwingen
+      els.wordRackWrap.classList.add("is-entering");
+    }
+  }
+
+  // Zeigt die nächsten bis zu 3 Zeilen DIESER Runde leicht transparent an —
+  // identisches Prinzip wie challenge.js (rein dekorativ, nie für die
+  // Ball-Positionierung genutzt).
+  function renderLinePreview() {
+    if (!els.linePreviewList || !currentRoundWords) return;
+    const upcoming = [];
+    for (let offset = 1; offset <= 3; offset++) {
+      const idx = lineIndexInRound + offset;
+      if (idx >= LINES_PER_ROUND) break;
+      upcoming.push({ idx, word: currentRoundWords.words[idx] });
+    }
+    els.linePreviewList.innerHTML = upcoming.map((u, depth) => {
+      const opacity = (0.55 - depth * 0.15).toFixed(2);
+      const scale = (1 - depth * 0.04).toFixed(2);
+      return `
+        <div class="line-preview__item" style="--preview-depth:${depth}; --preview-opacity:${opacity}; --preview-scale:${scale};">
+          <span class="line-preview__index">${u.idx + 1}</span>
+          <span>${escapeHtml(u.word.toUpperCase())}</span>
+        </div>
+      `;
+    }).join("");
   }
 
   function renderRoundProgress(container, currentIndex) {
@@ -430,6 +461,7 @@
 
       if (displayedLine !== lineIndexInRound) {
         renderWordRack();
+        renderLinePreview();
         measureBoxCenters();
         displayedLine = lineIndexInRound;
         displayedBoxIndex = -1; // erzwingt sofortiges Landing auf Kästchen 1 der neuen Zeile
@@ -491,6 +523,7 @@
 
     showScreen("roundLive");
     renderWordRack();
+    renderLinePreview();
     measureBoxCenters();
     spawnLandingSparks(0);
     setActiveBox(0);

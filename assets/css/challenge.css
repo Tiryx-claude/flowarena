@@ -141,13 +141,31 @@
   margin-bottom: var(--sp-6);
 }
 
-/* ---------- Word-Rack: alle 5 Endwörter der aktuellen Strophe ---------- */
+/* ---------- Word-Rack: die 5 Kästchen der aktuellen Zeile ---------- */
 /* Umhüllt Word-Rack + Ball + Funken — der Ball wird absolut relativ zu
    diesem Wrapper positioniert (challenge.js), nicht relativ zum Rack selbst,
    damit er über Kästchen-Ränder hinaus frei "fliegen" kann. */
 .word-rack-wrap {
   position: relative;
   margin-bottom: var(--sp-6);
+}
+
+/* "Neue Zeile rutscht sanft nach oben in Position" — bewusst NUR eine
+   translateY-Verschiebung, KEIN Opacity-Fade (der Ball darf beim
+   Zeilenwechsel nie kurz unsichtbar werden) und bewusst auf dem WRAPPER
+   statt auf #wordRack selbst: Ball+Funken sind absolut relativ zu diesem
+   Wrapper positioniert, wandern die Zeile also 1:1 mit — bleiben exakt auf
+   ihrem gemessenen Kästchen "geklebt", auch während die Animation läuft
+   (relative Distanz Kästchen↔Wrapper ändert sich durch eine gemeinsame
+   Transform-Verschiebung nicht). Wird pro Zeilenwechsel per Klassenwechsel
+   + erzwungenem Reflow neu getriggert (renderWordRack() in challenge.js). */
+.word-rack-wrap.is-entering {
+  animation: line-rack-enter 220ms var(--ease-out);
+}
+
+@keyframes line-rack-enter {
+  from { transform: translateY(14px); }
+  to { transform: translateY(0); }
 }
 
 .word-rack {
@@ -270,6 +288,51 @@
   background: var(--gradient-accent);
   box-shadow: var(--glow-purple);
   transition: width 80ms linear;
+}
+
+/* Vorschau der nächsten 2-3 Zeilen dieser Strophe — rein dekorativ, NIE
+   gemessen/für die Ball-Position genutzt (siehe #wordRack), deshalb frei
+   animierbar. Weich rein-/rausscrollend: jedes Item ist bei jedem
+   Zeilenwechsel ein frisch eingefügter DOM-Knoten, die CSS-Animation
+   spielt deshalb automatisch bei jedem Rendern neu ab (kein JS-Timing
+   nötig). Blasser mit wachsendem Abstand zur aktuellen Zeile. */
+.line-preview-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0 auto var(--sp-6);
+  max-width: 320px;
+}
+
+.line-preview__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 6px var(--sp-4);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  opacity: var(--preview-opacity, 0.5);
+  transform: scale(var(--preview-scale, 0.94));
+  animation: preview-item-in 360ms var(--ease-out) both;
+  animation-delay: calc(var(--preview-depth, 0) * 50ms);
+}
+
+.line-preview__index {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+@keyframes preview-item-in {
+  from { opacity: 0; transform: translateY(16px) scale(var(--preview-scale, 0.94)); }
+  to { opacity: var(--preview-opacity, 0.5); transform: translateY(0) scale(var(--preview-scale, 0.94)); }
 }
 
 .stage-exit {

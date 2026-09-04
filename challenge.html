@@ -78,13 +78,17 @@
 
         <div class="word-rack-wrap" id="wordRackWrap">
           <div class="word-rack" id="wordRack">
-            <!-- 5 Endwörter (eins pro Zeile) werden per JS eingefügt -->
+            <!-- 5 Kästchen der AKTUELLEN Zeile (4 Takt + 1 Wort) werden per JS eingefügt -->
           </div>
           <div class="beat-ball" id="gameBall" aria-hidden="true"></div>
           <div class="spark-layer" id="gameSparkLayer" aria-hidden="true"></div>
         </div>
 
         <div class="line-timer" id="lineTimerWrap"><div class="line-timer__fill" id="lineTimerFill"></div></div>
+
+        <!-- Vorschau der nächsten 2-3 Zeilen dieser Strophe (leicht transparent,
+             weich rein-/rausscrollend) — siehe docs/GAMEPLAY.md §3. -->
+        <div class="line-preview-list" id="linePreviewList" aria-hidden="true"></div>
 
         <button class="stage-exit" id="abortBtn" type="button">Challenge abbrechen</button>
       </section>

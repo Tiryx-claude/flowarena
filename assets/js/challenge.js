@@ -84,6 +84,7 @@
     retryBtn: $("#retryBtn"),
     toast: $("#toast"),
     wordRackWrap: $("#wordRackWrap"),
+    linePreviewList: $("#linePreviewList"),
     gameBall: $("#gameBall"),
     gameSparkLayer: $("#gameSparkLayer"),
   };
@@ -367,6 +368,46 @@
       }
     }
     els.wordRack.innerHTML = boxes.join("");
+
+    // "Neue Zeile rutscht sanft in Position" — Klassenwechsel + erzwungener
+    // Reflow, damit die CSS-Animation bei JEDEM Zeilenwechsel neu abspielt
+    // (dasselbe Muster wie beim Countdown-Pop, siehe runCountdown()).
+    if (els.wordRackWrap) {
+      els.wordRackWrap.classList.remove("is-entering");
+      void els.wordRackWrap.offsetWidth; // Reflow erzwingen
+      els.wordRackWrap.classList.add("is-entering");
+    }
+  }
+
+  // Zeigt die nächsten bis zu 3 Zeilen DIESER Strophe leicht transparent an
+  // (rein dekorativ — nie gemessen/für Ball-Positionierung genutzt), damit
+  // man kommende Reimwörter früh sieht und sich vorausschauend einstellen
+  // kann. Bewusst nur innerhalb der aktuellen Strophe (die Wörter der
+  // nächsten Strophe stehen erst kurz vor deren Beginn sicher fest, siehe
+  // requestStanza()) — der Strophenwechsel hat ohnehin sein eigenes
+  // Banner (flashVerseBanner), das den Cut deutlich macht.
+  function renderLinePreview(stanzaIndex, lineInStanza) {
+    if (!els.linePreviewList) return;
+    const stanza = resolvedStanzas[stanzaIndex];
+    if (!stanza) { els.linePreviewList.innerHTML = ""; return; }
+
+    const upcoming = [];
+    for (let offset = 1; offset <= 3; offset++) {
+      const idx = lineInStanza + offset;
+      if (idx >= LINES_PER_STANZA) break;
+      upcoming.push({ idx, word: stanza.words[idx] });
+    }
+
+    els.linePreviewList.innerHTML = upcoming.map((u, depth) => {
+      const opacity = (0.55 - depth * 0.15).toFixed(2);
+      const scale = (1 - depth * 0.04).toFixed(2);
+      return `
+        <div class="line-preview__item" style="--preview-depth:${depth}; --preview-opacity:${opacity}; --preview-scale:${scale};">
+          <span class="line-preview__index">${u.idx + 1}</span>
+          <span>${u.word.toUpperCase()}</span>
+        </div>
+      `;
+    }).join("");
   }
 
   let verseBannerEl = null;
@@ -407,6 +448,7 @@
       if (displayedLineIndex !== globalLineIndex && resolvedStanzas[stanzaIndex]) {
         renderVerseBadge(stanzaIndex, lineInStanza);
         renderWordRack(stanzaIndex, lineInStanza);
+        renderLinePreview(stanzaIndex, lineInStanza);
         measureBoxCenters(); // Kästchen-Positionen frisch nach dem Rendern messen
         displayedLineIndex = globalLineIndex;
         displayedBoxIndex = -1; // erzwingt sofortiges Landing auf Kästchen 1 der neuen Zeile
@@ -498,6 +540,7 @@
     showScreen("live");
     renderVerseBadge(0, 0);
     renderWordRack(0, 0);
+    renderLinePreview(0, 0);
     measureBoxCenters();
     spawnLandingSparks(0);
     setActiveBox(0);

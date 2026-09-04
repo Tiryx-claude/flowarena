@@ -72,6 +72,33 @@ bleibt überall exakt gleich.
     `boxesPerLine` Kästchen (nicht alle 5 Zeilen-Wörter der Strophe
     gleichzeitig sichtbar) — Fortschritt innerhalb der Strophe zeigt
     stattdessen der Badge „Strophe X von Y · Zeile A von 5 · Reimschema …“.
+  - **Zeilen-Vorschau** (`#linePreviewList`, `renderLinePreview()` in
+    `challenge.js`/`tournament.js`): unter der aktuellen (großen) Zeile
+    zeigt eine dezente Liste die nächsten bis zu 3 Zeilen dieser Strophe —
+    leicht transparent, mit wachsendem Abstand blasser (Tiefenstaffelung
+    per `--preview-depth`), damit man kommende Reimwörter früh sieht und
+    sich vorausschauend darauf einstellen kann. Bewusst nur innerhalb der
+    aktuellen Strophe (letzte 1-2 Zeilen einer Strophe zeigen entsprechend
+    weniger Vorschau-Einträge) — die Wörter der nächsten Strophe stehen
+    erst kurz vor deren Beginn sicher fest, und der Strophenwechsel hat
+    ohnehin sein eigenes Banner (`flashVerseBanner()`). Rein dekorativ:
+    diese Liste wird **nie** für die Ball-Positionierung gemessen, ist also
+    frei und ohne Risiko für die Beat-Synchronisation animierbar — jedes
+    Vorschau-Item ist ein bei jedem Zeilenwechsel frisch eingefügter
+    DOM-Knoten, wodurch seine CSS-„enter"-Animation automatisch neu
+    abspielt (kein JS-Timing nötig, `assets/css/challenge.css`
+    `.line-preview__item`/`@keyframes preview-item-in`).
+  - **Sanfter Zeilenwechsel:** `#wordRackWrap` (Kästchen + Ball + Funken als
+    EINE Einheit) rutscht bei jedem Zeilenwechsel mit einer kurzen
+    `translateY`-Animation weich in Position (`.is-entering`,
+    `@keyframes line-rack-enter`) — bewusst **kein** Opacity-Fade (der Ball
+    darf beim Wechsel nie kurz unsichtbar werden) und bewusst auf dem
+    WRAPPER statt auf den einzelnen Kästchen: Ball und Funken sind absolut
+    relativ zu diesem Wrapper positioniert, wandern die Animation also 1:1
+    mit — die gemessene relative Position Kästchen↔Wrapper (`boxCenters`,
+    siehe Abschnitt 5) ändert sich durch eine gemeinsame
+    Eltern-Transform-Verschiebung nicht, weshalb `measureBoxCenters()`
+    unabhängig vom Animationsstand jederzeit korrekt misst.
 - Nach jeder abgeschlossenen Strophe wird automatisch eine **neue,
   garantiert andere Reim-Familie** samt neuem Reimschema generiert
   (`excludeFamilyIds` in [`rhyme-engine.js`](../assets/js/rhyme-engine.js)),
