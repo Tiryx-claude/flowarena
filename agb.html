@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="assets/css/components.css" />
   <link rel="stylesheet" href="assets/css/layout.css" />
   <link rel="stylesheet" href="assets/css/legal.css" />
+  <link rel="stylesheet" href="assets/css/i18n.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -28,21 +29,21 @@
       <span>Flow<span class="nav__brand-name">Arena</span></span>
     </a>
     <div class="nav__actions">
-      <a class="btn btn-glass btn-sm" href="shop.html" style="text-decoration:none;">← Zum Shop</a>
+      <a class="btn btn-glass btn-sm" href="shop.html" style="text-decoration:none;" data-i18n="legal.backToShop">← Zum Shop</a>
     </div>
   </header>
 
   <main class="page legal-page">
-    <h1 style="font-size:var(--fs-2xl); margin-bottom:var(--sp-2);">📜 Allgemeine Geschäftsbedingungen</h1>
-    <p class="legal-page__intro">
+    <h1 style="font-size:var(--fs-2xl); margin-bottom:var(--sp-2);" data-i18n="legal.terms.pageTitle">📜 Allgemeine Geschäftsbedingungen</h1>
+    <p class="legal-page__intro" data-i18n-html="legal.terms.intro">
       FlowArena ist ein <strong>Software-Prototyp zu Demonstrationszwecken</strong> — kein echtes Unternehmen,
       kein reales Vertragsverhältnis. Diese "AGB" beschreiben trotzdem transparent, nach welchen Regeln der
       simulierte Shop funktioniert, damit das System nachvollziehbar und fair bleibt.
     </p>
 
     <section class="card-glass legal-section">
-      <h2>1. Geltungsbereich</h2>
-      <p>
+      <h2 data-i18n="legal.terms.s1Title">1. Geltungsbereich</h2>
+      <p data-i18n-html="legal.terms.s1Body">
         Diese Bedingungen gelten für die Nutzung des FlowArena-Prototyps, insbesondere für Premium, Credits und
         alle Shop-Inhalte. Da es sich um eine Demo ohne echtes Zahlungssystem handelt, entsteht durch die Nutzung
         <strong>kein echter Vertrag</strong> und keine echte Zahlungspflicht.
@@ -50,13 +51,13 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>2. Leistungsbeschreibung</h2>
-      <p>FlowArena unterscheidet zwei Stufen:</p>
+      <h2 data-i18n="legal.terms.s2Title">2. Leistungsbeschreibung</h2>
+      <p data-i18n="legal.terms.s2Intro">FlowArena unterscheidet zwei Stufen:</p>
       <ul>
-        <li><strong>Free:</strong> voller Zugriff auf das Kern-Gameplay, bis zu 5 Strophen/Challenge, bis zu 5 kostenlose Challenges/Tag, Werbung zwischen Menüs, Basis-Beats.</li>
-        <li><strong>Premium (6,99 € / Monat, Demo):</strong> keine Werbung, unbegrenzt Challenges, alle Premium-Beats/-Ball-Designs/-Animationen/-Profil-Designs, alle Premium-Challenges, Early Access, bis zu 10 Strophen/Challenge.</li>
+        <li data-i18n-html="legal.terms.s2Li1"><strong>Free:</strong> voller Zugriff auf das Kern-Gameplay, bis zu 5 Strophen/Challenge, bis zu 5 kostenlose Challenges/Tag, Werbung zwischen Menüs, Basis-Beats.</li>
+        <li data-i18n-html="legal.terms.s2Li2"><strong>Premium (6,99 € / Monat, Demo):</strong> keine Werbung, unbegrenzt Challenges, alle Premium-Beats/-Ball-Designs/-Animationen/-Profil-Designs, alle Premium-Challenges, Early Access, bis zu 10 Strophen/Challenge.</li>
       </ul>
-      <p>
+      <p data-i18n-html="legal.terms.s2Body">
         <strong>Premium verschafft ausdrücklich keinen spielerischen Vorteil.</strong> Reimwörter, Bewertungslogik,
         Zeittakt und Turnier-/Ranglisten-Mechanik sind für Free und Premium identisch. Details:
         <a href="docs/SHOP.md">docs/SHOP.md</a>.
@@ -64,8 +65,8 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>3. Preise &amp; Zahlung</h2>
-      <p>
+      <h2 data-i18n="legal.terms.s3Title">3. Preise &amp; Zahlung</h2>
+      <p data-i18n-html="legal.terms.s3Body">
         Jeder Preis wird vor dem Kauf klar auf dem jeweiligen Button/in der Kaufbestätigung angezeigt. Angebotene
         Zahlungsmethoden (Apple Pay, Google Pay, Kredit-/Debitkarte) sind in diesem Prototyp <strong>rein
         dekorativ</strong> — es findet keine echte Zahlungsabwicklung statt, es werden keine Zahlungsdaten erhoben.
@@ -75,8 +76,8 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>4. Kündigung</h2>
-      <p>
+      <h2 data-i18n="legal.terms.s4Title">4. Kündigung</h2>
+      <p data-i18n-html="legal.terms.s4Body">
         Premium ist <strong>jederzeit mit einem Klick kündbar</strong> (Shop → Premium → "Abo kündigen") — keine
         Mindestlaufzeit, keine Kündigungsfrist, keine Nachzahlung. Die Kündigung wirkt sofort; bereits
         freigeschaltete kosmetische Inhalte (Ball-Designs, Animationen, Profil-Designs) bleiben dir erhalten und
@@ -85,8 +86,8 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>5. Credits &amp; virtuelle Inhalte</h2>
-      <p>
+      <h2 data-i18n="legal.terms.s5Title">5. Credits &amp; virtuelle Inhalte</h2>
+      <p data-i18n="legal.terms.s5Body">
         Credits sind eine rein virtuelle, spielinterne Einheit ohne realen Geldwert und ohne Auszahlungsanspruch.
         Sie sind ausschließlich innerhalb von FlowArena einsetzbar — für kosmetische Inhalte (Ball-Designs,
         Animationen, Profil-Designs) oder für Premium-Beats ohne Abo. Credits verfallen nicht und können niemals
@@ -95,8 +96,8 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>6. Fairness / Niemals Pay-to-Win</h2>
-      <p>
+      <h2 data-i18n="legal.terms.s6Title">6. Fairness / Niemals Pay-to-Win</h2>
+      <p data-i18n="legal.terms.s6Body">
         Kein Kauf beeinflusst den Wettbewerb: Turniere, Rangliste und Community-Voting behandeln Free- und
         Premium-Accounts technisch identisch — gleicher Beat, gleiche Reimwörter, gleiche Bewertungslogik pro
         Runde für alle Teilnehmenden.
@@ -104,18 +105,21 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>7. Haftungsausschluss</h2>
-      <p>
+      <h2 data-i18n="legal.terms.s7Title">7. Haftungsausschluss</h2>
+      <p data-i18n="legal.terms.s7Body">
         FlowArena ist ein Prototyp "wie besehen", ohne Gewähr auf Verfügbarkeit oder Fehlerfreiheit. Da keine
         echten Werte ausgetauscht werden, entsteht durch die Nutzung kein wirtschaftlicher Schaden im
         rechtlichen Sinn.
       </p>
     </section>
 
-    <p class="legal-page__footnote">
+    <p class="legal-page__footnote" data-i18n="legal.terms.footnote">
       Stand: Prototyp-Version. Diese Seite ersetzt keine Rechtsberatung und ist keine rechtsverbindliche
       Erklärung eines realen Unternehmens.
     </p>
   </main>
+
+  <script src="assets/js/i18n-data.js"></script>
+  <script src="assets/js/i18n.js"></script>
 </body>
 </html>

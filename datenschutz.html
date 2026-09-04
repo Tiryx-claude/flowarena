@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="assets/css/components.css" />
   <link rel="stylesheet" href="assets/css/layout.css" />
   <link rel="stylesheet" href="assets/css/legal.css" />
+  <link rel="stylesheet" href="assets/css/i18n.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -28,21 +29,21 @@
       <span>Flow<span class="nav__brand-name">Arena</span></span>
     </a>
     <div class="nav__actions">
-      <a class="btn btn-glass btn-sm" href="shop.html" style="text-decoration:none;">← Zum Shop</a>
+      <a class="btn btn-glass btn-sm" href="shop.html" style="text-decoration:none;" data-i18n="legal.backToShop">← Zum Shop</a>
     </div>
   </header>
 
   <main class="page legal-page">
-    <h1 style="font-size:var(--fs-2xl); margin-bottom:var(--sp-2);">🔒 Datenschutzerklärung</h1>
-    <p class="legal-page__intro">
+    <h1 style="font-size:var(--fs-2xl); margin-bottom:var(--sp-2);" data-i18n="legal.privacy.pageTitle">🔒 Datenschutzerklärung</h1>
+    <p class="legal-page__intro" data-i18n-html="legal.privacy.intro">
       FlowArena ist ein <strong>Software-Prototyp</strong> — kein echtes Unternehmen, kein Betrieb im rechtlichen
       Sinn. Diese Erklärung beschreibt trotzdem ehrlich und vollständig, was diese App technisch mit Daten macht,
       damit du dich informiert entscheiden kannst, bevor du irgendetwas nutzt.
     </p>
 
     <section class="card-glass legal-section">
-      <h2>1. Kurzfassung</h2>
-      <p>
+      <h2 data-i18n="legal.privacy.s1Title">1. Kurzfassung</h2>
+      <p data-i18n-html="legal.privacy.s1Body">
         <strong>Es gibt kein Backend, keinen Server, kein Konto und keine Datenübertragung.</strong> Alles, was
         FlowArena speichert, liegt ausschließlich im <code>localStorage</code> deines Browsers, auf deinem Gerät.
         Nichts wird an uns, an Dritte oder an irgendeinen Server geschickt — es gibt schlicht keinen Server, der
@@ -51,21 +52,21 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>2. Was lokal gespeichert wird</h2>
+      <h2 data-i18n="legal.privacy.s2Title">2. Was lokal gespeichert wird</h2>
       <ul>
-        <li><strong>Profil:</strong> Anzeigename, Avatar, Credits-Stand, Premium-Status, Statistiken, freigeschaltete Inhalte.</li>
-        <li><strong>Einstellungen:</strong> Schwierigkeit, Beat-Auswahl, Strophenanzahl, Themenfeld, Sound-/Streamer-/Roast-Modus.</li>
-        <li><strong>Community-Inhalte:</strong> von dir veröffentlichte Takes (Text/Score, kein Audio), Likes, Freundesliste, Benachrichtigungen.</li>
-        <li><strong>Turniere:</strong> von dir erstellte/beigetretene Turniere, Runden, Voting-Stände.</li>
-        <li><strong>Kaufhistorie:</strong> eine lokale Liste deiner Demo-Käufe (siehe Abschnitt 5) — kein echter Beleg.</li>
+        <li data-i18n-html="legal.privacy.s2Li1"><strong>Profil:</strong> Anzeigename, Avatar, Credits-Stand, Premium-Status, Statistiken, freigeschaltete Inhalte.</li>
+        <li data-i18n-html="legal.privacy.s2Li2"><strong>Einstellungen:</strong> Schwierigkeit, Beat-Auswahl, Strophenanzahl, Themenfeld, Sound-/Streamer-/Roast-Modus.</li>
+        <li data-i18n-html="legal.privacy.s2Li3"><strong>Community-Inhalte:</strong> von dir veröffentlichte Takes (Text/Score, kein Audio), Likes, Freundesliste, Benachrichtigungen.</li>
+        <li data-i18n-html="legal.privacy.s2Li4"><strong>Turniere:</strong> von dir erstellte/beigetretene Turniere, Runden, Voting-Stände.</li>
+        <li data-i18n-html="legal.privacy.s2Li5"><strong>Kaufhistorie:</strong> eine lokale Liste deiner Demo-Käufe (siehe Abschnitt 5) — kein echter Beleg.</li>
       </ul>
-      <p>Alles davon verlässt niemals deinen Browser. Ein anderes Gerät, ein anderer Browser oder ein privater
+      <p data-i18n="legal.privacy.s2Footer">Alles davon verlässt niemals deinen Browser. Ein anderes Gerät, ein anderer Browser oder ein privater
       Tab sieht davon nichts.</p>
     </section>
 
     <section class="card-glass legal-section">
-      <h2>3. Mikrofon &amp; Aufnahmen</h2>
-      <p>
+      <h2 data-i18n="legal.privacy.s3Title">3. Mikrofon &amp; Aufnahmen</h2>
+      <p data-i18n-html="legal.privacy.s3Body">
         Für eine Challenge fragt die App kurz nach Mikrofonzugriff (nativer Browser-Dialog). Die Aufnahme läuft
         über die native <code>MediaRecorder</code>-API und bleibt als lokale Blob-Datei im Browser — sie wird
         <strong>nicht hochgeladen</strong>. Ein Live-Transkript (falls dein Browser <code>SpeechRecognition</code>
@@ -75,8 +76,8 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>4. Werbung</h2>
-      <p>
+      <h2 data-i18n="legal.privacy.s4Title">4. Werbung</h2>
+      <p data-i18n-html="legal.privacy.s4Body">
         Die "Werbung (Demo)" in FlowArena ist <strong>kein echtes Werbenetzwerk</strong>. Es gibt keine
         Drittanbieter-SDKs, kein Tracking, keine Werbe-Cookies, keine Profilbildung. Gezeigt werden ausschließlich
         hauseigene Promo-Karten für FlowArenas eigene Funktionen (Premium/Shop/Turniere), rein clientseitig
@@ -85,8 +86,8 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>5. Zahlungen &amp; Käufe</h2>
-      <p>
+      <h2 data-i18n="legal.privacy.s5Title">5. Zahlungen &amp; Käufe</h2>
+      <p data-i18n-html="legal.privacy.s5Body">
         Premium-Aktivierung, Credits-Käufe und alle Shop-Freischaltungen sind <strong>reine Demo-Aktionen</strong>.
         Es werden nirgends echte Zahlungsdaten (Kartennummern, Apple-Pay-/Google-Pay-Zugangsdaten o.ä.) abgefragt,
         gespeichert oder verarbeitet — die Zahlungsmethoden-Auswahl im Kaufdialog ist rein dekorativ. Es findet
@@ -95,8 +96,8 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>6. Cookies</h2>
-      <p>
+      <h2 data-i18n="legal.privacy.s6Title">6. Cookies</h2>
+      <p data-i18n-html="legal.privacy.s6Body">
         FlowArena setzt keine Tracking-Cookies. Die einzige "Speicherung" ist <code>localStorage</code> — technisch
         notwendig, damit dein Fortschritt zwischen Seitenaufrufen erhalten bleibt, und jederzeit über die
         Browser-Einstellungen oder den Button "Alle Daten löschen" (in deinem Profil) vollständig entfernbar.
@@ -104,19 +105,22 @@
     </section>
 
     <section class="card-glass legal-section">
-      <h2>7. Deine Kontrolle</h2>
-      <p>
+      <h2 data-i18n="legal.privacy.s7Title">7. Deine Kontrolle</h2>
+      <p data-i18n-html="legal.privacy.s7Body">
         Da alle Daten lokal bei dir liegen, hast du jederzeit die volle Kontrolle: Browser-Daten für diese Seite
         löschen, oder in <a href="profile.html">deinem Profil</a> auf "Alle lokalen Daten löschen" klicken — das
         entfernt sofort und unwiderruflich alles, was FlowArena in deinem Browser gespeichert hat.
       </p>
     </section>
 
-    <p class="legal-page__footnote">
+    <p class="legal-page__footnote" data-i18n-html="legal.privacy.footnote">
       Stand: Prototyp-Version, siehe <a href="docs/SHOP.md">docs/SHOP.md</a> für die technische Dokumentation.
       Diese Seite ersetzt keine Rechtsberatung und ist keine rechtsverbindliche Erklärung eines realen
       Unternehmens — sie beschreibt lediglich ehrlich, was der Code tatsächlich tut.
     </p>
   </main>
+
+  <script src="assets/js/i18n-data.js"></script>
+  <script src="assets/js/i18n.js"></script>
 </body>
 </html>
