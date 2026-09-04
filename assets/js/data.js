@@ -100,7 +100,13 @@
     return BEATS.find((b) => b.id === beatId) || BEATS[0];
   }
 
+  // Sprachabhängig: TOPICS[].id ist eine stabile interne Kennung (nie
+  // übersetzt, siehe docs/I18N.md), die ANZEIGE kommt aus dem aktiven
+  // i18n-Wörterbuch (common.topics.*) statt aus dem statischen label-Feld
+  // oben — dadurch wechselt jede Themen-Anzeige in der App automatisch mit
+  // der Sprache, ohne dass jede Aufrufstelle das selbst wissen muss.
   function findTopicLabel(topicId) {
+    if (window.FlowI18n) return window.FlowI18n.t(`common.topics.${topicId}`);
     return TOPICS.find((t) => t.id === topicId)?.label ?? topicId;
   }
 

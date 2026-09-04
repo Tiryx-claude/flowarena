@@ -24,6 +24,9 @@
   "use strict";
 
   const { loadSettings, findBeat, findTopicLabel, GAMEPLAY_CONFIG } = window.FlowData;
+  const t = window.FlowI18n.t;
+  const tPick = window.FlowI18n.tPick;
+  const tList = window.FlowI18n.tList;
   const settings = loadSettings();
   const beat = findBeat(settings.beatId);
   const profile = window.FlowProfile.load();
@@ -53,6 +56,7 @@
     dailyLimitHint: $("#dailyLimitHint"),
     dailyLimitBlock: $("#dailyLimitBlock"),
     dailyLimitCount: $("#dailyLimitCount"),
+    dailyLimitText: $("#dailyLimitText"),
     micHint: $("#micHint"),
     beginBtn: $("#beginBtn"),
     countdownNumber: $("#countdownNumber"),
@@ -136,19 +140,20 @@
   /* ---------------------------------------------------------------------
      Intro-Zusammenfassung
      --------------------------------------------------------------------- */
-  const difficultyLabel = { leicht: "Leicht", mittel: "Mittel", schwer: "Schwer" }[settings.difficulty] || settings.difficulty;
+  const difficultyLabel = () => t(`common.difficulty.${settings.difficulty}`);
 
   function renderIntroSummary() {
     if (!els.introSummary) return;
     els.introSummary.innerHTML = `
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Schwierigkeit</span><span class="chip__value">${difficultyLabel}</span></span>
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Beat</span><span class="chip__value">${beat.name} · ${beat.bpm} BPM</span></span>
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Strophen</span><span class="chip__value">${totalStanzas}</span></span>
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Thema</span><span class="chip__value">${findTopicLabel(settings.topic)}</span></span>
-      ${settings.roastMode ? `<span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">Modus</span><span class="chip__value">🔥 Roast</span></span>` : ""}
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.difficultyLabel")}</span><span class="chip__value">${difficultyLabel()}</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("home.tournamentCreate.beatLabel")}</span><span class="chip__value">${beat.name} · ${beat.bpm} BPM</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.versesLabel")}</span><span class="chip__value">${totalStanzas}</span></span>
+      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.topicLabel")}</span><span class="chip__value">${findTopicLabel(settings.topic)}</span></span>
+      ${settings.roastMode ? `<span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("challenge.modeLabel")}</span><span class="chip__value">${t("challenge.roastModeValue")}</span></span>` : ""}
     `;
   }
   renderIntroSummary();
+  window.FlowI18n.onLocaleChange(renderIntroSummary);
 
   /* ---------------------------------------------------------------------
      Modul 6: Free-Tageslimit — "unendlich Challenges" als echter Premium-
@@ -162,11 +167,13 @@
     if (els.beginBtn) els.beginBtn.hidden = true;
     if (els.micHint) els.micHint.hidden = true;
     if (els.dailyLimitHint) els.dailyLimitHint.hidden = true;
-    if (els.dailyLimitCount) els.dailyLimitCount.textContent = String(limitCheck.limit);
+    if (els.dailyLimitText) {
+      els.dailyLimitText.innerHTML = t("challenge.dailyLimitText", { n: `<span id="dailyLimitCount">${limitCheck.limit}</span>` });
+    }
     if (els.dailyLimitBlock) els.dailyLimitBlock.hidden = false;
   } else if (els.dailyLimitHint && limitCheck.remaining <= 2 && limitCheck.limit !== Infinity) {
     els.dailyLimitHint.hidden = false;
-    els.dailyLimitHint.textContent = `ℹ️ Noch ${limitCheck.remaining} von ${limitCheck.limit} kostenlosen Challenges heute — mit Premium unbegrenzt.`;
+    els.dailyLimitHint.textContent = t("challenge.dailyLimitRemaining", { remaining: limitCheck.remaining, limit: limitCheck.limit });
   }
 
   /* ---------------------------------------------------------------------
@@ -336,7 +343,7 @@
      --------------------------------------------------------------------- */
   function renderVerseBadge(stanzaIndex, lineInStanza) {
     const ending = resolvedStanzas[stanzaIndex]?.ending || "…";
-    els.verseBadge.textContent = `Strophe ${stanzaIndex + 1} von ${totalStanzas} · Zeile ${lineInStanza + 1} von ${LINES_PER_STANZA} · Reimschema ${ending}`;
+    els.verseBadge.textContent = t("challenge.verseBadge", { stanza: stanzaIndex + 1, total: totalStanzas, line: lineInStanza + 1, lines: LINES_PER_STANZA, ending });
     els.verseChipValue.textContent = `${stanzaIndex + 1}/${totalStanzas}`;
   }
 
@@ -491,7 +498,9 @@
       const nextStanzaIndex = finishedStanzaIndex + 1;
       playIfEnabled(window.FlowSound?.playConfirm);
       const ending = resolvedStanzas[nextStanzaIndex]?.ending;
-      flashVerseBanner(`✓ Strophe ${finishedStanzaIndex + 1} geschafft${ending ? ` — neues Reimschema „${ending}“` : ""}`);
+      flashVerseBanner(ending
+        ? t("challenge.stanzaCompleteBannerWithScheme", { n: finishedStanzaIndex + 1, ending })
+        : t("challenge.stanzaCompleteBanner", { n: finishedStanzaIndex + 1 }));
       // Strophe übernächst schon mal anfordern, damit sie garantiert
       // rechtzeitig bereitsteht, bevor sie gebraucht wird.
       requestStanza(nextStanzaIndex + 1);
@@ -505,17 +514,19 @@
      --------------------------------------------------------------------- */
   function runCountdown(onDone) {
     showScreen("countdown");
-    const sequence = ["3", "2", "1", "Los!"];
+    const goValue = t("challenge.countdownGoValue");
+    const sequence = ["3", "2", "1", goValue];
     let i = 0;
 
     function step() {
       const value = sequence[i];
+      const isGo = i === sequence.length - 1;
       els.countdownNumber.textContent = value;
       els.countdownNumber.style.animation = "none";
       void els.countdownNumber.offsetWidth; // reflow, damit die Pop-Animation jedes Mal neu triggert
       els.countdownNumber.style.animation = "";
-      playIfEnabled(() => window.FlowSound?.playCountdown(value === "Los!"));
-      els.countdownLabel.textContent = value === "Los!" ? "Beat läuft — rock die Bühne!" : "Mikro checken, Beat kommt gleich …";
+      playIfEnabled(() => window.FlowSound?.playCountdown(isGo));
+      els.countdownLabel.textContent = isGo ? t("challenge.countdownGoLabel") : t("challenge.countdownPreLabel");
 
       i++;
       if (i < sequence.length) {
@@ -550,9 +561,9 @@
 
     if (micGranted) {
       els.recIndicator.classList.add("is-live");
-      els.recLabel.textContent = "Aufnahme läuft";
+      els.recLabel.textContent = t("challenge.recLive");
     } else {
-      els.recLabel.textContent = "Ohne Aufnahme";
+      els.recLabel.textContent = t("challenge.recNone");
     }
   }
 
@@ -563,15 +574,10 @@
     stopBeatClock();
     stopCapture();
     els.recIndicator.classList.remove("is-live");
-    els.recLabel.textContent = "Fertig";
+    els.recLabel.textContent = t("challenge.recDone");
 
     showScreen("evaluating");
-    const statusSteps = [
-      "Transkribiere deine Aufnahme …",
-      "Analysiere Reimtreue …",
-      "Prüfe Flow & Timing …",
-      "KI schreibt den Kommentar …",
-    ];
+    const statusSteps = tList("challenge.evaluatingSteps");
     let s = 0;
     els.evaluatingStatus.textContent = statusSteps[0];
     const statusTimer = setInterval(() => {
@@ -628,16 +634,7 @@
      gestaffelte Bewertungs-Zeilen. Die eigentliche Bewertung kommt bereits
      fertig von window.FlowAI.evaluation (siehe assets/js/ai/*).
      --------------------------------------------------------------------- */
-  const DIMENSION_LABELS = {
-    reim: "Reimqualität",
-    endwortNutzung: "Endwort-Nutzung",
-    flow: "Flow",
-    kreativitaet: "Kreativität",
-    originalitaet: "Originalität",
-    themenbezug: "Themenbezug",
-    punchlines: "Punchlines",
-    unterhaltung: "Unterhaltungswert",
-  };
+  const DIMENSION_KEYS = ["reim", "endwortNutzung", "flow", "kreativitaet", "originalitaet", "themenbezug", "punchlines", "unterhaltung"];
 
   function spawnScoreBurst() {
     if (!els.scoreBurst) return;
@@ -671,9 +668,9 @@
 
   function renderScoreBreakdown(scores) {
     if (!els.scoreBreakdown) return;
-    els.scoreBreakdown.innerHTML = Object.entries(DIMENSION_LABELS).map(([key, label], i) => `
+    els.scoreBreakdown.innerHTML = DIMENSION_KEYS.map((key, i) => `
       <div class="score-row" style="--row-delay:${i * 80}ms;">
-        <span class="score-row__label">${label}</span>
+        <span class="score-row__label">${t(`evaluation.dimensions.${key}`)}</span>
         <span class="score-row__track"><span class="score-row__fill" id="fill-${key}"></span></span>
         <span class="score-row__value">${scores[key]}</span>
       </div>
@@ -691,28 +688,31 @@
     els.scoreRing.style.setProperty("--score", 0);
     els.scoreValue.textContent = "0";
     els.resultsHeadline.textContent = result.headline;
-    els.resultsSub.textContent = `${difficultyLabel} · ${findTopicLabel(settings.topic)} · ${totalStanzas} ${totalStanzas === 1 ? "Strophe" : "Strophen"} · ${beat.name}${settings.roastMode ? " · Roast-Modus" : ""}`;
-    if (els.engineBadge) els.engineBadge.textContent = `🧠 KI-Engine: ${result.engineLabel}`;
+    const verseWord = window.FlowI18n.tPlural("challenge.verse", totalStanzas);
+    els.resultsSub.textContent = t("challenge.resultsSub", { difficulty: difficultyLabel(), topic: findTopicLabel(settings.topic), verses: `${totalStanzas} ${verseWord}`, beat: beat.name })
+      + (settings.roastMode ? t("challenge.resultsSubRoastSuffix") : "");
+    if (els.engineBadge) els.engineBadge.textContent = t("challenge.engineBadge", { label: result.engineLabel });
 
     if (els.creditsEarnedBadge && progress) {
       els.creditsEarnedBadge.hidden = false;
-      els.creditsEarnedBadge.textContent = `💎 +${progress.creditsEarned} Credits${progress.weekendBonusApplied ? " (inkl. 🎉 Wochenend-Bonus)" : ""}`;
+      els.creditsEarnedBadge.textContent = t("challenge.creditsEarnedBadge", { n: progress.creditsEarned })
+        + (progress.weekendBonusApplied ? t("challenge.weekendBonusSuffix") : "");
     }
 
     // Modul 5: Wochen-Challenge-Belohnung — eigene, kurze Benachrichtigung,
     // unabhängig vom Abzeichen-Banner (kein Abzeichen, nur Credits).
     if (progress?.weeklyChallenge?.completed) {
-      showToast(`🗓️ Wochen-Challenge geschafft: +${progress.weeklyChallenge.creditsReward} 💎 Credits!`);
-      window.FlowSocial?.addNotification({ icon: "🗓️", text: `Wochen-Challenge „${progress.weeklyChallenge.label}“ geschafft: +${progress.weeklyChallenge.creditsReward} Credits.` });
+      showToast(t("challenge.weeklyChallengeToast", { n: progress.weeklyChallenge.creditsReward }));
+      window.FlowSocial?.addNotification({ icon: "🗓️", text: t("challenge.weeklyChallengeNotification", { label: progress.weeklyChallenge.label, n: progress.weeklyChallenge.creditsReward }) });
     }
 
     if (els.badgeUnlockBanner && progress?.newBadges?.length) {
       els.badgeUnlockBanner.hidden = false;
       els.badgeUnlockBanner.innerHTML = progress.newBadges.map((b) =>
-        `<span style="font-size:1.6rem;">${b.icon}</span><span><strong>Neues Abzeichen:</strong> ${b.name} — <span style="color:var(--text-dim);">${b.desc}</span></span>`
+        `<span style="font-size:1.6rem;">${b.icon}</span><span><strong>${t("challenge.newBadgeLabel")}</strong> ${b.name} — <span style="color:var(--text-dim);">${b.desc}</span></span>`
       ).join("<br>");
       progress.newBadges.forEach((b) => {
-        window.FlowSocial?.addNotification({ icon: b.icon, text: `Neues Abzeichen freigeschaltet: ${b.name}` });
+        window.FlowSocial?.addNotification({ icon: b.icon, text: t("challenge.newBadgeNotification", { name: b.name }) });
       });
     }
 
@@ -722,8 +722,7 @@
     els.aiCommentText.textContent = result.comment;
     if (els.punchlineBadge) els.punchlineBadge.hidden = !result.punchlineDetected;
 
-    els.transcriptText.textContent = result.transcript
-      || "Kein Live-Transkript verfügbar — dein Browser unterstützt keine Spracherkennung oder das Mikrofon war nicht freigegeben. Deine Audio-Aufnahme ist trotzdem unten verfügbar (falls das Mikro erlaubt war).";
+    els.transcriptText.textContent = result.transcript || t("challenge.noTranscript");
   }
 
   /* ---------------------------------------------------------------------
@@ -731,7 +730,7 @@
      --------------------------------------------------------------------- */
   els.beginBtn?.addEventListener("click", async () => {
     els.beginBtn.disabled = true;
-    els.beginBtn.textContent = "Mikrofon wird angefragt …";
+    els.beginBtn.textContent = t("challenge.requestingMic");
 
     // Modul 6: verbraucht einen der Free-Tages-Versuche (no-op mit Premium) —
     // erst HIER, nicht schon beim bloßen Anzeigen der Intro-Seite.
@@ -749,10 +748,10 @@
       if (window.FlowAI.speech?.isSupported) {
         window.FlowAI.speech.start();
       } else {
-        showToast("ℹ️ Live-Transkript wird von diesem Browser nicht unterstützt — Aufnahme läuft trotzdem.");
+        showToast(t("challenge.micUnsupported"));
       }
     } else {
-      showToast("🎙️ Kein Mikrofonzugriff — du kannst trotzdem freestylen, nur ohne Aufnahme/Bewertung.");
+      showToast(t("challenge.micDenied"));
     }
 
     runCountdown(startLiveStage);
@@ -790,12 +789,12 @@
       overall: lastResult.overall,
       excerpt: lastResult.transcript
         ? `„${lastResult.transcript.slice(0, 120)}${lastResult.transcript.length > 120 ? "…" : ""}"`
-        : "„(kein Transkript verfügbar — Take live gerappt)\"",
+        : t("challenge.publishedExcerptFallback"),
     });
     window.FlowProfile.addCredits(profile, 15);
     els.publishBtn.disabled = true;
-    els.publishBtn.textContent = "✓ Veröffentlicht";
-    showToast("📤 Veröffentlicht! +15 💎 Credits — schau in der Community vorbei.");
+    els.publishBtn.textContent = t("challenge.publishedBtn");
+    showToast(t("challenge.publishedToast"));
   });
 
   els.retryBtn?.addEventListener("click", () => {

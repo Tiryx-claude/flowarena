@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="assets/css/home.css" />
   <link rel="stylesheet" href="assets/css/social.css" />
   <link rel="stylesheet" href="assets/css/ads.css" />
+  <link rel="stylesheet" href="assets/css/i18n.css" />
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
@@ -34,39 +35,39 @@
     </div>
 
     <div class="nav__actions">
-      <a class="chip" href="profile.html" style="text-decoration:none; cursor:pointer;"><span class="chip__dot"></span><span class="chip__label">Credits</span><span class="chip__value" id="creditsValue">–</span></a>
+      <a class="chip" href="profile.html" style="text-decoration:none; cursor:pointer;"><span class="chip__dot"></span><span class="chip__label" data-i18n="common.credits">Credits</span><span class="chip__value" id="creditsValue">–</span></a>
       <div class="notif-wrap">
-        <button class="btn-icon" id="notifBellBtn" type="button" aria-label="Benachrichtigungen" title="Benachrichtigungen">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+        <button class="btn-icon" id="notifBellBtn" type="button" data-i18n-attr="aria-label:common.notifications,title:common.notifications">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
         <div class="notif-dropdown" id="notifDropdown" hidden>
-          <div class="notif-dropdown__head"><span>Benachrichtigungen</span><button type="button" id="notifMarkReadBtn">Alle gelesen</button></div>
+          <div class="notif-dropdown__head"><span data-i18n="common.notifications">Benachrichtigungen</span><button type="button" id="notifMarkReadBtn" data-i18n="common.markAllRead">Alle gelesen</button></div>
           <div class="notif-list" id="notifList"></div>
         </div>
       </div>
-      <a class="btn-icon" href="profile.html" aria-label="Profil öffnen" title="Profil" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
+      <a class="btn-icon" href="profile.html" data-i18n-attr="aria-label:common.profile,title:common.profile" style="display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:1.1rem;" id="profileAvatarLink">🎤</a>
     </div>
   </header>
 
   <main class="page">
     <!-- ============ HERO ============ -->
     <section class="hero">
-      <span class="badge"><span class="badge__pulse"></span> Live für Streamer & Creator</span>
+      <span class="badge"><span class="badge__pulse"></span> <span data-i18n="home.liveBadge">Live für Streamer & Creator</span></span>
 
-      <h1 class="hero__title">Reim dich an die <span class="accent">Spitze.</span></h1>
-      <p class="hero__subtitle">
+      <h1 class="hero__title"><span data-i18n="home.heroTitlePre">Reim dich an die </span><span class="accent" data-i18n="home.heroTitleAccent">Spitze.</span></h1>
+      <p class="hero__subtitle" data-i18n="home.heroSubtitle">
         Wähle einen Beat, stell deine Schwierigkeit ein und droppe deine Bars —
         live vor deinem Chat oder ganz für dich allein.
       </p>
 
       <!-- ============ GAMEPLAY-VORSCHAU ============ -->
       <div class="gameplay-preview">
-        <span class="preview-bpm-tag">100 BPM · Beispiel-Zeile</span>
+        <span class="preview-bpm-tag" data-i18n="home.previewBpmTag">100 BPM · Beispiel-Zeile</span>
         <!-- Kästchen werden per JS erzeugt (home.js) — 4 leere Takt-Kästchen
              + 1 Wort-Kästchen, exakt wie im echten Gameplay (challenge.js). -->
         <div class="preview-track" id="previewTrack">
           <div class="beat-ball" id="previewBall" aria-hidden="true"></div>
           <div class="spark-layer" id="previewSparkLayer" aria-hidden="true"></div>
         </div>
-        <p class="preview-caption">
+        <p class="preview-caption" data-i18n="home.previewCaption">
           So läuft's: jede Zeile hat 5 Kästchen — die ersten 4 geben nur den Takt vor, im 5. wartet
           dein Reimwort. Der Ball hüpft im Beat mit, du rappst frei und landest das Wort genau im
           letzten Kästchen. 5 Zeilen pro Strophe, danach eine neue Reimfamilie.
@@ -76,13 +77,13 @@
 
     <!-- ============ MENÜ-LEISTE ============ -->
     <section class="menu-bar" role="tablist" aria-label="Hauptmenü">
-      <button class="menu-btn is-active" type="button" data-panel="play">🎤 Spielen</button>
-      <button class="menu-btn" type="button" data-panel="tournament-create">🏆 Turnier erstellen</button>
-      <button class="menu-btn" type="button" data-panel="tournament-join">🔑 Turnier beitreten</button>
-      <button class="menu-btn" type="button" data-panel="leaderboard">📊 Rangliste</button>
-      <button class="menu-btn" type="button" data-panel="community">👥 Community</button>
-      <button class="menu-btn" type="button" data-panel="shop">🛒 Shop</button>
-      <button class="menu-btn js-open-settings" type="button">⚙️ Einstellungen</button>
+      <button class="menu-btn is-active" type="button" data-panel="play" data-i18n="home.menu.play">🎤 Spielen</button>
+      <button class="menu-btn" type="button" data-panel="tournament-create" data-i18n="home.menu.tournamentCreate">🏆 Turnier erstellen</button>
+      <button class="menu-btn" type="button" data-panel="tournament-join" data-i18n="home.menu.tournamentJoin">🔑 Turnier beitreten</button>
+      <button class="menu-btn" type="button" data-panel="leaderboard" data-i18n="home.menu.leaderboard">📊 Rangliste</button>
+      <button class="menu-btn" type="button" data-panel="community" data-i18n="home.menu.community">👥 Community</button>
+      <button class="menu-btn" type="button" data-panel="shop" data-i18n="home.menu.shop">🛒 Shop</button>
+      <button class="menu-btn js-open-settings" type="button" data-i18n="home.menu.settings">⚙️ Einstellungen</button>
     </section>
 
     <!-- ============ PANELS (Akkordeon) ============ -->
@@ -91,12 +92,12 @@
       <div class="menu-panel is-open" data-panel="play">
         <div class="menu-panel__inner">
           <div class="card-glass menu-panel__card">
-            <h2 class="menu-panel__title">🎤 Bereit für deine Challenge?</h2>
+            <h2 class="menu-panel__title" data-i18n="home.play.title">🎤 Bereit für deine Challenge?</h2>
             <div class="play-summary" id="quickSettingsChips" aria-label="Aktuelle Einstellungen">
               <!-- wird per JS befüllt -->
             </div>
             <div class="play-cta">
-              <button class="btn btn-primary btn-hero" id="startChallengeBtn" type="button">🎤 Challenge starten</button>
+              <button class="btn btn-primary btn-hero" id="startChallengeBtn" type="button" data-i18n="home.play.startBtn">🎤 Challenge starten</button>
             </div>
           </div>
         </div>
@@ -106,48 +107,48 @@
       <div class="menu-panel" data-panel="tournament-create">
         <div class="menu-panel__inner">
           <div class="card-glass menu-panel__card">
-            <h2 class="menu-panel__title">🏆 Turnier erstellen</h2>
+            <h2 class="menu-panel__title" data-i18n="home.tournamentCreate.title">🏆 Turnier erstellen</h2>
 
             <div class="field">
-              <div class="field__head"><span class="field__label">Schwierigkeitsgrad</span></div>
+              <div class="field__head"><span class="field__label" data-i18n="home.tournamentCreate.difficultyLabel">Schwierigkeitsgrad</span></div>
               <div class="segmented" role="group" aria-label="Turnier-Schwierigkeitsgrad">
-                <button class="segmented__opt js-tourney-difficulty" data-value="leicht" type="button">Leicht</button>
-                <button class="segmented__opt js-tourney-difficulty" data-value="mittel" type="button">Mittel</button>
-                <button class="segmented__opt js-tourney-difficulty" data-value="schwer" type="button">Schwer</button>
+                <button class="segmented__opt js-tourney-difficulty" data-value="leicht" type="button" data-i18n="common.difficulty.leicht">Leicht</button>
+                <button class="segmented__opt js-tourney-difficulty" data-value="mittel" type="button" data-i18n="common.difficulty.mittel">Mittel</button>
+                <button class="segmented__opt js-tourney-difficulty" data-value="schwer" type="button" data-i18n="common.difficulty.schwer">Schwer</button>
               </div>
             </div>
 
             <div class="field">
-              <div class="field__head"><span class="field__label">Beat</span></div>
+              <div class="field__head"><span class="field__label" data-i18n="home.tournamentCreate.beatLabel">Beat</span></div>
               <select class="select" id="tourneyBeatSelect"></select>
-              <span class="field__hint">Nur bereits freigeschaltete Beats stehen zur Auswahl (siehe Shop).</span>
+              <span class="field__hint" data-i18n="home.tournamentCreate.beatHint">Nur bereits freigeschaltete Beats stehen zur Auswahl (siehe Shop).</span>
             </div>
 
             <div class="field">
-              <div class="field__head"><span class="field__label">Themenfeld</span></div>
+              <div class="field__head"><span class="field__label" data-i18n="home.tournamentCreate.topicLabel">Themenfeld</span></div>
               <select class="select" id="tourneyTopicSelect">
-                <option value="freestyle">Freestyle (offen)</option>
-                <option value="love">Liebe &amp; Beziehungen</option>
-                <option value="money">Money &amp; Grind</option>
-                <option value="street">Streetlife</option>
-                <option value="motivation">Motivation &amp; Aufstieg</option>
-                <option value="battle">Battle / Diss</option>
-                <option value="random">Zufällig</option>
+                <option value="freestyle" data-i18n="common.topics.freestyle">Freestyle (offen)</option>
+                <option value="love" data-i18n="common.topics.love">Liebe &amp; Beziehungen</option>
+                <option value="money" data-i18n="common.topics.money">Money &amp; Grind</option>
+                <option value="street" data-i18n="common.topics.street">Streetlife</option>
+                <option value="motivation" data-i18n="common.topics.motivation">Motivation &amp; Aufstieg</option>
+                <option value="battle" data-i18n="common.topics.battle">Battle / Diss</option>
+                <option value="random" data-i18n="common.topics.random">Zufällig</option>
               </select>
             </div>
 
             <div class="field" style="margin-bottom:0;">
-              <div class="field__head"><span class="field__label">Rundenzahl</span></div>
+              <div class="field__head"><span class="field__label" data-i18n="home.tournamentCreate.roundsLabel">Rundenzahl</span></div>
               <div class="stepper">
-                <button class="stepper__btn" id="tourneyRoundsMinus" type="button" aria-label="Weniger Runden">−</button>
+                <button class="stepper__btn" id="tourneyRoundsMinus" type="button" data-i18n-attr="aria-label:home.tournamentCreate.lessRounds">−</button>
                 <span class="stepper__value" id="tourneyRoundsValue">3</span>
-                <button class="stepper__btn" id="tourneyRoundsPlus" type="button" aria-label="Mehr Runden">+</button>
+                <button class="stepper__btn" id="tourneyRoundsPlus" type="button" data-i18n-attr="aria-label:home.tournamentCreate.moreRounds">+</button>
               </div>
-              <span class="field__hint">Jede Runde besteht aus 3 Strophen (derselbe Beat, dieselben Reimwörter für alle Teilnehmenden).</span>
+              <span class="field__hint" data-i18n="home.tournamentCreate.roundsHint">Jede Runde besteht aus 3 Strophen (derselbe Beat, dieselben Reimwörter für alle Teilnehmenden).</span>
             </div>
 
             <div class="play-cta" style="margin-top:var(--sp-6);">
-              <button class="btn btn-primary btn-hero" id="createTournamentBtn" type="button">🏆 Turnier erstellen</button>
+              <button class="btn btn-primary btn-hero" id="createTournamentBtn" type="button" data-i18n="home.tournamentCreate.submitBtn">🏆 Turnier erstellen</button>
             </div>
           </div>
         </div>
@@ -157,14 +158,14 @@
       <div class="menu-panel" data-panel="tournament-join">
         <div class="menu-panel__inner">
           <div class="card-glass menu-panel__card" style="text-align:center;">
-            <h2 class="menu-panel__title" style="justify-content:center;">🔑 Turnier beitreten</h2>
-            <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-5);">Gib den 4-stelligen Raum-Code ein, den du vom Host bekommen hast.</p>
+            <h2 class="menu-panel__title" style="justify-content:center;" data-i18n="home.tournamentJoin.title">🔑 Turnier beitreten</h2>
+            <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-5);" data-i18n="home.tournamentJoin.hint">Gib den 4-stelligen Raum-Code ein, den du vom Host bekommen hast.</p>
             <input class="select" id="joinCodeInput" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
                    placeholder="0000" style="max-width:180px; margin:0 auto var(--sp-5); text-align:center; font-family:var(--font-display); font-size:var(--fs-xl); font-weight:700; letter-spacing:0.3em;" />
             <div class="play-cta">
-              <button class="btn btn-primary btn-hero" id="joinTournamentBtn" type="button">🔑 Beitreten</button>
+              <button class="btn btn-primary btn-hero" id="joinTournamentBtn" type="button" data-i18n="home.tournamentJoin.submitBtn">🔑 Beitreten</button>
             </div>
-            <p style="color:var(--text-dim); font-size:var(--fs-xs); max-width:420px; margin:var(--sp-5) auto 0;">
+            <p style="color:var(--text-dim); font-size:var(--fs-xs); max-width:420px; margin:var(--sp-5) auto 0;" data-i18n="home.tournamentJoin.note">
               Hinweis: Turniere sind aktuell lokal auf diesem Gerät gespeichert (kein Backend) — ein Code
               funktioniert nur im selben Browser, in dem das Turnier erstellt wurde. Echtes
               geräteübergreifendes Multiplayer kommt mit einem Backend.
@@ -177,9 +178,9 @@
       <div class="menu-panel" data-panel="leaderboard">
         <div class="menu-panel__inner">
           <div class="card-glass menu-panel__card">
-            <h2 class="menu-panel__title">📊 Rangliste</h2>
+            <h2 class="menu-panel__title" data-i18n="home.leaderboard.title">📊 Rangliste</h2>
             <div id="leaderboardMini"></div>
-            <a class="panel-footer-link" href="community.html#leaderboard">Vollständige Rangliste ansehen →</a>
+            <a class="panel-footer-link" href="community.html#leaderboard" data-i18n="home.leaderboard.fullLink">Vollständige Rangliste ansehen →</a>
           </div>
         </div>
       </div>
@@ -188,9 +189,9 @@
       <div class="menu-panel" data-panel="community">
         <div class="menu-panel__inner">
           <div class="card-glass menu-panel__card">
-            <h2 class="menu-panel__title">👥 Community</h2>
+            <h2 class="menu-panel__title" data-i18n="home.community.title">👥 Community</h2>
             <div class="feed-list" id="communityMini"></div>
-            <a class="panel-footer-link" href="community.html">Zum vollständigen Feed →</a>
+            <a class="panel-footer-link" href="community.html" data-i18n="home.community.fullLink">Zum vollständigen Feed →</a>
           </div>
         </div>
       </div>
@@ -199,17 +200,17 @@
       <div class="menu-panel" data-panel="shop">
         <div class="menu-panel__inner">
           <div class="card-glass menu-panel__card">
-            <h2 class="menu-panel__title">🛒 Shop</h2>
-            <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+            <h2 class="menu-panel__title" data-i18n="home.shop.title">🛒 Shop</h2>
+            <p style="color:var(--text-muted); font-size:var(--fs-sm); margin-bottom:var(--sp-4);" data-i18n="home.shop.intro">
               Beats freischalten, Ball-Designs, Premium und Credits — alles nie mit einem Gameplay-Vorteil, siehe
               der vollständige Shop.
             </p>
             <div class="shop-grid" id="shopGrid"></div>
             <div class="shop-premium-teaser">
-              <span>👑 Mit Premium sind alle Beats, Ball-Designs & Challenges sofort freigeschaltet — keine Werbung mehr.</span>
-              <a class="btn btn-glass btn-sm" href="shop.html#premium" style="text-decoration:none;">Zu Premium</a>
+              <span data-i18n="home.shop.premiumTeaser">👑 Mit Premium sind alle Beats, Ball-Designs & Challenges sofort freigeschaltet — keine Werbung mehr.</span>
+              <a class="btn btn-glass btn-sm" href="shop.html#premium" style="text-decoration:none;" data-i18n="home.shop.premiumLink">Zu Premium</a>
             </div>
-            <a class="panel-footer-link" href="shop.html">Zum vollständigen Shop →</a>
+            <a class="panel-footer-link" href="shop.html" data-i18n="home.shop.fullLink">Zum vollständigen Shop →</a>
           </div>
         </div>
       </div>
@@ -217,62 +218,70 @@
   </main>
 
   <footer class="footer">
-    <p>FlowArena · Prototyp · <a href="datenschutz.html" style="color:inherit;">Datenschutz</a> · <a href="agb.html" style="color:inherit;">AGB</a></p>
+    <p><span data-i18n="home.footer">FlowArena · Prototyp</span> · <a href="datenschutz.html" style="color:inherit;" data-i18n="home.footerPrivacy">Datenschutz</a> · <a href="agb.html" style="color:inherit;" data-i18n="home.footerTerms">AGB</a></p>
   </footer>
 
   <!-- ============ SETTINGS DRAWER ============ -->
   <div class="drawer-overlay" id="drawerOverlay"></div>
   <aside class="settings-drawer glass" id="settingsDrawer" aria-hidden="true" aria-label="Einstellungen">
     <div class="settings-drawer__head">
-      <h2 style="font-size: var(--fs-lg);">Einstellungen</h2>
-      <button class="btn-icon" id="closeSettingsBtn" type="button" aria-label="Schließen">✕</button>
+      <h2 style="font-size: var(--fs-lg);" data-i18n="settings.title">Einstellungen</h2>
+      <button class="btn-icon" id="closeSettingsBtn" type="button" data-i18n-attr="aria-label:common.close">✕</button>
     </div>
 
     <div class="settings-drawer__body">
       <div class="field">
         <div class="field__head">
-          <span class="field__label">Schwierigkeitsgrad</span>
+          <span class="field__label" data-i18n="settings.languageLabel">Sprache</span>
+        </div>
+        <div class="lang-switch" id="languageSwitch"></div>
+        <span class="field__hint" data-i18n="settings.languageHint">Wirkt sofort — Menüs, Reimwörter und KI-Feedback wechseln direkt in die gewählte Sprache.</span>
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <span class="field__label" data-i18n="settings.difficultyLabel">Schwierigkeitsgrad</span>
         </div>
         <div class="segmented" role="group" aria-label="Schwierigkeitsgrad">
-          <button class="segmented__opt js-difficulty-opt" data-value="leicht" type="button">Leicht</button>
-          <button class="segmented__opt js-difficulty-opt" data-value="mittel" type="button">Mittel</button>
-          <button class="segmented__opt js-difficulty-opt" data-value="schwer" type="button">Schwer</button>
+          <button class="segmented__opt js-difficulty-opt" data-value="leicht" type="button" data-i18n="common.difficulty.leicht">Leicht</button>
+          <button class="segmented__opt js-difficulty-opt" data-value="mittel" type="button" data-i18n="common.difficulty.mittel">Mittel</button>
+          <button class="segmented__opt js-difficulty-opt" data-value="schwer" type="button" data-i18n="common.difficulty.schwer">Schwer</button>
         </div>
-        <span class="field__hint">Bestimmt Reimzeit, Wortschatz-Vorgaben und Bewertungsmaßstab.</span>
+        <span class="field__hint" data-i18n="settings.difficultyHint">Bestimmt Reimzeit, Wortschatz-Vorgaben und Bewertungsmaßstab.</span>
       </div>
 
       <div class="field">
         <div class="field__head">
-          <span class="field__label">Beat-Auswahl</span>
+          <span class="field__label" data-i18n="settings.beatLabel">Beat-Auswahl</span>
         </div>
         <div class="beat-list" id="beatList"></div>
-        <span class="field__hint">BPM bestimmt exakt das Timing der Challenge — Ball und Zeilenwechsel laufen synchron zum Beat.</span>
+        <span class="field__hint" data-i18n="settings.beatHint">BPM bestimmt exakt das Timing der Challenge — Ball und Zeilenwechsel laufen synchron zum Beat.</span>
       </div>
 
       <div class="field">
         <div class="field__head">
-          <span class="field__label">Strophenanzahl</span>
+          <span class="field__label" data-i18n="settings.versesLabel">Strophenanzahl</span>
         </div>
         <div class="stepper">
-          <button class="stepper__btn" id="versesMinus" type="button" aria-label="Weniger Strophen">−</button>
+          <button class="stepper__btn" id="versesMinus" type="button" data-i18n-attr="aria-label:settings.versesLess">−</button>
           <span class="stepper__value" id="versesValue">2</span>
-          <button class="stepper__btn" id="versesPlus" type="button" aria-label="Mehr Strophen">+</button>
+          <button class="stepper__btn" id="versesPlus" type="button" data-i18n-attr="aria-label:settings.versesMore">+</button>
         </div>
-        <span class="field__hint">Bis 5 Strophen kostenlos, mehr (bis 10) mit Premium.</span>
+        <span class="field__hint" data-i18n="settings.versesHint">Bis 5 Strophen kostenlos, mehr (bis 10) mit Premium.</span>
       </div>
 
       <div class="field">
         <div class="field__head">
-          <span class="field__label">Themenfeld</span>
+          <span class="field__label" data-i18n="settings.topicLabel">Themenfeld</span>
         </div>
         <select class="select" id="topicSelect">
-          <option value="freestyle">Freestyle (offen)</option>
-          <option value="love">Liebe &amp; Beziehungen</option>
-          <option value="money">Money &amp; Grind</option>
-          <option value="street">Streetlife</option>
-          <option value="motivation">Motivation &amp; Aufstieg</option>
-          <option value="battle">Battle / Diss</option>
-          <option value="random">Zufällig</option>
+          <option value="freestyle" data-i18n="common.topics.freestyle">Freestyle (offen)</option>
+          <option value="love" data-i18n="common.topics.love">Liebe &amp; Beziehungen</option>
+          <option value="money" data-i18n="common.topics.money">Money &amp; Grind</option>
+          <option value="street" data-i18n="common.topics.street">Streetlife</option>
+          <option value="motivation" data-i18n="common.topics.motivation">Motivation &amp; Aufstieg</option>
+          <option value="battle" data-i18n="common.topics.battle">Battle / Diss</option>
+          <option value="random" data-i18n="common.topics.random">Zufällig</option>
         </select>
       </div>
 
@@ -280,41 +289,43 @@
         <div class="field__head">
           <label class="toggle" id="streamerToggle" role="switch" aria-checked="false">
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
-            <span class="toggle__label">Streamer-Modus</span>
+            <span class="toggle__label" data-i18n="settings.streamerLabel">Streamer-Modus</span>
           </label>
         </div>
-        <span class="field__hint">Großer Text, Overlay-Layout &amp; Chat-freundliche Ansicht.</span>
+        <span class="field__hint" data-i18n="settings.streamerHint">Großer Text, Overlay-Layout &amp; Chat-freundliche Ansicht.</span>
       </div>
 
       <div class="field">
         <div class="field__head">
           <label class="toggle" id="roastToggle" role="switch" aria-checked="false">
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
-            <span class="toggle__label">Roast-Modus</span>
+            <span class="toggle__label" data-i18n="settings.roastLabel">Roast-Modus</span>
           </label>
         </div>
-        <span class="field__hint">Der KI-Kommentar nach der Challenge wird frecher — bleibt aber immer respektvoll und bezieht sich nur auf deine Performance.</span>
+        <span class="field__hint" data-i18n="settings.roastHint">Der KI-Kommentar nach der Challenge wird frecher — bleibt aber immer respektvoll und bezieht sich nur auf deine Performance.</span>
       </div>
 
       <div class="field" style="margin-bottom:0;">
         <div class="field__head">
           <label class="toggle" id="soundToggle" role="switch" aria-checked="true">
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
-            <span class="toggle__label">Klick-Sounds</span>
+            <span class="toggle__label" data-i18n="settings.soundLabel">Klick-Sounds</span>
           </label>
         </div>
-        <span class="field__hint">Dezente UI-Sounds beim Klicken &amp; Auswählen.</span>
+        <span class="field__hint" data-i18n="settings.soundHint">Dezente UI-Sounds beim Klicken &amp; Auswählen.</span>
       </div>
     </div>
 
     <div class="settings-drawer__foot">
-      <button class="btn btn-primary" id="saveSettingsBtn" type="button">Speichern &amp; schließen</button>
+      <button class="btn btn-primary" id="saveSettingsBtn" type="button" data-i18n="settings.saveBtn">Speichern &amp; schließen</button>
     </div>
   </aside>
 
   <!-- ============ TOAST ============ -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="assets/js/i18n-data.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script src="assets/js/sound.js"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/profile-data.js"></script>

@@ -11,8 +11,12 @@
   "use strict";
 
   const LocalRhymeProvider = {
-    async generateStanza({ difficulty, topic, excludeFamilyIds = [], count = 5 }) {
-      const result = window.FlowRhyme.pickRhymeStanza({ difficulty, topic, excludeFamilyIds, count });
+    async generateStanza({ difficulty, topic, excludeFamilyIds = [], count = 5, locale }) {
+      // Reimwörter richten sich nach der aktuell gewählten UI-Sprache (siehe
+      // docs/I18N.md) — ohne explizit übergebene Sprache wird die gerade
+      // aktive App-Sprache verwendet, damit Gameplay & Sprache nie auseinanderlaufen.
+      const activeLocale = locale || window.FlowI18n?.getLocale() || "de";
+      const result = window.FlowRhyme.pickRhymeStanza({ difficulty, topic, excludeFamilyIds, count, locale: activeLocale });
       return { ...result, source: "local-mock" };
     },
   };

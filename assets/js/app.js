@@ -14,6 +14,7 @@
 
   const { BEATS, TOPICS, GAMEPLAY_CONFIG, loadSettings, saveSettings } = window.FlowData;
   const FlowProfile = window.FlowProfile;
+  const t = window.FlowI18n.t;
 
   let state = loadSettings();
   let profile = FlowProfile.load();
@@ -52,7 +53,38 @@
     toast: $("#toast"),
     creditsValue: $("#creditsValue"),
     profileAvatarLink: $("#profileAvatarLink"),
+    languageSwitch: $("#languageSwitch"),
   };
+
+  /* ---------------------------------------------------------------------
+     Sprachumschalter (Einstellungen) — siehe assets/js/i18n.js/docs/I18N.md
+     --------------------------------------------------------------------- */
+  function renderLanguageSwitch() {
+    if (!els.languageSwitch) return;
+    const current = window.FlowI18n.getLocale();
+    els.languageSwitch.innerHTML = window.FlowI18n.SUPPORTED_LOCALES.map((loc) => {
+      const meta = window.FlowI18n.LOCALE_META[loc];
+      return `
+        <button type="button" class="lang-switch__opt ${loc === current ? "is-active" : ""}" data-locale="${loc}">
+          <span class="lang-switch__flag">${meta.flag}</span>
+          <span>${meta.native}</span>
+        </button>
+      `;
+    }).join("");
+  }
+  els.languageSwitch?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-locale]");
+    if (!btn) return;
+    playIfEnabled(window.FlowSound?.playSelect);
+    window.FlowI18n.setLocale(btn.dataset.locale);
+  });
+  // Bei jedem Sprachwechsel: Switcher-Zustand + alle JS-generierten Inhalte
+  // dieser Seite neu zeichnen (data-i18n-Attribute übernimmt applyTranslations()
+  // in i18n.js selbst automatisch).
+  window.FlowI18n.onLocaleChange(() => {
+    renderLanguageSwitch();
+    renderAll();
+  });
 
   /* ---------------------------------------------------------------------
      Rendering
@@ -119,15 +151,15 @@
   function renderQuickChips() {
     if (!els.quickChips) return;
     const beat = currentBeat();
-    const difficultyLabel = { leicht: "Leicht", mittel: "Mittel", schwer: "Schwer" }[state.difficulty];
-    const topicLabel = TOPICS.find((t) => t.id === state.topic)?.label ?? state.topic;
+    const difficultyLabel = t(`common.difficulty.${state.difficulty}`);
+    const topicLabel = t(`common.topics.${state.topic}`);
 
     els.quickChips.innerHTML = `
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">Schwierigkeit</span><span class="chip__value">${difficultyLabel}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">Beat</span><span class="chip__value">${beat.name}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">Strophen</span><span class="chip__value">${state.verses}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">Thema</span><span class="chip__value">${topicLabel}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">Streamer-Modus</span><span class="chip__value">${state.streamerMode ? "An" : "Aus"}</span></button>
+      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.difficultyLabel")}</span><span class="chip__value">${difficultyLabel}</span></button>
+      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("home.tournamentCreate.beatLabel")}</span><span class="chip__value">${beat.name}</span></button>
+      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.versesLabel")}</span><span class="chip__value">${state.verses}</span></button>
+      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.topicLabel")}</span><span class="chip__value">${topicLabel}</span></button>
+      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.streamerLabel")}</span><span class="chip__value">${state.streamerMode ? t("common.on") : t("common.off")}</span></button>
     `;
     // Re-bind, da innerHTML neue Elemente erzeugt hat
     $$(".js-open-settings", els.quickChips).forEach((btn) => btn.addEventListener("click", openDrawer));
@@ -141,6 +173,7 @@
     renderToggles();
     renderQuickChips();
     renderProfileBits();
+    renderLanguageSwitch();
   }
 
   /* ---------------------------------------------------------------------
@@ -200,11 +233,11 @@
       const unlocked = FlowProfile.unlockBeat(profile, beat);
       if (unlocked) {
         playIfEnabled(window.FlowSound?.playConfirm);
-        showToast(`✓ „${beat.name}" freigeschaltet! (−${beat.unlockCost} 💎)`);
+        showToast(t("toast.beatUnlocked", { name: beat.name, cost: beat.unlockCost }));
         renderProfileBits();
       } else {
         playIfEnabled(window.FlowSound?.playClick);
-        showToast(`🔒 Nicht genug Credits (${profile.credits}/${beat.unlockCost} 💎) — Challenges bringen mehr, oder Premium in deinem Profil.`);
+        showToast(t("toast.notEnoughCredits", { have: profile.credits, cost: beat.unlockCost }));
         return; // Beat bleibt gesperrt, nicht auswählen
       }
     }
@@ -227,7 +260,7 @@
     const max = maxStanzasAllowed();
     if (state.verses >= max) {
       if (!profile.premium && max < GAMEPLAY_CONFIG.maxStanzas) {
-        showToast(`🔒 Ab ${GAMEPLAY_CONFIG.freeMaxStanzas + 1} Strophen brauchst du Premium — siehe dein Profil.`);
+        showToast(t("toast.premiumNeeded", { n: GAMEPLAY_CONFIG.freeMaxStanzas + 1 }));
       }
       return;
     }
@@ -280,7 +313,7 @@
     saveSettings(state);
     playIfEnabled(window.FlowSound?.playConfirm);
     closeDrawer();
-    showToast("✓ Einstellungen gespeichert");
+    showToast(t("settings.savedToast"));
   });
 
   els.startChallengeBtn?.addEventListener("click", () => {
@@ -289,7 +322,7 @@
     // (siehe challenge.js). Nur eine UX-Abkürzung, keine zweite Wahrheitsquelle.
     const limitCheck = FlowProfile.canStartChallenge(FlowProfile.load());
     if (!limitCheck.allowed) {
-      showToast(`⏳ Tageslimit erreicht (${limitCheck.limit}/${limitCheck.limit} kostenlose Challenges) — mit Premium unbegrenzt spielen.`);
+      showToast(t("toast.dailyLimitReached", { limit: limitCheck.limit }));
       return;
     }
 
@@ -298,7 +331,7 @@
     // Modul 3 hängt sich hier später ein (echte KI-Reimwörter/-Bewertung).
     // Aktuell: POST /api/challenges/start { difficulty, beatId, verses, topic, streamerMode }
     console.info("[FlowArena] Challenge-Start mit Einstellungen:", state);
-    showToast("🎤 Challenge wird vorbereitet …");
+    showToast(t("toast.challengePreparing"));
     setTimeout(() => {
       window.location.href = "challenge.html";
     }, 350);

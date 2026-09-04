@@ -10,6 +10,7 @@
   const FlowProfile = window.FlowProfile;
   const FlowCommunity = window.FlowCommunity;
   const FlowTournament = window.FlowTournament;
+  const t = window.FlowI18n.t;
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -178,8 +179,8 @@
       <div class="leaderboard-row ${r.isYou ? "is-you" : ""}">
         <span class="leaderboard-row__rank">#${i + 1}</span>
         <span class="leaderboard-row__avatar">${r.avatar}</span>
-        <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.isYou ? " (Du)" : ""}</span>
-        <span class="leaderboard-row__score">${r.score} Pkt.</span>
+        <span class="leaderboard-row__name">${escapeHtml(r.name)}${r.isYou ? ` (${t("common.you")})` : ""}</span>
+        <span class="leaderboard-row__score">${r.score} ${t("common.points")}</span>
       </div>
     `).join("");
   }
@@ -228,8 +229,8 @@
           <span class="shop-card__meta">${beat.category}</span>
           <div class="shop-card__action">
             ${unlocked
-              ? `<span class="badge">✓ Freigeschaltet</span>`
-              : `<button class="btn btn-glass btn-sm" type="button" data-shop-beat="${beat.id}">🔒 Freischalten — ${beat.unlockCost} 💎</button>`}
+              ? `<span class="badge">${t("home.shop.unlocked")}</span>`
+              : `<button class="btn btn-glass btn-sm" type="button" data-shop-beat="${beat.id}">${t("home.shop.unlockBtn", { cost: beat.unlockCost })}</button>`}
           </div>
         </div>
       `;
@@ -248,7 +249,7 @@
           window.FlowSound?.playClick?.();
           const toast = $("#toast");
           if (toast) {
-            toast.textContent = `🔒 Nicht genug Credits (${p.credits}/${beat.unlockCost} 💎) — Challenges bringen mehr, oder Premium in deinem Profil.`;
+            toast.textContent = t("toast.notEnoughCredits", { have: p.credits, cost: beat.unlockCost });
             toast.classList.add("is-visible");
             setTimeout(() => toast.classList.remove("is-visible"), 2800);
           }
@@ -336,7 +337,7 @@
       window.FlowSound?.playClick?.();
       const toast = $("#toast");
       if (toast) {
-        toast.textContent = "Bitte einen 4-stelligen Code eingeben.";
+        toast.textContent = t("home.tournamentJoin.codeTooShort");
         toast.classList.add("is-visible");
         setTimeout(() => toast.classList.remove("is-visible"), 2400);
       }
@@ -353,4 +354,13 @@
   renderTourneyBeatOptions();
   renderTourneyRounds();
   openPanel("play");
+
+  // Mini-Panels sind nur beim Öffnen befüllt — bei Sprachwechsel trotzdem
+  // alle neu zeichnen (billig, idempotent), damit kein Panel auf Deutsch
+  // "hängen bleibt", falls es schon offen war.
+  window.FlowI18n.onLocaleChange(() => {
+    renderLeaderboardPanel();
+    renderCommunityPanel();
+    renderShopPanel();
+  });
 })();
