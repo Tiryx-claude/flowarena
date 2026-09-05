@@ -291,6 +291,9 @@
      challenge.js, siehe docs/GAMEPLAY.md Abschnitt 5)
      --------------------------------------------------------------------- */
   const beat = findBeat((tournament && tournament.settings.beatId) || "b2");
+  // Beat-Audiodatei (falls vorhanden) schon während der Lobby vorladen,
+  // siehe assets/js/beat-audio.js.
+  window.FlowBeatAudio?.preload(beat, window.FlowSound.getAudioContext());
   const LINES_PER_STANZA = GAMEPLAY_CONFIG.linesPerStanza;
   // EINE Runde = stanzasPerTournamentRound (3) Strophen hintereinander, beat-
   // genau OHNE Unterbrechung (eine einzige BeatClock/Aufnahme für die ganze
@@ -475,18 +478,35 @@
     });
   }
 
+  let beatAudioSource = null; // echte Beat-Audiodatei (falls Beat.audioUrl gesetzt), siehe beat-audio.js
+  let usingRealBeatAudio = false;
+
   function startBeatClockForRound() {
     const audioCtx = window.FlowSound.getAudioContext();
     clock = new window.FlowBeatClock({ bpm: beat.bpm, beatsPerLine: BEATS_PER_LINE, audioCtx });
-    clock.onBeat = (beatIndex, time) => window.FlowSound.playBeatTick(beatIndex % 4 === 0, time);
+    usingRealBeatAudio = false;
+    clock.onBeat = (beatIndex, time) => {
+      if (!usingRealBeatAudio) window.FlowSound.playBeatTick(beatIndex % 4 === 0, time);
+    };
     clock.start();
     startFrameLoop();
+
+    if (beat.audioUrl) {
+      window.FlowBeatAudio?.playLoop(beat, clock, audioCtx).then((source) => {
+        if (source) {
+          beatAudioSource = source;
+          usingRealBeatAudio = true;
+        }
+      });
+    }
   }
 
   function stopBeatClockForRound() {
     clock?.stop();
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
+    window.FlowBeatAudio?.stop(beatAudioSource);
+    beatAudioSource = null;
   }
 
   function startFrameLoop() {

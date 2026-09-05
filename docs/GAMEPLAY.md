@@ -173,25 +173,38 @@ eigenständig statt geteilt) und als Lehrbeispiel in der Homepage-Vorschau
 (`home.js`, `index.html`), damit man den echten Rhythmus schon vor dem
 ersten Klick auf "Challenge starten" sieht.
 
-Der Beat-Klick-Track selbst ist weiterhin ein **synthetischer Platzhalter**
-(`FlowSound.playBeatTick`, siehe `assets/js/sound.js`) — es liegen noch keine
-echten Beat-Audiodateien vor (`Beat.audioUrl` ist aktuell überall `null`,
-siehe Abschnitt 8). Er läuft **unabhängig vom "Klick-Sounds"-Setting**, weil
-er Gameplay-Audio ist, kein optionaler UI-Sound.
+Beats OHNE echte Audiodatei (`Beat.audioUrl === null`) nutzen weiterhin einen
+**synthetischen Platzhalter-Klick** (`FlowSound.playBeatTick`, siehe
+`assets/js/sound.js`). Seit dem Beat-Upload (BEACH/BERMUDA/TALLY, siehe
+Abschnitt 8) gibt es zusätzlich echte Beat-Audiodateien: `assets/js/
+beat-audio.js` lädt/dekodiert die Datei (gecacht pro URL) und startet sie
+geloopt **exakt bei `clock.startTime`** — derselben AudioContext-Zeit, die
+auch Ball-Animation und Zeilenwechsel treibt (siehe Abschnitt 5), also ohne
+zweiten Timer und ohne Drift-Risiko. Läuft ein echter Beat, wird der
+synthetische Klick für diese Challenge/Runde automatisch stummgeschaltet
+(ein echter Song bringt seinen eigenen Rhythmus mit). Beides — synthetischer
+Klick UND echte Datei — ist **Gameplay-Audio, unabhängig vom "Klick-Sounds"-
+Setting**, kein optionaler UI-Sound.
 
 ## 6. Getestete BPM-Werte
 
-Das Beat-Roster deckt bewusst 90 / 120 / 150 BPM ab (`data.js`):
+Das Beat-Roster deckt aktuell 75–150 BPM ab (`data.js`):
 
-| Beat | BPM |
-|---|---|
-| Boom Bap Classic | 90 |
-| Neon Drive | 120 |
-| Dark Trap Wave | 150 |
+| Beat | BPM | Audio |
+|---|---|---|
+| Cloud Drift | 75 | synthetischer Klick |
+| Boom Bap Classic | 90 | synthetischer Klick |
+| Midnight Cypher | 86 | synthetischer Klick |
+| Street Anthem | 100 | synthetischer Klick |
+| BEACH | 120 | echte Datei |
+| BERMUDA | 130 | echte Datei |
+| TALLY | 142 | echte Datei |
+| Dark Trap Wave | 150 | synthetischer Klick |
 
-Alle drei wurden manuell durchgespielt: Ball-Animation, Zeilen-Timer und
-Zeilenwechsel liefen bei allen dreien sichtbar synchron zum jeweiligen Tempo
-(90 BPM spürbar langsamer/entspannter als 150 BPM), ohne Konsolenfehler.
+Manuell durchgespielt (Solo-Challenge UND Turnier): Ball-Animation,
+Zeilen-Timer und Zeilenwechsel liefen bei allen getesteten Tempi sichtbar
+synchron zum jeweiligen Beat — bei den drei echten Audiodateien inklusive
+hörbarer Song-Wiedergabe ohne Drift zum Ball, ohne Konsolenfehler.
 
 ## 7. Schwierigkeitsgrad → Wort-Komplexität (nicht Geschwindigkeit!)
 
@@ -267,16 +280,52 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
 Neue Sprache/neue Wörter/neues Thema ergänzen: siehe
 [`docs/I18N.md`](I18N.md) Abschnitt 6.
 
-## 8. Beat-Daten & Admin-Anbindung
+## 8. Beat-Daten & echte Audiodateien
 
-`Beat` in `data.js`: `{ id, name, category, bpm, audioUrl }`. `audioUrl` ist
-für alle aktuellen Beats `null` — es gibt noch keinen Beat-Upload/Admin-Bereich
-und keine echten Audiodateien. Das Gameplay ist aber bereits darauf
-vorbereitet: Sobald ein Beat eine echte Datei bekommt, kann die Wiedergabe
-darauf umgestellt werden, **ohne** `BEATS_PER_LINE`/`BeatClock`/Zeilenwechsel-
-Logik anzufassen — die BPM sind so oder so die zentrale Zeitbasis, unabhängig
-davon, ob der Ton synthetisch oder eine echte Datei ist. Neue Beats werden
-einfach als weiterer Eintrag in `BEATS` ergänzt.
+`Beat` in `data.js`: `{ id, name, category, bpm, audioUrl, premiumOnly?,
+unlockCost? }`. Es gibt weiterhin keinen echten Beat-Upload/Admin-Bereich
+(kein Backend) — neue Beats werden von Hand als weiterer Eintrag in `BEATS`
+ergänzt und ihre Datei manuell unter `assets/audio/beats/` abgelegt.
+
+**Erste drei echte Beat-Audiodateien** (statt reiner Platzhalter):
+
+| Beat | Datei | BPM | Producer-Credit |
+|---|---|---|---|
+| BEACH | `assets/audio/beats/beach.mp3` | 120 | @cmllerx @n4vyn4vy |
+| BERMUDA | `assets/audio/beats/bermuda.mp3` | 130 | @cmllerx @rio leyva |
+| TALLY | `assets/audio/beats/tally.mp3` | 142 | @cmllerx @prod.drumma |
+
+Regel für die Integration weiterer echter Beats (wie hier angewandt): gibt es
+bereits einen Platzhalter mit **exakt derselben BPM**, wird dessen `name`/
+`category`/`audioUrl` ersetzt (ID und Premium-/Preis-Status bleiben
+unangetastet, damit nichts anderswo referenziert bricht — siehe "BEACH"
+ersetzt den 120-BPM-Platzhalter "Neon Drive" unter derselben ID `b4`). Gibt
+es noch keinen Platzhalter mit dieser BPM, wird ein neuer Eintrag ergänzt
+("BERMUDA"/"TALLY", neue IDs `b7`/`b8`). Alle anderen Beats bleiben
+unverändert.
+
+`category` zeigt bei den drei echten Beats bewusst den Producer-Credit
+(`"@cmllerx @…"`) statt eines Genres — an exakt der Stelle, an der bei den
+übrigen Beats sonst "Trap"/"Boom Bap"/… steht (Beat-Liste im
+Einstellungs-Drawer, Shop-Katalog, Turnier-erstellen-Auswahl) — die Credits
+sind dadurch überall sichtbar, ohne dass an der UI selbst etwas geändert
+werden musste. Der native `<select>` in der Turnier-Auswahl hängt den
+Credit zusätzlich an den Options-Text an (`renderTourneyBeatOptions()` in
+`home.js`), da ein `<option>` keine zweite Zeile darstellen kann.
+
+**Wiedergabe** läuft über `assets/js/beat-audio.js`: lädt/dekodiert die
+Datei per `fetch` + `AudioContext.decodeAudioData` (gecacht pro URL, wird
+schon während Intro/Countdown bzw. Turnier-Lobby vorgeladen), startet sie
+als geloopten `AudioBufferSourceNode` **exakt bei `clock.startTime`** — der
+IDENTISCHEN AudioContext-Zeit, aus der auch Ball-Animation und
+Zeilenwechsel berechnet werden (siehe Abschnitt 5) — und schaltet dafür den
+synthetischen Klick-Track für diese Challenge/Runde ab. Schlägt das Laden
+fehl (z.B. Datei nicht erreichbar), fällt automatisch auf den synthetischen
+Klick zurück, die Challenge bricht nicht ab. `BEATS_PER_LINE`/`BeatClock`/
+Zeilenwechsel-Logik selbst musste dafür nicht angefasst werden — die BPM
+ist so oder so die zentrale Zeitbasis, unabhängig davon, ob der Ton
+synthetisch oder eine echte Datei ist. Gilt identisch für Solo-Challenge
+(`challenge.js`) und Turnier (`tournament.js`).
 
 ## 9. Aufnahme, Live-Transkript, Auswertung
 

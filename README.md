@@ -56,6 +56,8 @@ assets/js/app.js               Startseiten-State, Rendering, Event-Handling
 assets/js/home.js               Menü-Akkordeon-Logik, Gameplay-Vorschau-Animation, Mini-Panels
 assets/js/spark-fx.js           Geteilte Funken-Partikel-Logik (Vorschau + echtes Gameplay)
 assets/js/beat-clock.js         BeatClock: drift-freie BPM-Uhr (AudioContext-basiert)
+assets/js/beat-audio.js         Echte Beat-Audiodateien geloopt abspielen, synchron zur BeatClock (Fallback: synthetischer Klick)
+assets/audio/beats/             Echte Beat-Audiodateien (BEACH/BERMUDA/TALLY, siehe data.js BEATS)
 assets/js/challenge.js         Spielablauf-State-Machine, Ball-Animation, Aufnahme, Ergebnis-Inszenierung
 assets/js/rhyme-engine.js       Reimwort-Logik: führt Kernbank + Zusatzbank + Komposita zusammen, Anti-Wiederholung, Street-Modus
 assets/js/rhyme-data-generated.js  Maschinell erzeugte Zusatz-Reimwortbank (>24.000 Wörter DE/EN/RU, siehe Kopfkommentar für Methodik)

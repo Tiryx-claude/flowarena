@@ -1,0 +1,12 @@
+# Audio-/Binärdateien nie per Zeilenende-Konvertierung anfassen (würde
+# echte Beat-Audiodateien sonst stillschweigend korrumpieren) — siehe
+# assets/audio/beats/ (docs/GAMEPLAY.md Abschnitt 8).
+*.mp3 binary
+*.mpeg binary
+*.wav binary
+*.ogg binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

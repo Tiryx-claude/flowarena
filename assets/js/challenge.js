@@ -30,6 +30,11 @@
   const settings = loadSettings();
   const beat = findBeat(settings.beatId);
   const profile = window.FlowProfile.load();
+
+  // Beat-Audiodatei (falls vorhanden) schon während der Intro-/Countdown-
+  // Phase vorladen, damit sie beim tatsächlichen Start ohne Verzögerung
+  // synchron mit der BeatClock loslegen kann (siehe assets/js/beat-audio.js).
+  window.FlowBeatAudio?.preload(beat, window.FlowSound.getAudioContext());
   let lastResult = null; // für den Publish-Handler (Modul 4)
 
   const LINES_PER_STANZA = GAMEPLAY_CONFIG.linesPerStanza;
@@ -226,25 +231,46 @@
      --------------------------------------------------------------------- */
   let clock = null;
   let rafId = null;
+  let beatAudioSource = null; // echte Beat-Audiodatei (falls Beat.audioUrl gesetzt), siehe beat-audio.js
+  let usingRealBeatAudio = false; // steuert, ob der synthetische Klick-Track zusätzlich läuft
 
   function startBeatClock() {
     const audioCtx = window.FlowSound.getAudioContext();
     clock = new window.FlowBeatClock({ bpm: beat.bpm, beatsPerLine: BEATS_PER_LINE, audioCtx });
+    usingRealBeatAudio = false;
 
     // Beat-Klick-Track: immer hörbar (das IST der Beat, kein optionaler
-    // UI-Sound) — sample-genau über die BeatClock-Uhr eingeplant.
+    // UI-Sound) — sample-genau über die BeatClock-Uhr eingeplant. Läuft nur,
+    // solange keine echte Beat-Audiodatei spielt (die bringt ihren eigenen
+    // Rhythmus mit, ein zusätzlicher Klick würde nur stören).
     clock.onBeat = (beatIndex, time) => {
-      window.FlowSound.playBeatTick(beatIndex % 4 === 0, time);
+      if (!usingRealBeatAudio) window.FlowSound.playBeatTick(beatIndex % 4 === 0, time);
     };
 
     clock.start();
     startFrameLoop();
+
+    // Echte Audiodatei erst NACH clock.start() anstoßen, da sie exakt bei
+    // clock.startTime (jetzt gesetzt) einsetzen muss, um mit Ball/Takt
+    // synchron zu bleiben (siehe beat-audio.js).
+    if (beat.audioUrl) {
+      window.FlowBeatAudio?.playLoop(beat, clock, audioCtx).then((source) => {
+        if (source) {
+          beatAudioSource = source;
+          usingRealBeatAudio = true;
+        }
+        // Kein source (z.B. Ladefehler) -> usingRealBeatAudio bleibt false,
+        // der synthetische Klick-Track läuft automatisch weiter.
+      });
+    }
   }
 
   function stopBeatClock() {
     clock?.stop();
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
+    window.FlowBeatAudio?.stop(beatAudioSource);
+    beatAudioSource = null;
   }
 
   /* ---------------------------------------------------------------------

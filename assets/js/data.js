@@ -40,22 +40,34 @@
     stanzasPerTournamentRound: 3,
   };
 
-  // audioUrl: Pfad zur Beat-Audiodatei (z.B. "/beats/dark-trap.mp3").
-  // Aktuell überall null — es liegen noch keine echten Audiodateien vor,
-  // das Gameplay nutzt stattdessen einen synthetischen, BPM-exakten
-  // Klick-Track (assets/js/beat-clock.js + sound.js). Sobald ein Beat
-  // eine echte Datei bekommt, spielt genau diese ab — ohne Änderungen an
-  // der Gameplay-Logik (siehe docs/AI_ARCHITECTURE.md / GAMEPLAY.md).
+  // audioUrl: Pfad zur Beat-Audiodatei (z.B. "assets/audio/beats/beach.mp3").
+  // Bei null nutzt das Gameplay stattdessen einen synthetischen, BPM-exakten
+  // Klick-Track (assets/js/beat-clock.js + sound.js). Sobald ein Beat eine
+  // echte Datei bekommt, spielt genau diese ab (assets/js/beat-audio.js),
+  // ohne Änderungen an der Gameplay-/Sync-Logik — bewusst so vorbereitet
+  // (siehe docs/AI_ARCHITECTURE.md / GAMEPLAY.md).
   // premiumOnly + unlockCost: Modul 4 (Credits/Premium). Ohne Premium-Status
   // ist ein premiumOnly-Beat gesperrt, bis er einmalig für `unlockCost`
   // Credits freigeschaltet wird (siehe assets/js/profile-data.js).
+  // credit: Producer-Tag, wird überall dort angezeigt, wo sonst `category`
+  // erscheint (Beat-Liste/-Katalog/-Auswahl) — für die drei echten,
+  // hochgeladenen Beats bewusst statt einer Genre-Kategorie, damit die
+  // Credits nirgends verlorengehen (siehe README/Anforderung "Producer-
+  // Credits müssen sichtbar bleiben").
   const BEATS = [
     { id: "b1", name: "Dark Trap Wave", category: "Trap", bpm: 150, audioUrl: null, premiumOnly: true, unlockCost: 60 },
     { id: "b2", name: "Boom Bap Classic", category: "Boom Bap", bpm: 90, audioUrl: null },
     { id: "b3", name: "Cloud Drift", category: "Lo-Fi", bpm: 75, audioUrl: null },
-    { id: "b4", name: "Neon Drive", category: "Synth", bpm: 120, audioUrl: null },
+    // "Neon Drive" (Platzhalter, 120 BPM) ersetzt durch den echten Upload
+    // "BEACH" — exakt dieselbe BPM, siehe Anforderung "Platzhalter mit
+    // derselben BPM ersetzen".
+    { id: "b4", name: "BEACH", category: "@cmllerx @n4vyn4vy", bpm: 120, audioUrl: "assets/audio/beats/beach.mp3" },
     { id: "b5", name: "Street Anthem", category: "Hip-Hop", bpm: 100, audioUrl: null },
     { id: "b6", name: "Midnight Cypher", category: "Boom Bap", bpm: 86, audioUrl: null, premiumOnly: true, unlockCost: 45 },
+    // Neue echte Beats ohne passenden Platzhalter (keine bestehende BPM
+    // 130/142) — zusätzlich ergänzt, alle anderen Beats bleiben unverändert.
+    { id: "b7", name: "BERMUDA", category: "@cmllerx @rio leyva", bpm: 130, audioUrl: "assets/audio/beats/bermuda.mp3" },
+    { id: "b8", name: "TALLY", category: "@cmllerx @prod.drumma", bpm: 142, audioUrl: "assets/audio/beats/tally.mp3" },
   ];
 
   const TOPICS = [

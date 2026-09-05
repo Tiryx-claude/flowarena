@@ -277,7 +277,13 @@
     if (!sel) return;
     const profile = FlowProfile.load();
     const unlocked = BEATS.filter((b) => FlowProfile.isBeatUnlocked(profile, b));
-    sel.innerHTML = unlocked.map((b) => `<option value="${b.id}">${escapeHtml(b.name)} · ${b.bpm} BPM</option>`).join("");
+    sel.innerHTML = unlocked.map((b) => {
+      // Producer-Credits (category beginnt mit "@") bleiben auch in der
+      // schlichten <option>-Zeile sichtbar — Genre-Kategorien wie "Trap"
+      // wurden hier schon vorher nicht angezeigt, das ändert sich nicht.
+      const creditSuffix = b.category?.startsWith("@") ? ` · ${b.category}` : "";
+      return `<option value="${b.id}">${escapeHtml(b.name)} · ${b.bpm} BPM${escapeHtml(creditSuffix)}</option>`;
+    }).join("");
     if (!tourneyState.beatId || !unlocked.find((b) => b.id === tourneyState.beatId)) {
       tourneyState.beatId = unlocked[0]?.id || BEATS[0].id;
     }
