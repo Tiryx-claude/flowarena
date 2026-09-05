@@ -456,8 +456,42 @@
     return n;
   }
 
+  // Manche Reim-Familien bestehen (sprachlich bedingt) fast nur aus
+  // Vorsilben-Varianten EINES einzigen Verbs (z.B. "-ehmen" praktisch nur
+  // "nehmen/abnehmen/mitnehmen/...", "-ommen" praktisch nur "kommen/...").
+  // Innerhalb so einer Familie kann selbst die beste Wortauswahl keine
+  // echte Wurzel-Vielfalt herbeizaubern — deshalb werden solche Familien
+  // hier schon bei der AUSWAHL abgewertet (nicht ausgeschlossen, falls es
+  // zu Thema/Schwierigkeit keine bessere Alternative gibt). Wichtig ist
+  // dabei nicht nur die ANZAHL verschiedener Wurzeln, sondern wie stark
+  // sich die Familie auf eine einzelne Wurzel KONZENTRIERT — eine Familie
+  // mit 3 Wurzeln, von denen eine 60% aller Wörter stellt, ist genauso
+  // eintönig wie eine mit nur 2 Wurzeln. coreStem/wordStem sind weiter
+  // unten definiert, aber als function-Deklarationen gehoisted.
+  const familyDiversityCache = new Map();
+  function familyMaxRootShare(family) {
+    if (familyDiversityCache.has(family.id)) return familyDiversityCache.get(family.id);
+    const counts = new Map();
+    family.words.forEach((w) => {
+      const root = coreStem(wordStem(w.w, family.ending));
+      counts.set(root, (counts.get(root) || 0) + 1);
+    });
+    const maxCount = Math.max(...counts.values());
+    const share = maxCount / family.words.length;
+    familyDiversityCache.set(family.id, share);
+    return share;
+  }
+
   function pickFamilyWeighted(families, difficulty) {
-    const weights = families.map((f) => countDiffMatches(f, difficulty) + 1);
+    const weights = families.map((f) => {
+      const base = countDiffMatches(f, difficulty) + 1;
+      const share = familyMaxRootShare(f);
+      // Über 50% Anteil einer einzigen Wurzel: deutlich abwerten. Über 30%:
+      // leicht abwerten. Darunter: keine Strafe (gesunde Vielfalt).
+      if (share > 0.5) return base * 0.15;
+      if (share > 0.3) return base * 0.5;
+      return base;
+    });
     const total = weights.reduce((a, b) => a + b, 0);
     let r = Math.random() * total;
     for (let i = 0; i < families.length; i++) {
@@ -468,29 +502,186 @@
   }
 
   /* ---------------------------------------------------------------------
-     Anti-Wiederholung: bereits benutzte Wörter merken (pro Sprache, in
-     localStorage) und bei der Auswahl stark abwerten, bis ein Großteil des
-     verfügbaren Wortschatzes durch ist — erst DANN dürfen Wörter wieder
-     auftauchen ("Jede Runde soll sich frisch und einzigartig anfühlen").
-     Blockiert nie hart (ein zu kleiner Pool würde sonst das Spiel stoppen)
-     — sie ist eine starke Präferenz in der Bewertung, kein Ausschluss.
+     Stamm-Ähnlichkeit: erkennt, ob zwei Wörter wahrscheinlich nur
+     Flexions-/Zusammensetzungs-Formen DESSELBEN Worts sind (z.B. "kommt"/
+     "kommst"/"gekommen", oder "arbeiten"/"mitarbeiten") — genau das erzeugt
+     "künstliche, fast identische Wortreihen" innerhalb einer Strophe, auch
+     wenn jedes einzelne Wort für sich technisch echt ist und reimt. Wird
+     doppelt genutzt: (1) INNERHALB einer Strophe, um Vielfalt zu erzwingen
+     (siehe selectBestWords), (2) ÜBER Strophen hinweg als Teil der
+     Anti-Wiederholung (siehe usedStems unten) — "Wohnung" benutzt, kurz
+     danach "Wohnungen" ist kein wirklich neues Wort.
      --------------------------------------------------------------------- */
-  const USED_WORDS_KEY = "flowarena.usedRhymeWords.v1";
-  const USED_RESET_THRESHOLD = 0.75; // ab 75% "verbraucht" wird zurückgesetzt
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    const prev = new Array(n + 1);
+    const curr = new Array(n + 1);
+    for (let j = 0; j <= n; j++) prev[j] = j;
+    for (let i = 1; i <= m; i++) {
+      curr[0] = i;
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+      }
+      for (let j = 0; j <= n; j++) prev[j] = curr[j];
+    }
+    return prev[n];
+  }
+
+  // Wortstamm = Wort ohne die (gemeinsame) Reim-Endung dieser Familie —
+  // der Teil, der die eigentliche WORTBEDEUTUNG/-wurzel trägt.
+  function wordStem(word, familyEnding) {
+    const w = word.toLowerCase();
+    const end = (familyEnding || "").replace(/^-/, "").toLowerCase();
+    if (end && w.endsWith(end) && w.length > end.length) {
+      return w.slice(0, w.length - end.length);
+    }
+    return w;
+  }
+
+  // Bekannte trennbare/untrennbare Verb-Vorsilben (+ Umgangssprache) sowie
+  // Präfixe aus dem Englischen/Russischen. Wichtig für Fälle wie
+  // "mitgemacht/rumgemacht/angemacht/ausgemacht" — die Reim-FAMILIE
+  // ("-emacht") teilt sich die Endung von "gemacht", aber die eigentliche
+  // Wortwurzel ("machen") steckt nach dem Endung-Abschneiden noch als
+  // Restfragment ("g") im Stamm, nicht als offensichtlich gemeinsamer
+  // Teilstring — ohne Vorsilben-Abzug würden solche reinen Präfix-
+  // Varianten eines einzigen Verbs fälschlich als "verschieden genug"
+  // durchgehen. Nach Sprache getrennt ist hier nicht nötig (Deutsch/
+  // Englisch = lateinische Schrift, Russisch = kyrillische Schrift —
+  // eine Kollision zwischen den Listen ist praktisch ausgeschlossen).
+  const KNOWN_PREFIXES = [
+    // Trennbare Vorsilben (+ umgangssprachliche Kurzformen: rum=herum,
+    // rein=herein, raus=heraus, rüber=herüber, rauf=herauf, runter=herunter)
+    "herum", "zurück", "zusammen", "entgegen", "empor", "weiter", "wieder",
+    "kaputt", "hierher", "dorthin", "dahinter", "herunter", "herüber",
+    "hinüber", "hinunter", "hinauf", "zwischen", "gegenüber", "mit", "rum",
+    "rein", "raus", "rüber", "nüber", "rauf", "runter", "nauf", "nunter",
+    "auf", "aus", "ein", "vor", "nach", "über", "unter", "durch", "weg",
+    "her", "hin", "los", "fest", "statt", "dahin", "davon", "daher",
+    "darauf", "daran", "davor", "dazu", "dar", "teil", "hoch", "frei",
+    "tief", "fern", "klar", "gegen", "nieder", "gleich", "an", "ab", "um",
+    "zu", "bei",
+    // Untrennbare Vorsilben (be-, ge-, er-, ver-, zer-, ent-, emp-, miss-)
+    "ver", "ent", "emp", "zer", "miss", "be", "er", "ge",
+    // Englisch
+    "over", "under", "mis", "re", "un", "out", "pre", "up",
+    // Russisch (Aspekt-/Richtungspräfixe)
+    "пере", "про", "при", "под", "над", "раз", "воз", "из", "до",
+    "по", "за", "вы", "от", "на", "об", "у", "в", "с",
+  ].sort((a, b) => b.length - a.length);
+
+  // "Kern"-Stamm: zusätzlich zur Reim-Endung wiederholt bekannte Vorsilben
+  // vom Wortanfang abziehen (z.B. "anzugreifen" → "an" UND "zu" abziehen,
+  // "hierhergekommen" → "hier"+"her"+"ge" abziehen). Iteration ist bei
+  // Doppel-Vorsilben nötig, um bis zur eigentlichen Wortwurzel vorzudringen
+  // — jede Abzug-Runde macht den Stamm strikt kürzer, die Schleife endet
+  // also garantiert; die Obergrenze ist nur eine zusätzliche Sicherung.
+  // Global memoisiert: bei großen Familien (z.B. Englisch "-ing" mit
+  // knapp 3000 Wörtern) taucht derselbe Stamm-String über viele
+  // Vergleiche hinweg immer wieder auf — ohne Cache würde die
+  // Vorsilben-Schleife (bis zu 5 Runden × ~70 Präfixe) bei jedem
+  // einzelnen Vergleich neu durchlaufen, was bei Tausenden von
+  // Wörtern × Hunderten von Anti-Wiederholungs-Einträgen spürbar
+  // langsam wird.
+  const coreStemCache = new Map();
+  function coreStem(stem) {
+    const cached = coreStemCache.get(stem);
+    if (cached !== undefined) return cached;
+    let s = stem;
+    for (let i = 0; i < 5; i++) {
+      let stripped = null;
+      for (const p of KNOWN_PREFIXES) {
+        if (s.length > p.length && s.startsWith(p)) {
+          stripped = s.slice(p.length);
+          break;
+        }
+      }
+      if (stripped === null) break;
+      s = stripped;
+    }
+    coreStemCache.set(stem, s);
+    return s;
+  }
+
+  // Reiner String-Vergleich zweier Stämme (ohne Vorsilben-Abzug) —
+  // Teilstring-Enthaltensein bei Mindestlänge ODER kleiner
+  // Bearbeitungsabstand relativ zur Länge (= reine Flexionsform).
+  function rawStemsSimilar(a, b) {
+    if (a === b) return true;
+    if (a.length >= 4 && b.length >= 4 && (a.includes(b) || b.includes(a))) return true;
+    const minLen = Math.min(a.length, b.length);
+    if (minLen < 3) return false;
+    const maxAllowedDist = Math.max(1, Math.floor(minLen * 0.3));
+    if (Math.abs(a.length - b.length) > maxAllowedDist) return false;
+    return levenshtein(a, b) <= maxAllowedDist;
+  }
+
+  function stemsAreSimilar(a, b) {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    if (rawStemsSimilar(a, b)) return true;
+    // Gleicher Kern nach Abzug einer bekannten Vorsilbe (z.B.
+    // "mitgemacht"/"ausgemacht" → beide Kern "g" nach Abzug der
+    // Reim-Endung "-emacht" und der Vorsilben "mit"/"aus", oder
+    // "diene"/"bediene"/"verdiene" → beide Kern "d") — dasselbe
+    // Basisverb, nur mit anderem Präfix, gilt als "zu ähnlich". WICHTIG:
+    // das läuft unabhängig davon, wie kurz die rohen Stämme sind — sonst
+    // würde z.B. "d" (diene) nie mit "bed" (bediene) verglichen, weil der
+    // rohe Vergleich bei sehr kurzen Stämmen schon vorher abbricht.
+    const ca = coreStem(a);
+    const cb = coreStem(b);
+    if (ca === a && cb === b) return false;
+    if (ca === cb) return true;
+    return rawStemsSimilar(ca, cb);
+  }
+
+  // Anti-Wiederholung über Strophen hinweg braucht nur ein RECENCY-Fenster,
+  // kein unbegrenzt wachsendes Gedächtnis — sonst würde der fuzzy
+  // Stamm-Abgleich (kein O(1)-Set-Lookup wie bei exakten Wörtern) über eine
+  // lange Session hinweg immer teurer. 300 Stämme entsprechen bei 5
+  // Wörtern/Strophe rund 60 zurückliegenden Strophen — mehr als genug, um
+  // sich "frisch" anzufühlen, ohne unbegrenzt zu wachsen.
+  const STEM_HISTORY_LIMIT = 300;
+
+  function pushRecentStem(stemHistory, stem) {
+    stemHistory.push(stem);
+    if (stemHistory.length > STEM_HISTORY_LIMIT) stemHistory.shift();
+  }
+
+  /* ---------------------------------------------------------------------
+     Anti-Wiederholung: bereits benutzte Wörter UND ihre Wortstämme merken
+     (pro Sprache, in localStorage) und bei der Auswahl stark abwerten, bis
+     ein Großteil des verfügbaren Wortschatzes durch ist — erst DANN dürfen
+     Wörter wieder auftauchen ("Jede Runde soll sich frisch und einzigartig
+     anfühlen", "bereits verwendete Wörter sollen möglichst lange nicht
+     erneut erscheinen"). Der Stamm-Abgleich verhindert zusätzlich, dass
+     eine bloße Flexionsform eines schon benutzten Worts (Plural, andere
+     Zeitform, …) als "neu" durchgeht. Blockiert nie hart (ein zu kleiner
+     Pool würde sonst das Spiel stoppen) — sie ist eine starke Präferenz in
+     der Bewertung, kein Ausschluss.
+     --------------------------------------------------------------------- */
+  const USED_WORDS_KEY = "flowarena.usedRhymeWords.v2";
+  const USED_RESET_THRESHOLD = 0.85; // ab 85% "verbraucht" wird zurückgesetzt
 
   function loadUsedWords(locale) {
     try {
       const all = JSON.parse(localStorage.getItem(USED_WORDS_KEY) || "{}");
-      return new Set(all[locale] || []);
+      const entry = all[locale];
+      if (Array.isArray(entry)) return { words: new Set(entry), stems: [] }; // Alt-Format (v1), ohne Stämme
+      const stems = (entry?.stems || []).slice(-STEM_HISTORY_LIMIT); // beim Laden auf das Fenster kappen (falls älterer Stand größer war)
+      return { words: new Set(entry?.words || []), stems };
     } catch (e) {
-      return new Set();
+      return { words: new Set(), stems: [] };
     }
   }
 
-  function saveUsedWords(locale, usedSet) {
+  function saveUsedWords(locale, used) {
     try {
       const all = JSON.parse(localStorage.getItem(USED_WORDS_KEY) || "{}");
-      all[locale] = Array.from(usedSet);
+      all[locale] = { words: Array.from(used.words), stems: used.stems };
       localStorage.setItem(USED_WORDS_KEY, JSON.stringify(all));
     } catch (e) {
       /* localStorage evtl. nicht verfügbar — Anti-Wiederholung lebt dann nur für die Session */
@@ -508,11 +699,29 @@
    * Thema+Schwierigkeit-Treffer, füllt bei Bedarf mit dem nächstbesten
    * Match auf (nie mit erfundenen Wörtern — nur mit echten Wörtern
    * derselben Familie, die also garantiert weiterhin sauber reimen).
-   * `usedWords` senkt die Punktzahl bereits benutzter Wörter deutlich
+   * `used` (bereits benutzte Wörter/Stämme) senkt die Punktzahl deutlich
    * (Anti-Wiederholung), `streetMode` hebt Battle-Themen-Treffer und
-   * höhere Schwierigkeit an (siehe docs/GAMEPLAY.md, "Street-Modus").
+   * höhere Schwierigkeit an (siehe docs/GAMEPLAY.md, "Street-Modus"). Nach
+   * der Bewertung folgt eine GIERIGE Auswahl mit Stamm-Diversität: Wörter,
+   * deren Stamm einem bereits FÜR DIESE STROPHE gewählten Wort zu ähnlich
+   * ist, werden übersprungen — verhindert künstliche Reihen wie "kommt,
+   * kommen, gekommen, ankommen" in derselben Strophe (siehe
+   * stemsAreSimilar oben). Reicht die Vielfalt der Familie nicht aus, wird
+   * trotzdem aufgefüllt (nie eine unvollständige Strophe).
    */
-  function selectBestWords(family, difficulty, topic, count, usedWords, streetMode) {
+  function selectBestWords(family, difficulty, topic, count, used, streetMode) {
+    // Cross-Strophen-Historie einmal VORAB in ein Set aus Kern-Stämmen
+    // umwandeln (O(Historie), einmal pro Aufruf) statt für JEDES Wort der
+    // Familie die ganze Historie einzeln fuzzy zu durchsuchen (O(Familie ×
+    // Historie) — bei großen Familien wie dem englischen "-ing" mit knapp
+    // 3000 Wörtern und bis zu 300 Historie-Einträgen sonst fast eine
+    // Million teure Vergleiche PRO Strophe). Der O(1)-Set-Lookup auf dem
+    // Kern-Stamm erkennt weiterhin Präfix-Varianten desselben Worts
+    // ("kommt" vorhin benutzt → "ankommt" jetzt abgewertet), verliert nur
+    // die feinere Editierdistanz-Erkennung für reine Cross-Strophen-
+    // Flexionsformen — die bleibt innerhalb einer Strophe (unten) erhalten,
+    // wo sie mit maximal `count` Einträgen ohnehin billig ist.
+    const usedCoreStems = new Set((used?.stems || []).map((s) => coreStem(s)));
     const scored = family.words.map((word) => {
       let score = 0;
       if (topicMatches(word, topic)) score += 2;
@@ -521,11 +730,51 @@
         if (word.topics.includes("battle")) score += 3;
         if (word.diff !== "leicht") score += 2;
       }
-      if (usedWords && usedWords.has(word.w.toLowerCase())) score -= 5;
-      return { word, score };
+      const stem = wordStem(word.w, family.ending);
+      if (used?.words?.has(word.w.toLowerCase())) score -= 5;
+      else if (usedCoreStems.has(coreStem(stem))) score -= 3;
+      return { word, score, stem };
     });
     scored.sort((a, b) => b.score - a.score || Math.random() - 0.5);
-    return scored.slice(0, count).map((s) => s.word.w);
+
+    const picked = [];
+    const pickedStems = [];
+    for (const s of scored) {
+      if (picked.length >= count) break;
+      if (pickedStems.some((ps) => stemsAreSimilar(ps, s.stem))) continue;
+      picked.push(s);
+      pickedStems.push(s.stem);
+    }
+    // Auffüllen, falls die Familie zu wenig echte Stamm-Vielfalt bietet —
+    // dann lieber eine ähnliche Form als eine unvollständige Strophe. Die
+    // nötige Wiederholung wird dabei möglichst BREIT verteilt (jeweils die
+    // am wenigsten vertretene Kern-Wurzel zuerst), statt sich auf ein-zwei
+    // Wörter zu konzentrieren — z.B. "miene/biene/diene/verdiene/bediene"
+    // wird zu "miene/biene/diene/verdiene" + genau EINE weitere Dopplung,
+    // statt dieselbe Wurzel gleich dreimal aufzufüllen.
+    if (picked.length < count) {
+      const remaining = scored.filter((s) => !picked.includes(s));
+      while (picked.length < count && remaining.length > 0) {
+        const coreCounts = new Map();
+        picked.forEach((p) => {
+          const c = coreStem(p.stem);
+          coreCounts.set(c, (coreCounts.get(c) || 0) + 1);
+        });
+        let bestIdx = 0;
+        let bestCount = Infinity;
+        for (let i = 0; i < remaining.length; i++) {
+          const c = coreCounts.get(coreStem(remaining[i].stem)) || 0;
+          if (c < bestCount) {
+            bestCount = c;
+            bestIdx = i;
+            if (bestCount === 0) break;
+          }
+        }
+        picked.push(remaining[bestIdx]);
+        remaining.splice(bestIdx, 1);
+      }
+    }
+    return picked.slice(0, count).map((s) => ({ w: s.word.w, stem: s.stem }));
   }
 
   /**
@@ -555,17 +804,21 @@
 
     // Anti-Wiederholung: bei Bedarf zurücksetzen, wenn der Großteil des
     // Sprach-Wortschatzes schon "verbraucht" ist (siehe USED_RESET_THRESHOLD).
-    let usedWords = loadUsedWords(activeLocale);
+    let used = loadUsedWords(activeLocale);
     const totalWords = countDistinctWords(bank);
-    if (totalWords > 0 && usedWords.size / totalWords >= USED_RESET_THRESHOLD) {
-      usedWords = new Set();
+    if (totalWords > 0 && used.words.size / totalWords >= USED_RESET_THRESHOLD) {
+      used = { words: new Set(), stems: [] };
     }
 
     const family = pickFamilyWeighted(viable, difficulty);
-    const words = shuffle(selectBestWords(family, difficulty, topic, count, usedWords, streetMode));
+    const picked = shuffle(selectBestWords(family, difficulty, topic, count, used, streetMode));
+    const words = picked.map((p) => p.w);
 
-    words.forEach((w) => usedWords.add(w.toLowerCase()));
-    saveUsedWords(activeLocale, usedWords);
+    picked.forEach((p) => {
+      used.words.add(p.w.toLowerCase());
+      pushRecentStem(used.stems, p.stem);
+    });
+    saveUsedWords(activeLocale, used);
 
     return { words, ending: family.ending, familyId: family.id };
   }

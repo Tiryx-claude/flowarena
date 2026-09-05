@@ -249,13 +249,66 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
 
 4. **Anti-Wiederholung**: `pickRhymeStanza()` merkt sich pro Sprache, welche
    Wörter bereits benutzt wurden (`localStorage`,
-   `flowarena.usedRhymeWords.v1`) und wertet sie bei der nächsten Auswahl
-   deutlich ab (kein hartes Ausschließen — ein zu kleiner Wortpool würde
-   sonst das Spiel blockieren). Erst wenn **75%** des gesamten
-   Sprach-Wortschatzes "verbraucht" sind, wird zurückgesetzt. Zusätzlich
-   bekommt jede neue Strophe automatisch eine neue Reim-Familie
-   (`excludeFamilyIds`, siehe Abschnitt 3) — Wiederholung ist also auf zwei
-   Ebenen (Familie UND Einzelwort) unwahrscheinlich gemacht.
+   `flowarena.usedRhymeWords.v2` — Format `{words: string[], stems: string[]}`;
+   frühere `v1`-Einträge, reine Wortlisten ohne Stämme, werden beim Laden
+   erkannt und weiterhin abgewertet, aber nicht mehr neu geschrieben) und
+   wertet sie bei der nächsten Auswahl deutlich ab (kein hartes Ausschließen
+   — ein zu kleiner Wortpool würde sonst das Spiel blockieren). Erst wenn
+   **85%** des gesamten Sprach-Wortschatzes "verbraucht" sind, wird
+   zurückgesetzt (angehoben von 75%, damit Wörter "möglichst lange nicht
+   erneut erscheinen"). Zusätzlich bekommt jede neue Strophe automatisch
+   eine neue Reim-Familie (`excludeFamilyIds`, siehe Abschnitt 3) —
+   Wiederholung ist also auf zwei Ebenen (Familie UND Einzelwort)
+   unwahrscheinlich gemacht.
+
+4b. **Stamm-Vielfalt gegen "künstliche Wortreihen"** (Reimqualitäts-
+   Überarbeitung): eine reine Wort-Historie reicht nicht — "kommt/kommst/
+   gekommen/ankommt/mitkommen" wären fünf technisch verschiedene, aber
+   praktisch IDENTISCHE Reimwörter (dieselbe Verb-Wurzel, nur andere
+   Flexion/Vorsilbe). Dagegen:
+   - `wordStem(word, ending)` schneidet die gemeinsame Reim-Endung der
+     Familie ab; `coreStem(stem)` zieht danach zusätzlich rekursiv bekannte
+     deutsche/englische/russische Vor- bzw. Aspekt-Präfixe ab (trennbar:
+     mit-/an-/aus-/zu-/hoch-/frei-/…; untrennbar: be-/ge-/ver-/ent-/…;
+     Englisch: re-/un-/over-/…; Russisch: по-/за-/при-/пере-/…) — global
+     memoisiert, da derselbe Stamm-String in großen Familien (z.B.
+     Englisch "-ing" mit ~2.900 Wörtern) sehr oft wiederkehrt.
+   - `stemsAreSimilar(a, b)` erkennt zwei Stämme als "dasselbe Wort" bei
+     Teilstring-Enthaltensein (ab 4 Zeichen), kleiner Editierdistanz
+     (Flexionsformen) — jeweils sowohl auf dem rohen Stamm als auch auf dem
+     Kern-Stamm nach Präfix-Abzug. Damit werden z.B. "mitgemacht/
+     rumgemacht/kaputtgemacht/angemacht/ausgemacht" (alle von "machen",
+     nur mit anderer Vorsilbe) korrekt als eine einzige Wurzel erkannt statt
+     als fünf verschiedene Wörter durchzugehen.
+   - **Innerhalb einer Strophe**: `selectBestWords()` wählt gierig Wörter,
+     deren (Kern-)Stamm noch nicht vertreten ist; reicht die Familie nicht
+     für `count` echt verschiedene Wurzeln, füllt sie auf — verteilt die
+     nötige Wiederholung dabei bewusst auf die am wenigsten vertretene
+     Wurzel, statt dieselbe zwei-/dreimal zu wiederholen.
+   - **Über Strophen hinweg**: der Abgleich gegen die zuletzt benutzten
+     Stämme läuft aus Performance-Gründen über ein Set aus KERN-Stämmen
+     (O(1)-Lookup) statt eines Fuzzy-Scans über die gesamte Historie pro
+     Wort — bei großen Familien × 300 Historie-Einträgen wäre Letzteres
+     spürbar langsam (in einem Test vor der Umstellung: ~5,4s für 60
+     Strophen bei der großen englischen "-ing"-Familie; danach ~40ms).
+   - **Familien-Auswahl**: manche Reim-Familien bestehen sprachbedingt fast
+     nur aus Vorsilben-Varianten EINES Verbs (z.B. "-ehmen" praktisch nur
+     "nehmen"-Komposita, "-ommen" praktisch nur "kommen"-Komposita) — dort
+     kann selbst die beste Auswahl keine echte Vielfalt herstellen.
+     `pickFamilyWeighted()` berechnet deshalb pro Familie den Anteil der
+     größten Einzel-Wurzel (`familyMaxRootShare`, gecacht) und wertet
+     Familien mit über 50% Konzentration auf eine Wurzel stark ab, über 30%
+     leicht ab — abgewertet, nicht ausgeschlossen, damit seltene Themen/
+     Schwierigkeitsstufen nicht komplett ohne Familie dastehen.
+   - **Bekannte Grenze**: die Präfix-Erkennung deckt VERB-Vorsilben ab, aber
+     keine NOMEN-Komposita mit gemeinsamem Kopfwort (z.B. "Dachboden/
+     Fußboden/Boden" oder "Geburtstagsgeschenk/Weihnachtsgeschenk/
+     Geschenk" — verschiedene, echte zusammengesetzte Wörter, die sich
+     dasselbe Kopf-Nomen teilen). Das ist bewusst nicht weiter verfolgt:
+     eine vollständige Kompositum-Zerlegung wäre ungleich aufwändiger und
+     die Wiederholung ist dort ohnehin milder (unterschiedliche, echte
+     Wörter statt Flexionsformen desselben Lemmas — ein Stilmittel, das
+     auch in echten Rap-Texten vorkommt).
 
 5. **Themenfeld** (`topic`): `freestyle` (offen), `love`, `money`, `street`,
    `motivation`, `battle`, `humor`, `random`. Wörter der Zusatzbank bekommen
