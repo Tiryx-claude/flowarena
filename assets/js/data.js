@@ -65,6 +65,7 @@
     { id: "street", label: "Streetlife" },
     { id: "motivation", label: "Motivation & Aufstieg" },
     { id: "battle", label: "Battle / Diss" },
+    { id: "humor", label: "Humor" },
     { id: "random", label: "Zufällig" },
   ];
 
@@ -76,6 +77,10 @@
     streamerMode: false,
     soundEnabled: true,
     roastMode: false,
+    // Street-Modus: schaltet härtere Battle-Rap-Reimwörter/-Themen frei
+    // (Reimwort-Auswahl in rhyme-engine.js) — beeinflusst NUR die
+    // Wortwahl, nicht die Spielmechanik (siehe docs/GAMEPLAY.md).
+    streetMode: false,
   };
 
   function loadSettings() {

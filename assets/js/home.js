@@ -270,7 +270,7 @@
   /* ---------------------------------------------------------------------
      6) Turnier erstellen (Panel "tournament-create")
      --------------------------------------------------------------------- */
-  const tourneyState = { difficulty: "mittel", beatId: null, topic: "freestyle", rounds: 3 };
+  const tourneyState = { difficulty: "mittel", beatId: null, topic: "freestyle", rounds: 3, streetMode: false };
 
   function renderTourneyBeatOptions() {
     const sel = $("#tourneyBeatSelect");
@@ -306,6 +306,14 @@
   $("#tourneyBeatSelect")?.addEventListener("change", (e) => { tourneyState.beatId = e.target.value; });
   $("#tourneyTopicSelect")?.addEventListener("change", (e) => { tourneyState.topic = e.target.value; });
 
+  $("#tourneyStreetModeToggle")?.addEventListener("click", () => {
+    tourneyState.streetMode = !tourneyState.streetMode;
+    const el = $("#tourneyStreetModeToggle");
+    el?.classList.toggle("is-on", tourneyState.streetMode);
+    el?.setAttribute("aria-checked", String(tourneyState.streetMode));
+    window.FlowSound?.playToggle?.(tourneyState.streetMode);
+  });
+
   $("#tourneyRoundsMinus")?.addEventListener("click", () => {
     if (tourneyState.rounds <= 1) return;
     tourneyState.rounds -= 1;
@@ -328,6 +336,7 @@
       beatId: tourneyState.beatId,
       topic: tourneyState.topic,
       roundsTotal: tourneyState.rounds,
+      streetMode: tourneyState.streetMode,
     });
     window.location.href = `tournament.html?code=${tournament.code}`;
   });

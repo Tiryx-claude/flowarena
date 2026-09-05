@@ -69,14 +69,14 @@
     saveAll(all);
   }
 
-  /** @param {Object} opts - { hostProfile, difficulty, beatId, topic, roundsTotal } */
-  function createTournament({ hostProfile, difficulty, beatId, topic, roundsTotal }) {
+  /** @param {Object} opts - { hostProfile, difficulty, beatId, topic, roundsTotal, streetMode } */
+  function createTournament({ hostProfile, difficulty, beatId, topic, roundsTotal, streetMode = false }) {
     const all = loadAll();
     const code = generateCode(all);
     const tournament = {
       code,
       createdAt: Date.now(),
-      settings: { difficulty, beatId, topic, roundsTotal },
+      settings: { difficulty, beatId, topic, roundsTotal, streetMode },
       status: "lobby", // lobby -> live -> voting -> (nächste Runde: live/voting …) -> finished
       players: [{ id: ME_ID, name: hostProfile.displayName, avatar: hostProfile.avatar, isHost: true, isBot: false, joinedAt: Date.now() }],
       rounds: [],
@@ -168,6 +168,7 @@
           topic: t.settings.topic,
           excludeFamilyIds: usedFamilyIds,
           count: gameplayConfig.linesPerStanza,
+          streetMode: t.settings.streetMode,
         });
         usedFamilyIds.push(result.familyId);
         stanzas.push({ words: result.words, ending: result.ending, familyId: result.familyId });

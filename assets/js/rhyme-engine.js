@@ -1,5 +1,5 @@
 /* =========================================================================
-   FlowArena — Rhyme Engine (Platzhalter-Datenbank für den lokalen KI-Provider)
+   FlowArena — Rhyme Engine (Modul 3, generalüberholt in Modul 7)
    -------------------------------------------------------------------------
    KERNREGEL: Die KI liefert NIEMALS Rapzeilen oder ganze Strophen — nur die
    Endwörter. pro Strophe werden GAMEPLAY_CONFIG.linesPerStanza (Standard: 5)
@@ -30,6 +30,19 @@
    Familie (Anforderung: "keine unnatürlichen Wörter nur damit sich etwas
    reimt"). Für Russisch gilt das auch für die durch Auslautverhärtung
    entstehenden Reime (z.B. "глаз"/"час" — beide enden gesprochen auf [-as]).
+
+   MODUL-7-AUSBAU — großer Wortschatz, Anti-Wiederholung, Street-Modus:
+   Diese Datei enthält weiterhin die kleine, von Hand kuratierte KERNBANK
+   (höchste Qualitätsstufe, s.u.) — die eigentliche Größe kommt aus
+   assets/js/rhyme-data-generated.js (window.FlowRhymeGenerated, >20.000
+   zusätzliche echte Wörter pro Sprache aus einer Skript-Pipeline, siehe
+   Kopfkommentar dort für Herkunft/Grenzen). buildMergedBank() führt beide
+   beim ersten Zugriff zusammen (+ für Deutsch: prozedural erzeugte
+   Komposita aus assets/js/rhyme-generator.js). pickRhymeStanza() merkt sich
+   zusätzlich bereits benutzte Wörter (localStorage) und bevorzugt frische
+   Wörter, bis ein Großteil des Vorrats aufgebraucht ist (siehe
+   USED_RESET_THRESHOLD) — siehe docs/GAMEPLAY.md Abschnitt "Reimwort-
+   System" für die vollständige Erklärung.
    ========================================================================= */
 
 (function (window) {
@@ -366,7 +379,55 @@
     ]},
   ];
 
-  const RHYME_BANKS = { de: RHYME_BANK_DE, en: RHYME_BANK_EN, ru: RHYME_BANK_RU };
+  const CORE_BANKS = { de: RHYME_BANK_DE, en: RHYME_BANK_EN, ru: RHYME_BANK_RU };
+
+  /* ---------------------------------------------------------------------
+     Bank-Zusammenführung: Kernbank (von Hand, oben) + Zusatzbank
+     (assets/js/rhyme-data-generated.js, siehe Kopfkommentar dort) + für
+     Deutsch zusätzlich prozedural erzeugte Komposita (rhyme-generator.js).
+     Läuft einmal pro Sprache und wird danach gecacht (die Datenmenge ist
+     groß genug, dass sich das lohnt — kein Grund, bei jeder Strophe neu
+     zusammenzuführen).
+     --------------------------------------------------------------------- */
+  const mergedBankCache = {};
+
+  function buildMergedBank(locale) {
+    if (mergedBankCache[locale]) return mergedBankCache[locale];
+
+    const core = CORE_BANKS[locale] || CORE_BANKS.de;
+    const generatedByLocale = window.FlowRhymeGenerated || {};
+    const generated = generatedByLocale[locale] || [];
+
+    // Alle bereits vorhandenen Wörter (lowercase) sammeln — sowohl für den
+    // Komposita-Generator (keine Dopplungen) als auch generell.
+    const seenLower = new Set();
+    core.forEach((f) => f.words.forEach((w) => seenLower.add(w.w.toLowerCase())));
+    generated.forEach((f) => f.words.forEach((w) => seenLower.add(w.w.toLowerCase())));
+
+    const bank = core.map((f) => ({ ...f, words: f.words.slice() }));
+
+    // Deutsch: aus JEDER Kernfamilie ein paar frische Komposita generieren
+    // und der SELBEN Familie hinzufügen (reimen sich ja weiterhin exakt
+    // gleich — nur ein neues, längeres Wort mit demselben Ausklang).
+    if (window.FlowRhymeGenerator && locale === "de") {
+      bank.forEach((f) => {
+        // Nur von den ursprünglichen (nicht schon generierten) Wörtern
+        // dieser Familie ausgehen, um keine Präfix-auf-Präfix-Ketten zu bilden.
+        const baseWords = f.words.slice();
+        baseWords.forEach((w) => {
+          const compounds = window.FlowRhymeGenerator.generateCompounds(w, locale, seenLower);
+          f.words.push(...compounds);
+        });
+      });
+    }
+
+    // Zusatzbank anhängen (jede Familie dort ist bereits intern dedupliziert
+    // und gegen die Kernbank abgeglichen — siehe rhyme-data-generated.js).
+    generated.forEach((f) => bank.push(f));
+
+    mergedBankCache[locale] = bank;
+    return bank;
+  }
 
   function topicMatches(word, topic) {
     return topic === "freestyle" || topic === "random" || word.topics.includes(topic);
@@ -381,17 +442,86 @@
     return a;
   }
 
+  // Gewichtete Familien-Auswahl nach Schwierigkeit: eine rein zufällige
+  // Familienwahl (wie zuvor) ignoriert, WELCHE Wörter die Familie überhaupt
+  // enthält — eine Familie ganz ohne "leicht"-Wörter liefert dann auf
+  // "Leicht" trotzdem nur mittelschwere/schwere Wörter, weil innerhalb der
+  // Familie nichts Passenderes existiert. Jede Familie bekommt deshalb ein
+  // Gewicht = (Anzahl passender Schwierigkeitswörter + 1) — der "+1" hält
+  // auch schwächer passende Familien im Spiel (Vielfalt bleibt erhalten),
+  // aber gut passende Familien werden im Schnitt deutlich häufiger gewählt.
+  function countDiffMatches(family, difficulty) {
+    let n = 0;
+    family.words.forEach((w) => { if (w.diff === difficulty) n++; });
+    return n;
+  }
+
+  function pickFamilyWeighted(families, difficulty) {
+    const weights = families.map((f) => countDiffMatches(f, difficulty) + 1);
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < families.length; i++) {
+      r -= weights[i];
+      if (r <= 0) return families[i];
+    }
+    return families[families.length - 1];
+  }
+
+  /* ---------------------------------------------------------------------
+     Anti-Wiederholung: bereits benutzte Wörter merken (pro Sprache, in
+     localStorage) und bei der Auswahl stark abwerten, bis ein Großteil des
+     verfügbaren Wortschatzes durch ist — erst DANN dürfen Wörter wieder
+     auftauchen ("Jede Runde soll sich frisch und einzigartig anfühlen").
+     Blockiert nie hart (ein zu kleiner Pool würde sonst das Spiel stoppen)
+     — sie ist eine starke Präferenz in der Bewertung, kein Ausschluss.
+     --------------------------------------------------------------------- */
+  const USED_WORDS_KEY = "flowarena.usedRhymeWords.v1";
+  const USED_RESET_THRESHOLD = 0.75; // ab 75% "verbraucht" wird zurückgesetzt
+
+  function loadUsedWords(locale) {
+    try {
+      const all = JSON.parse(localStorage.getItem(USED_WORDS_KEY) || "{}");
+      return new Set(all[locale] || []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  function saveUsedWords(locale, usedSet) {
+    try {
+      const all = JSON.parse(localStorage.getItem(USED_WORDS_KEY) || "{}");
+      all[locale] = Array.from(usedSet);
+      localStorage.setItem(USED_WORDS_KEY, JSON.stringify(all));
+    } catch (e) {
+      /* localStorage evtl. nicht verfügbar — Anti-Wiederholung lebt dann nur für die Session */
+    }
+  }
+
+  function countDistinctWords(bank) {
+    let n = 0;
+    bank.forEach((f) => { n += f.words.length; });
+    return n;
+  }
+
   /**
    * Wählt bis zu `count` Wörter aus einer Familie, bevorzugt exakte
    * Thema+Schwierigkeit-Treffer, füllt bei Bedarf mit dem nächstbesten
    * Match auf (nie mit erfundenen Wörtern — nur mit echten Wörtern
    * derselben Familie, die also garantiert weiterhin sauber reimen).
+   * `usedWords` senkt die Punktzahl bereits benutzter Wörter deutlich
+   * (Anti-Wiederholung), `streetMode` hebt Battle-Themen-Treffer und
+   * höhere Schwierigkeit an (siehe docs/GAMEPLAY.md, "Street-Modus").
    */
-  function selectBestWords(family, difficulty, topic, count) {
+  function selectBestWords(family, difficulty, topic, count, usedWords, streetMode) {
     const scored = family.words.map((word) => {
       let score = 0;
       if (topicMatches(word, topic)) score += 2;
       if (word.diff === difficulty) score += 1;
+      if (streetMode) {
+        if (word.topics.includes("battle")) score += 3;
+        if (word.diff !== "leicht") score += 2;
+      }
+      if (usedWords && usedWords.has(word.w.toLowerCase())) score -= 5;
       return { word, score };
     });
     scored.sort((a, b) => b.score - a.score || Math.random() - 0.5);
@@ -402,12 +532,14 @@
    * Liefert `count` Endwörter (Standard: GAMEPLAY_CONFIG.linesPerStanza) für
    * eine komplette Strophe — eine Familie, ein Wort pro Zeile. `locale`
    * wählt die Sprach-Wortbank (de/en/ru); ohne Angabe wird die aktuell
-   * aktive UI-Sprache verwendet (siehe assets/js/i18n.js).
+   * aktive UI-Sprache verwendet (siehe assets/js/i18n.js). `streetMode`
+   * schaltet härtere Battle-Rap-Reimwörter/-Themen frei (siehe
+   * selectBestWords) — Standardmodus bleibt neutral/allgemein.
    * @returns {{ words: string[], ending: string, familyId: string }}
    */
-  function pickRhymeStanza({ difficulty = "mittel", topic = "freestyle", excludeFamilyIds = [], count = 5, locale } = {}) {
+  function pickRhymeStanza({ difficulty = "mittel", topic = "freestyle", excludeFamilyIds = [], count = 5, locale, streetMode = false } = {}) {
     const activeLocale = locale || window.FlowI18n?.getLocale() || "de";
-    const bank = RHYME_BANKS[activeLocale] || RHYME_BANKS.de;
+    const bank = buildMergedBank(activeLocale);
 
     // Nur Familien, die überhaupt genug ECHTE Wörter besitzen, sind wählbar.
     let viable = bank.filter((f) => f.words.length >= count && !excludeFamilyIds.includes(f.id));
@@ -421,11 +553,39 @@
       viable = bank.filter((f) => f.words.length > 0);
     }
 
-    const family = shuffle(viable)[0];
-    const words = shuffle(selectBestWords(family, difficulty, topic, count));
+    // Anti-Wiederholung: bei Bedarf zurücksetzen, wenn der Großteil des
+    // Sprach-Wortschatzes schon "verbraucht" ist (siehe USED_RESET_THRESHOLD).
+    let usedWords = loadUsedWords(activeLocale);
+    const totalWords = countDistinctWords(bank);
+    if (totalWords > 0 && usedWords.size / totalWords >= USED_RESET_THRESHOLD) {
+      usedWords = new Set();
+    }
+
+    const family = pickFamilyWeighted(viable, difficulty);
+    const words = shuffle(selectBestWords(family, difficulty, topic, count, usedWords, streetMode));
+
+    words.forEach((w) => usedWords.add(w.toLowerCase()));
+    saveUsedWords(activeLocale, usedWords);
 
     return { words, ending: family.ending, familyId: family.id };
   }
 
-  window.FlowRhyme = { pickRhymeStanza, RHYME_BANKS, RHYME_BANK: RHYME_BANK_DE };
+  window.FlowRhyme = {
+    pickRhymeStanza,
+    buildMergedBank,
+    // RHYME_BANKS/RHYME_BANK bleiben aus Kompatibilitätsgründen erhalten
+    // (z.B. evaluation-provider.local.js sucht darüber die Endung einer
+    // benutzten Familie) — zeigen jetzt auf die VOLLE, zusammengeführte
+    // Bank (Kernbank + Zusatzbank + Komposita), nicht mehr nur die Kernbank.
+    get RHYME_BANKS() {
+      return {
+        de: buildMergedBank("de"),
+        en: buildMergedBank("en"),
+        ru: buildMergedBank("ru"),
+      };
+    },
+    get RHYME_BANK() {
+      return buildMergedBank("de");
+    },
+  };
 })(window);

@@ -27,6 +27,7 @@
       street: ["straße", "block", "hood", "nacht", "gang", "ecke", "asphalt", "überleben", "viertel"],
       motivation: ["aufstieg", "kämpf", "ziel", "stark", "glaub", "aufgeben", "erfolg", "wille", "mut", "weiter"],
       battle: ["gegner", "schwach", "besieg", "king", "thron", "mic", "drop", "battle", "opp", "schlag"],
+      humor: ["lustig", "witz", "lach", "komisch", "spaß", "clown", "albern", "quatsch"],
     },
     en: {
       love: ["love", "heart", "feel", "kiss", "longing", "close", "tender", "baby", "for you", "lose"],
@@ -34,6 +35,7 @@
       street: ["street", "block", "hood", "night", "gang", "corner", "asphalt", "survive", "district"],
       motivation: ["rise", "fight", "goal", "strong", "believe", "give up", "success", "will", "courage", "keep going"],
       battle: ["opponent", "weak", "defeat", "king", "throne", "mic", "drop", "battle", "opp", "hit"],
+      humor: ["funny", "joke", "laugh", "silly", "clown", "comic"],
     },
     ru: {
       love: ["любовь", "сердце", "чувств", "поцелу", "тоска", "рядом", "нежн", "детка", "для тебя", "теря"],
@@ -41,6 +43,7 @@
       street: ["улиц", "квартал", "район", "ночь", "банда", "угол", "асфальт", "выжива", "двор"],
       motivation: ["взлёт", "бор", "цель", "силь", "вер", "сдава", "успех", "вол", "смел", "дальше"],
       battle: ["соперник", "слаб", "побед", "король", "трон", "микрофон", "дроп", "батл", "оппонент", "удар"],
+      humor: ["смешн", "шутк", "смех", "глуп", "весел"],
     },
   };
 

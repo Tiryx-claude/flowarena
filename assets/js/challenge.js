@@ -150,6 +150,7 @@
       <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.versesLabel")}</span><span class="chip__value">${totalStanzas}</span></span>
       <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.topicLabel")}</span><span class="chip__value">${findTopicLabel(settings.topic)}</span></span>
       ${settings.roastMode ? `<span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("challenge.modeLabel")}</span><span class="chip__value">${t("challenge.roastModeValue")}</span></span>` : ""}
+      ${settings.streetMode ? `<span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("challenge.modeLabel")}</span><span class="chip__value">${t("challenge.streetModeValue")}</span></span>` : ""}
     `;
   }
   renderIntroSummary();
@@ -325,6 +326,7 @@
         topic: settings.topic,
         excludeFamilyIds: usedFamilyIds,
         count: LINES_PER_STANZA,
+        streetMode: settings.streetMode,
       }))
       .then((result) => {
         usedFamilyIds.push(result.familyId);

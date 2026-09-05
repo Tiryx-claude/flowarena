@@ -204,6 +204,69 @@ Zeilenwechsel liefen bei allen dreien sichtbar synchron zum jeweiligen Tempo
 | Mittel | mittlere Länge/Geläufigkeit (z.B. "Freiheit", "Verstand") |
 | Schwer | längere/seltenere, aber natürliche Wörter (z.B. "Einigkeit", "Übermacht") |
 
+### 7.1 Reimwort-System (Modul 7, generalüberholt) — Umfang, Anti-Wiederholung, Street-Modus
+
+Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
+[`assets/js/rhyme-engine.js`](../assets/js/rhyme-engine.js) zusammengeführt:
+
+1. **Kernbank** (in `rhyme-engine.js` selbst) — die ursprüngliche, von Hand
+   geschriebene Wortliste (~90 Wörter/Sprache), höchste Qualitätsstufe.
+2. **Zusatzbank** ([`assets/js/rhyme-data-generated.js`](../assets/js/rhyme-data-generated.js))
+   — **>24.000 zusätzliche echte Wörter** (Deutsch ~8.700, Englisch ~7.500,
+   Russisch ~8.800), einmalig durch eine Skript-Pipeline aus öffentlichen
+   Frequenzwortlisten erzeugt (siehe Kopfkommentar dort für die vollständige
+   Methodik — Filterung nach Sperrliste/Länge/Skript, Gruppierung nach
+   Reimfamilie, Häufigkeits-basierte Schwierigkeitsstufe). **Ehrlichkeit:**
+   das ist ein Ergebnis einer automatisierten Pipeline, kein 1:1 von Hand
+   geprüftes Wörterbuch wie die Kernbank — bekannte Grenzen (vereinzelte
+   Eigennamen/Fremdwörter) stehen im Kopfkommentar der Datei.
+3. **Generative Ergänzung** ([`assets/js/rhyme-generator.js`](../assets/js/rhyme-generator.js),
+   nur Deutsch) — eine kleine, von Hand geprüfte Zuordnungsliste echter
+   Komposita (z.B. "Raum" → "Vorraum"/"Unterraum"/"Nebenraum"/…). **Wichtig:**
+   eine frühere Fassung verkettete blind Präfixe (Vor-/Nach-/Über-/…) mit
+   JEDEM Kernbank-Wort — ein Test im Browser zeigte, dass das für viele
+   Basiswörter Nicht-Wörter erzeugt ("Nachtraum", "Vorbaum" klingen falsch;
+   nur wenige deutsche Nomen sind so kompositionsfreudig wie "Raum"). Das
+   verletzt die Kernregel ("keine unnatürlichen Wörter nur damit sich etwas
+   reimt", siehe Abschnitt 1) — deshalb jetzt durch echte, geprüfte
+   Zuordnungen ersetzt statt automatischer Verkettung. Für Englisch/Russisch
+   bewusst nicht eingesetzt (Präfigierungsregeln dort unzuverlässiger, siehe
+   Kopfkommentar der Datei) — die Frische kommt dort ausschließlich aus dem
+   riesigen echten Wortschatz der Zusatzbank plus Anti-Wiederholung (Punkt 4).
+
+4. **Anti-Wiederholung**: `pickRhymeStanza()` merkt sich pro Sprache, welche
+   Wörter bereits benutzt wurden (`localStorage`,
+   `flowarena.usedRhymeWords.v1`) und wertet sie bei der nächsten Auswahl
+   deutlich ab (kein hartes Ausschließen — ein zu kleiner Wortpool würde
+   sonst das Spiel blockieren). Erst wenn **75%** des gesamten
+   Sprach-Wortschatzes "verbraucht" sind, wird zurückgesetzt. Zusätzlich
+   bekommt jede neue Strophe automatisch eine neue Reim-Familie
+   (`excludeFamilyIds`, siehe Abschnitt 3) — Wiederholung ist also auf zwei
+   Ebenen (Familie UND Einzelwort) unwahrscheinlich gemacht.
+
+5. **Themenfeld** (`topic`): `freestyle` (offen), `love`, `money`, `street`,
+   `motivation`, `battle`, `humor`, `random`. Wörter der Zusatzbank bekommen
+   ihre Themen zusätzlich zu `freestyle`/`random` über einen
+   Stichwort-Abgleich (Teilstring-Heuristik, siehe Kopfkommentar der
+   generierten Datei) — kein echtes Sprachverständnis, aber ausreichend, um
+   Runden spürbar zum gewählten Stil passen zu lassen.
+
+6. **Street-Modus** (`settings.streetMode`, unabhängiger Ein/Aus-Schalter vor
+   Spielbeginn, siehe Einstellungs-Drawer bzw. Turnier-erstellen-Panel):
+   verändert **nur** die Wortauswahl-Gewichtung in `selectBestWords()` — Battle-
+   Themen-Treffer und nicht-"leicht"-Schwierigkeit bekommen einen deutlichen
+   Punktebonus, wodurch Strophen im Street-Modus spürbar härter/
+   konfrontativer ausfallen (mehr "Gegner"/"Sieg"/"Krone"/"Niederlage"-Vokabular,
+   seltener die einfachsten Wörter). Ausgeschaltet bleibt die Auswahl neutral
+   und themenoffen wie zuvor. **Beide Modi nutzen exakt dasselbe Spielsystem**
+   (Timing, Bewertung, Strophen-/Zeilenregeln) — nur welche Wörter
+   ausgewählt werden, unterscheidet sich. Bewusst keine Freischaltung von
+   Obszönitäten/Slurs — die Zusatzbank-Sperrliste gilt in JEDEM Modus
+   identisch (siehe Kopfkommentar von `rhyme-data-generated.js`).
+
+Neue Sprache/neue Wörter/neues Thema ergänzen: siehe
+[`docs/I18N.md`](I18N.md) Abschnitt 6.
+
 ## 8. Beat-Daten & Admin-Anbindung
 
 `Beat` in `data.js`: `{ id, name, category, bpm, audioUrl }`. `audioUrl` ist

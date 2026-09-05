@@ -43,6 +43,7 @@
     streamerToggle: $("#streamerToggle"),
     soundToggle: $("#soundToggle"),
     roastToggle: $("#roastToggle"),
+    streetModeToggle: $("#streetModeToggle"),
     drawer: $("#settingsDrawer"),
     drawerOverlay: $("#drawerOverlay"),
     openSettingsBtns: $$(".js-open-settings"),
@@ -146,6 +147,7 @@
     renderToggle(els.streamerToggle, state.streamerMode);
     renderToggle(els.soundToggle, state.soundEnabled);
     renderToggle(els.roastToggle, state.roastMode);
+    renderToggle(els.streetModeToggle, state.streetMode);
   }
 
   function renderQuickChips() {
@@ -286,6 +288,12 @@
   els.roastToggle?.addEventListener("click", () => {
     state.roastMode = !state.roastMode;
     playIfEnabled(() => window.FlowSound?.playToggle(state.roastMode));
+    renderToggles();
+  });
+
+  els.streetModeToggle?.addEventListener("click", () => {
+    state.streetMode = !state.streetMode;
+    playIfEnabled(() => window.FlowSound?.playToggle(state.streetMode));
     renderToggles();
   });
 

@@ -57,7 +57,9 @@ assets/js/home.js               Menü-Akkordeon-Logik, Gameplay-Vorschau-Animati
 assets/js/spark-fx.js           Geteilte Funken-Partikel-Logik (Vorschau + echtes Gameplay)
 assets/js/beat-clock.js         BeatClock: drift-freie BPM-Uhr (AudioContext-basiert)
 assets/js/challenge.js         Spielablauf-State-Machine, Ball-Animation, Aufnahme, Ergebnis-Inszenierung
-assets/js/rhyme-engine.js       Kuratierte Reimwort-Datenbanken pro Sprache (DE/EN/RU, Daten für den lokalen Provider)
+assets/js/rhyme-engine.js       Reimwort-Logik: führt Kernbank + Zusatzbank + Komposita zusammen, Anti-Wiederholung, Street-Modus
+assets/js/rhyme-data-generated.js  Maschinell erzeugte Zusatz-Reimwortbank (>24.000 Wörter DE/EN/RU, siehe Kopfkommentar für Methodik)
+assets/js/rhyme-generator.js    Von Hand geprüfte deutsche Kompositum-Ergänzung (z.B. "Raum" → "Vorraum")
 assets/js/ai/registry.js        KI-Provider-Interfaces (RhymeProvider, EvaluationProvider, SpeechProvider)
 assets/js/ai/rhyme-provider.local.js       Reimwörter — lokale Heuristik
 assets/js/ai/evaluation-provider.local.js  Bewertung (8 Dimensionen) — lokale Heuristik
@@ -173,3 +175,4 @@ Die Tailwind-Migration der Design-Tokens ist bereits in
 11. ✅ Shop, Premium, Credits & Werbung (lokal simuliert — Ball-Designs, Premium-Challenges, Tages-/Wochen-Belohnungen, Wochenend-Bonus, Demo-Werbung; niemals Pay-to-Win, siehe docs/SHOP.md)
 12. ✅ Faires Monetarisierungssystem, Ausbau: kündbares Premium, Ergebnis-Animationen, Profil-Designs, Early Access, Free-Tageslimit für Challenges, Zahlungsmethoden-Auswahl mit Kaufbestätigung, Kaufhistorie, Datenschutz-/AGB-Seiten (lokal simuliert, niemals Pay-to-Win, siehe docs/SHOP.md)
 13. ✅ Mehrsprachigkeit (Deutsch/Englisch/Russisch) — Erststart-Sprachwahl, jederzeit wechselbar, komplette UI + eigene Reimwort-Datenbanken pro Sprache + lokalisiertes KI-Feedback, Gameplay/Beats/Bewertung strukturell identisch in allen Sprachen (siehe docs/I18N.md)
+14. ✅ Reimwort-System, generalüberholt — >24.000 zusätzliche echte Wörter pro Sprachraum (DE/EN/RU) aus einer Skript-Pipeline, Anti-Wiederholung (merkt sich benutzte Wörter, erst ab 75% "verbraucht" wird zurückgesetzt), von Hand geprüfte generative Komposita-Ergänzung (Deutsch), optionaler Street-Modus (härtere Battle-Rap-Reimwörter/-Themen), neues Themenfeld "Humor" (siehe docs/GAMEPLAY.md Abschnitt 7.1)
