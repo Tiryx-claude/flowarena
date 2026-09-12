@@ -355,33 +355,51 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
      haben im Deutschen keine echten Reimpartner — englische Aussprache
      passt phonetisch nicht zu gleich geschriebenen deutschen Wörtern,
      deshalb nicht erzwungen).
-   - **Energie-Gewichtung statt nur Wort-Bonus**: eine reine Bewertung
-     einzelner Wörter reicht nicht, wenn die neue Vokabel-Schicht nur ein
-     kleiner Bruchteil der riesigen Gesamtbank ist (9 von 776 Familien bei
-     Deutsch) — sie würde in der Masse praktisch nie gewählt. Deshalb wirkt
-     die Energie (Anteil an Wörtern mit `battle`/`street`-Thema) schon bei
-     der FAMILIEN-Auswahl:
-     - **Street-Modus**: harte Vorfilterung auf Familien mit ÜBERHAUPT
-       Battle-/Street-Bezug (`familyEnergyShare(f) > 0`, deutsch ~71 von 776
-       Familien qualifizieren — genug für Vielfalt, aber spürbar anders als
-       neutral), erst danach greift die gewichtete Zufallsauswahl
-       (zusätzlicher Faktor `1 + energie × 9`). Gemessen: Anteil
-       Battle-/Street-Wörter in echten Strophen steigt von ~3–5% (normal)
-       auf ~14–52% (Street, je nach Sprache) — spürbar anderer Charakter,
-       wie gefordert ("Street-Modus soll sich wirklich anders anfühlen").
-     - **Normal-Modus**: nur ein dezenter Faktor (`1 + energie × 0.6`) plus
-       ein kleiner Wort-Bonus (+1 in `selectBestWords`) — bleibt "modern,
-       aber locker" statt dauerhaft aggressiv.
-     - Zusätzlich in `selectBestWords()`: Street-Modus wertet die
-       einfachsten Wörter (`diff === "leicht"`) jetzt aktiv ab (-1) statt sie
-       nur nicht zu bonusieren — meidet aktiv die harmlosesten Wörter.
-   - **Umfang ehrlich benannt**: das ist KEIN Ersatz für die riesige
-     Zusatzbank, sondern eine gezielte Ergänzung. Für einen deutlich
-     größeren modernen Wortschatz wäre — wie schon bei der Zusatzbank
-     — eine eigene, dediziert geprüfte Mining-Pipeline sinnvoll, keine
-     ungeprüfte Massengenerierung (siehe Kopfkommentar von
-     `rhyme-data-generated.js` für die Begründung, warum Qualitätskontrolle
-     hier nicht übersprungen wird).
+   - **Punchline-Pool als STANDARD, nicht nur Bonus** (2. Überarbeitung):
+     eine reine Gewichtung einzelner Wörter/Familien reichte nicht aus —
+     bei anfangs nur 9 von 776 deutschen Familien mit Energie-Bezug ging
+     selbst ein starker Gewichtungsfaktor in der Masse neutraler Familien
+     unter. Gemeldetes Symptom: eine Strophe mit "Dampf/Klavier/Kampf/
+     Kavalier" — zwei von vier Buchstaben trafen eine energetische Familie,
+     die anderen beiden landeten bei neutralem Wörterbuch-Vokabular wie
+     "Klavier/Kavalier". Der Fix: jede Familie in `rhyme-slang.js` trägt
+     jetzt `punchline: true`, und `pickRhymeStanza()` filtert PRO BUCHSTABE
+     zuerst hart auf `f.punchline` — in BEIDEM Modi (Normal UND Street),
+     nicht nur als Bonus. Erst wenn diese Schicht für einen Buchstaben
+     erschöpft ist, greift die (deutlich schwächere) Energie-Gewichtung der
+     Zusatzbank, zuletzt der volle neutrale Pool. Die Wortschicht selbst
+     wurde dafür auch deutlich ausgebaut (DE 20, EN 15, RU 9 Familien,
+     vorher 9/8/5) — u.a. echte Battle-/Diss-Vokabeln wie "Neid/Pleite/
+     Schlappe" (DE), "fake/snake/lame" (EN), "жир/жесть/понты" (RU).
+   - **Wiederverwendung statt Rückfall bei Erschöpfung**: die Punchline-
+     Schicht ist klein genug, dass sie über eine LANGE Session (viele
+     Strophen/Runden, z.B. ein Turnier) irgendwann komplett in
+     `excludeFamilyIds` aufgebraucht ist. Statt dann für den Rest der
+     Session auf neutrales Vokabular zurückzufallen, DARF eine
+     Punchline-Familie ab diesem Punkt innerhalb derselben Session erneut
+     gewählt werden (nur ein Wiederholen INNERHALB EINER EINZELNEN Strophe
+     bleibt weiterhin ausgeschlossen, siehe `stanzaOwnFamilyIds`) — die
+     einzelnen WÖRTER bleiben trotzdem frisch, weil die normale
+     Wort-Anti-Wiederholung (used.words/used.stems, Punkt 4) unverändert
+     weiterläuft. Gemessen: 200-Strophen-Stresstest mit wachsender
+     Ausschluss-Kette liefert konstant 100% Punchline-Trefferquote statt
+     (vor dem Fix) nur ~4% nach den ersten ~10 Strophen.
+   - **Street- vs. Normal-Modus** bleiben trotzdem unterscheidbar: BEIDE
+     ziehen jetzt bevorzugt aus derselben Punchline-Schicht (Anforderung:
+     "der normale Modus soll bereits modern, frech und jugendlich sein"),
+     aber `selectBestWords()` gewichtet INNERHALB dieser Schicht im
+     Street-Modus zusätzlich stark auf Battle-/Street-Themen-Treffer (+4)
+     und wertet die einfachsten Wörter aktiv ab (-1) — Street bleibt damit
+     spürbar härter/aggressiver, Normal bleibt "frech, aber locker".
+   - **Umfang ehrlich benannt**: das ist weiterhin KEIN Ersatz für die
+     riesige Zusatzbank (die bleibt als Fallback/Vielfalts-Erweiterung
+     bestehen), sondern eine gezielte, aber jetzt DOMINANTE Ergänzung für
+     den alltäglichen Wortklang. Für einen noch größeren modernen
+     Wortschatz wäre — wie schon bei der Zusatzbank — eine eigene,
+     dediziert geprüfte Mining-Pipeline sinnvoll, keine ungeprüfte
+     Massengenerierung (siehe Kopfkommentar von `rhyme-data-generated.js`
+     für die Begründung, warum Qualitätskontrolle hier nicht übersprungen
+     wird).
 
 5. **Themenfeld** (`topic`): `freestyle` (offen), `love`, `money`, `street`,
    `motivation`, `battle`, `humor`, `random`. Wörter der Zusatzbank bekommen

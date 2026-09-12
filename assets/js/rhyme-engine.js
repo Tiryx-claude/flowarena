@@ -923,6 +923,12 @@
     for (const ch of scheme) letterCounts.set(ch, (letterCounts.get(ch) || 0) + 1);
 
     const excludedThisStanza = excludeFamilyIds.slice();
+    // Getrennt von excludedThisStanza (= ganze Session-Historie + diese
+    // Strophe): NUR die Familien, die INNERHALB DIESER EINEN Strophe schon
+    // vergeben wurden. Wird für den Punchline-Fallback gebraucht (siehe
+    // unten) — dort soll NUR ein Wiederholen innerhalb derselben Strophe
+    // verhindert werden, nicht die gesamte Session-Historie.
+    const stanzaOwnFamilyIds = [];
     const wordsByLetter = {};
     const endingsByLetter = {};
     const familyIds = [];
@@ -932,17 +938,36 @@
       if (viable.length === 0) viable = bank.filter((f) => f.words.length >= neededCount);
       if (viable.length === 0) viable = bank.filter((f) => f.words.length > 0);
 
-      // Street-Modus: harte Vorfilterung auf Familien mit ÜBERHAUPT Battle-/
-      // Street-Bezug, bevor überhaupt gewichtet wird. Reine Gewichtung
-      // (siehe pickFamilyWeighted/familyEnergyShare) reicht allein nicht —
-      // bei >700 Familien insgesamt, aber nur rund 70 mit irgendeinem
-      // Energie-Bezug, geht ein reiner Gewichtungs-Bonus in der Masse der
-      // neutralen Familien unter. Die Vorfilterung stellt sicher, dass
-      // Street-Strophen sich WIRKLICH anders anfühlen (Anforderung), nicht
-      // nur statistisch leicht verschoben. Fällt auf den vollen Pool
-      // zurück, falls (seltener Fall) gar keine energetische Familie mit
-      // genug Wörtern für dieses Thema/diese Schwierigkeit übrig bleibt.
-      if (streetMode) {
+      // HARTE Vorfilterung auf die von Hand kuratierte Punchline-Schicht
+      // (rhyme-slang.js, `punchline: true`) — in BEIDEM Modi, nicht nur
+      // Street. Eine reine Gewichtung (wie zuvor) reicht nicht: die riesige
+      // neutrale Zusatzbank (>700 Familien) erdrückt eine kleine gewichtete
+      // Minderheit statistisch, selbst mit starkem Bonus — genau DAS
+      // erzeugte das gemeldete Beispiel "Dampf/Klavier/Kampf/Kavalier"
+      // (zwei Buchstaben trafen zufällig eine energetische Familie, die
+      // anderen zwei landeten bei neutralem Wörterbuch-Vokabular wie
+      // "Klavier/Kavalier"). Jetzt bekommt JEDER Buchstabe zuerst die
+      // Punchline-Schicht angeboten; erst wenn die (z.B. durch
+      // Anti-Wiederholung/Ausschluss) für diesen Buchstaben erschöpft ist,
+      // fällt es auf die bisherige Energie-Gewichtung der Zusatzbank
+      // zurück (Street-Modus bevorzugt), zuletzt auf den vollen Pool.
+      let punchlinePool = viable.filter((f) => f.punchline);
+      // Die Punchline-Schicht ist bewusst klein (siehe Kopfkommentar
+      // rhyme-slang.js) — über eine LANGE Session (viele Strophen/Runden,
+      // z.B. ein Turnier mit vielen Runden) ist sie irgendwann komplett in
+      // `excludeFamilyIds` aufgebraucht. Dann lieber eine Punchline-Familie
+      // INNERHALB DER SESSION WIEDERHOLEN (die einzelnen WÖRTER bleiben
+      // trotzdem frisch, siehe used.words/used.stems weiter unten) als für
+      // den Rest der Session auf neutrales Wörterbuch-Vokabular
+      // zurückzufallen — deshalb hier bewusst NUR gegen `stanzaOwnFamilyIds`
+      // geprüft (nur diese eine Strophe), nicht gegen die volle
+      // Session-Historie in `excludedThisStanza`.
+      if (punchlinePool.length === 0) {
+        punchlinePool = bank.filter((f) => f.punchline && f.words.length >= neededCount && !stanzaOwnFamilyIds.includes(f.id));
+      }
+      if (punchlinePool.length > 0) {
+        viable = punchlinePool;
+      } else if (streetMode) {
         const energetic = viable.filter((f) => familyEnergyShare(f) > 0);
         if (energetic.length > 0) viable = energetic;
       }
@@ -962,6 +987,7 @@
       endingsByLetter[letter] = family.ending;
       familyIds.push(family.id);
       excludedThisStanza.push(family.id); // andere Buchstaben derselben Strophe dürfen diese Familie nicht mehr wählen
+      stanzaOwnFamilyIds.push(family.id);
     });
 
     saveUsedWords(activeLocale, used);
