@@ -23,11 +23,21 @@
    Kopfkommentar-Historie unten) — keine erzwungenen Lehnwort-Reime, keine
    künstlichen Wortketten.
 
-   EHRLICHKEIT ZUM UMFANG: rund 20 Familien pro Sprache (DE 20, EN 15,
-   RU 9) — deutlich mehr als die erste Fassung, aber weiterhin von Hand
-   geprüft statt automatisiert generiert (siehe rhyme-generator.js-
-   Kopfkommentar für die Begründung, warum automatisierte Slang-Generierung
-   abgelehnt wurde: erzeugt zuverlässig erzwungene/falsche Reime). Bewusst
+   EHRLICHKEIT ZUM UMFANG (3. Runde, weiter ausgebaut): DE 29, EN 19,
+   RU 11 Familien — von Hand geprüft statt automatisiert generiert (siehe
+   rhyme-generator.js-Kopfkommentar für die Begründung, warum automatisierte
+   Slang-Generierung abgelehnt wurde: erzeugt zuverlässig erzwungene/falsche
+   Reime). Diese Schicht ist aber NICHT mehr die einzige Quelle für
+   Punchline-Energie — seit der 3. Runde zieht rhyme-engine.js zusätzlich
+   jede Familie aus der riesigen Zusatzbank heran, die selbst schon
+   irgendein Wort mit battle-/street-/money-/humor-Thema enthält
+   (`familyEnergyShare`, siehe dort) — zusammen ein bevorzugter Pool von
+   ~130 (DE) / ~45 (EN) / ~75 (RU) Familien statt nur der hier von Hand
+   kuratierten. Diese Schicht bleibt trotzdem wichtig: sie ist die einzige
+   GARANTIERT einzeln auf Punchline-Qualität geprüfte Ebene und füllt
+   gezielt Lücken, die die automatisch getaggte Zusatzbank naturgemäß nicht
+   abdeckt (z.B. Gaming-/Streamer-Slang: Skill, Kick, Lobby, Troll, Ban,
+   Clan — kommt in einer allgemeinen Frequenzwortliste kaum vor). Bewusst
    verworfene Kandidaten (zur Nachvollziehbarkeit):
    - Deutsch: reine Lehnwort-Slangs wie "Vibe"/"Cringe"/"Grind"/"Safe"/
      "Hater" haben im Deutschen KEINE echten Reimpartner (englische
@@ -177,6 +187,77 @@
       { w: "Ruhm", diff: "leicht", topics: ["motivation", "battle", "freestyle", "random"] },
       { w: "Reichtum", diff: "mittel", topics: ["money", "freestyle", "random"] },
     ]},
+    // "Skill" (Gaming-Slang, "kein Skill") + "Chill/Drill" — Gaming-/
+    // Streamer-Sprache, ausdrücklich angefragt.
+    { id: "s-ill", ending: "-ill", punchline: true, words: [
+      { w: "Skill", diff: "leicht", topics: ["street", "battle", "freestyle", "random"] },
+      { w: "Chill", diff: "leicht", topics: ["street", "humor", "freestyle", "random"] },
+      { w: "Drill", diff: "leicht", topics: ["motivation", "battle", "freestyle", "random"] },
+      { w: "Grill", diff: "leicht", topics: ["humor", "freestyle", "random"] },
+      { w: "Still", diff: "leicht", topics: ["freestyle", "random"] },
+    ]},
+    // "Lobby" (Gaming-Slang) — klein, aber echt ("Hobby" als einziger
+    // natürlicher Reimpartner).
+    { id: "s-obby", ending: "-obby", punchline: true, words: [
+      { w: "Lobby", diff: "mittel", topics: ["street", "humor", "freestyle", "random"] },
+      { w: "Hobby", diff: "leicht", topics: ["humor", "freestyle", "random"] },
+    ]},
+    // "Troll" (Internet-Slang) + "toll" (Jugendsprache-Klassiker).
+    { id: "s-oll", ending: "-oll", punchline: true, words: [
+      { w: "Troll", diff: "leicht", topics: ["street", "battle", "humor", "freestyle", "random"] },
+      { w: "toll", diff: "leicht", topics: ["humor", "motivation", "freestyle", "random"] },
+      { w: "voll", diff: "leicht", topics: ["humor", "freestyle", "random"] },
+      { w: "Moll", diff: "mittel", topics: ["freestyle", "random"] },
+    ]},
+    // "Kick" (Gaming-Slang, "aus der Lobby kicken") + starke Battle-Vokabel.
+    { id: "s-ick2", ending: "-ick", punchline: true, words: [
+      { w: "Kick", diff: "leicht", topics: ["street", "battle", "freestyle", "random"] },
+      { w: "Trick", diff: "leicht", topics: ["battle", "humor", "freestyle", "random"] },
+      { w: "Genick", diff: "mittel", topics: ["battle", "humor", "freestyle", "random"] },
+      { w: "Blick", diff: "leicht", topics: ["freestyle", "random"] },
+      { w: "dick", diff: "leicht", topics: ["humor", "battle", "freestyle", "random"] },
+    ]},
+    // "Knast" — starkes Status-/Diss-Wort ("der landet im Knast").
+    { id: "s-ast2", ending: "-ast", punchline: true, words: [
+      { w: "Knast", diff: "leicht", topics: ["battle", "street", "freestyle", "random"] },
+      { w: "Last", diff: "leicht", topics: ["motivation", "battle", "freestyle", "random"] },
+      { w: "Gast", diff: "leicht", topics: ["freestyle", "random"] },
+      { w: "fast", diff: "leicht", topics: ["freestyle", "random"] },
+      { w: "Ast", diff: "leicht", topics: ["humor", "freestyle", "random"] },
+    ]},
+    // "Schulden" — starkes Money-Diss-Wort ("der hat nur Schulden").
+    { id: "s-uld", ending: "-ulden", punchline: true, words: [
+      { w: "Schulden", diff: "mittel", topics: ["money", "battle", "freestyle", "random"] },
+      { w: "dulden", diff: "mittel", topics: ["freestyle", "random"] },
+      { w: "verschulden", diff: "schwer", topics: ["money", "battle", "freestyle", "random"] },
+    ]},
+    // "Absturz" — Fail-/Crash-Vokabel, auch Gaming ("Server-Absturz").
+    { id: "s-urz", ending: "-urz", punchline: true, words: [
+      { w: "Absturz", diff: "mittel", topics: ["battle", "street", "humor", "freestyle", "random"] },
+      { w: "Sturz", diff: "leicht", topics: ["battle", "freestyle", "random"] },
+      { w: "kurz", diff: "leicht", topics: ["freestyle", "random"] },
+    ]},
+    // "Niederlage" — klassisches Battle-Rap-Vokabular (Sieg/Niederlage).
+    { id: "s-age2", ending: "-age", punchline: true, words: [
+      { w: "Niederlage", diff: "mittel", topics: ["battle", "motivation", "freestyle", "random"] },
+      { w: "Klage", diff: "mittel", topics: ["battle", "freestyle", "random"] },
+      { w: "Lage", diff: "leicht", topics: ["freestyle", "random"] },
+      { w: "Anlage", diff: "mittel", topics: ["money", "freestyle", "random"] },
+      { w: "jage", diff: "mittel", topics: ["battle", "freestyle", "random"] },
+    ]},
+    // "Ausraster" — Wut/Rage, direkt angefragtes Thema.
+    { id: "s-aster", ending: "-aster", punchline: true, words: [
+      { w: "Ausraster", diff: "schwer", topics: ["battle", "humor", "freestyle", "random"] },
+      { w: "Laster", diff: "mittel", topics: ["battle", "humor", "freestyle", "random"] },
+      { w: "Pflaster", diff: "mittel", topics: ["humor", "freestyle", "random"] },
+      { w: "Master", diff: "mittel", topics: ["motivation", "street", "freestyle", "random"] },
+    ]},
+    // "Lohn/Hohn" — Status (Lohn) vs. Spott (Hohn), starke Battle-Achse.
+    { id: "s-ohn", ending: "-ohn", punchline: true, words: [
+      { w: "Lohn", diff: "leicht", topics: ["money", "motivation", "freestyle", "random"] },
+      { w: "Hohn", diff: "mittel", topics: ["battle", "freestyle", "random"] },
+      { w: "Sohn", diff: "leicht", topics: ["love", "freestyle", "random"] },
+    ]},
   ];
 
   const RHYME_SLANG_EN = [
@@ -289,6 +370,41 @@
       { w: "user", diff: "mittel", topics: ["street", "humor", "freestyle", "random"] },
       { w: "chooser", diff: "mittel", topics: ["freestyle", "random"] },
     ]},
+    // "troll"/"scroll" — Internet-/Social-Media-Slang, ausdrücklich angefragt.
+    { id: "s-oll", ending: "-oll", punchline: true, words: [
+      { w: "troll", diff: "leicht", topics: ["street", "battle", "humor", "freestyle", "random"] },
+      { w: "scroll", diff: "leicht", topics: ["street", "humor", "freestyle", "random"] },
+      { w: "control", diff: "mittel", topics: ["motivation", "battle", "freestyle", "random"] },
+      { w: "patrol", diff: "mittel", topics: ["street", "freestyle", "random"] },
+      { w: "roll", diff: "leicht", topics: ["humor", "freestyle", "random"] },
+    ]},
+    // "ban"/"clan" — Gaming-Slang, ausdrücklich angefragt.
+    { id: "s-an", ending: "-an", punchline: true, words: [
+      { w: "ban", diff: "leicht", topics: ["battle", "street", "freestyle", "random"] },
+      { w: "clan", diff: "leicht", topics: ["street", "battle", "freestyle", "random"] },
+      { w: "fan", diff: "leicht", topics: ["motivation", "freestyle", "random"] },
+      { w: "plan", diff: "leicht", topics: ["motivation", "freestyle", "random"] },
+      { w: "scan", diff: "leicht", topics: ["freestyle", "random"] },
+      { w: "man", diff: "leicht", topics: ["freestyle", "random"] },
+    ]},
+    // "bot"/"shot" — Gaming-/Status-Slang.
+    { id: "s-ot", ending: "-ot", punchline: true, words: [
+      { w: "bot", diff: "leicht", topics: ["street", "humor", "freestyle", "random"] },
+      { w: "shot", diff: "leicht", topics: ["battle", "street", "freestyle", "random"] },
+      { w: "hot", diff: "leicht", topics: ["money", "humor", "freestyle", "random"] },
+      { w: "spot", diff: "leicht", topics: ["street", "freestyle", "random"] },
+      { w: "plot", diff: "leicht", topics: ["freestyle", "random"] },
+      { w: "lot", diff: "leicht", topics: ["money", "freestyle", "random"] },
+    ]},
+    // "skill"/"kill" — Gaming-/Battle-Vokabular, ausdrücklich angefragt.
+    { id: "s-illen", ending: "-ill", punchline: true, words: [
+      { w: "skill", diff: "leicht", topics: ["battle", "motivation", "freestyle", "random"] },
+      { w: "kill", diff: "leicht", topics: ["battle", "street", "freestyle", "random"] },
+      { w: "chill", diff: "leicht", topics: ["street", "humor", "freestyle", "random"] },
+      { w: "still", diff: "leicht", topics: ["freestyle", "random"] },
+      { w: "bill", diff: "leicht", topics: ["money", "freestyle", "random"] },
+      { w: "thrill", diff: "mittel", topics: ["humor", "freestyle", "random"] },
+    ]},
   ];
 
   const RHYME_SLANG_RU = [
@@ -353,6 +469,21 @@
       { w: "тачка", diff: "leicht", topics: ["money", "street", "freestyle", "random"] },
       { w: "пачка", diff: "leicht", topics: ["money", "freestyle", "random"] },
       { w: "подачка", diff: "mittel", topics: ["battle", "freestyle", "random"] },
+    ]},
+    // "чат"/"брат" — Internet-/Streamer-Slang + Straßen-Ansprache.
+    { id: "s-at1", ending: "-ат", punchline: true, words: [
+      { w: "чат", diff: "leicht", topics: ["street", "humor", "freestyle", "random"] },
+      { w: "брат", diff: "leicht", topics: ["street", "freestyle", "random"] },
+      { w: "солдат", diff: "mittel", topics: ["battle", "motivation", "freestyle", "random"] },
+      { w: "квадрат", diff: "mittel", topics: ["freestyle", "random"] },
+    ]},
+    // "бан"/"клан" — Gaming-Slang, ausdrücklich angefragt.
+    { id: "s-an1", ending: "-ан", punchline: true, words: [
+      { w: "бан", diff: "leicht", topics: ["street", "battle", "freestyle", "random"] },
+      { w: "клан", diff: "leicht", topics: ["street", "battle", "freestyle", "random"] },
+      { w: "план", diff: "leicht", topics: ["motivation", "freestyle", "random"] },
+      { w: "обман", diff: "mittel", topics: ["battle", "freestyle", "random"] },
+      { w: "кран", diff: "leicht", topics: ["humor", "freestyle", "random"] },
     ]},
   ];
 

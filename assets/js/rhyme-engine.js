@@ -500,19 +500,25 @@
     return share;
   }
 
-  // Anteil der Wörter einer Familie mit Battle-/Street-Bezug — nicht mit
-  // `topic` zu verwechseln (das ist DAS gewählte Thema der Runde), sondern
-  // eine grobe "wie viel Energie steckt hier drin"-Kennzahl (Anforderung:
-  // "mehr Wut/Konkurrenz/Status/Straße, nicht ständig harmlose Wörter wie
-  // Papier/Klavier/Garten"). Wirkt bereits auf FAMILIEN-Ebene, nicht nur
-  // bei der Wortauswahl INNERHALB einer Familie (siehe selectBestWords) —
-  // sonst würden die wenigen neuen Slang-Familien (rhyme-slang.js) in der
-  // riesigen Gesamtbank kaum je zum Zug kommen.
+  // Anteil der Wörter einer Familie mit Battle-/Street-/Money-/Humor-Bezug —
+  // nicht mit `topic` zu verwechseln (das ist DAS gewählte Thema der
+  // Runde), sondern eine grobe "wie viel Energie/Punchline-Potenzial steckt
+  // hier drin"-Kennzahl (Anforderung: "mehr Wut/Konkurrenz/Status/Straße,
+  // aber auch lustig/arrogant/peinlich — nicht ständig harmlose Wörter wie
+  // Papier/Klavier/Garten"). Bewusst NICHT nur battle/street (reine
+  // Aggression), sondern auch money/humor — die Anforderung will
+  // ausdrücklich Abwechslung über aggressiv/provokant/lustig/Status/Drama
+  // hinweg, nicht nur Beleidigungen. Wirkt bereits auf FAMILIEN-Ebene,
+  // nicht nur bei der Wortauswahl INNERHALB einer Familie (siehe
+  // selectBestWords) — sonst würden die vergleichsweise wenigen
+  // energiereichen Familien in der riesigen Gesamtbank kaum je zum Zug
+  // kommen.
+  const ENERGY_TOPICS = ["battle", "street", "money", "humor"];
   const familyEnergyCache = new Map();
   function familyEnergyShare(family) {
     if (familyEnergyCache.has(family.id)) return familyEnergyCache.get(family.id);
     let n = 0;
-    family.words.forEach((w) => { if (w.topics.includes("battle") || w.topics.includes("street")) n++; });
+    family.words.forEach((w) => { if (ENERGY_TOPICS.some((t) => w.topics.includes(t))) n++; });
     const share = n / family.words.length;
     familyEnergyCache.set(family.id, share);
     return share;
@@ -744,6 +750,39 @@
     return n;
   }
 
+  /* ---------------------------------------------------------------------
+     Persistente FAMILIEN-Historie über Sessions/Spiele hinweg (nicht nur
+     `excludeFamilyIds`, das nur innerhalb EINER Challenge/eines Turniers
+     lebt und bei jedem neuen Seitenaufruf leer startet) — Anforderung:
+     "auch frühere Runden/Spiele" sollen beim Wiederholungs-Schutz zählen,
+     nicht nur "dieselbe Reimgruppe in anderer Reihenfolge" innerhalb EINER
+     Session. Bounded FIFO statt unbegrenztem Speicher (analog
+     STEM_HISTORY_LIMIT oben) — die Grenze richtet sich nach der Größe des
+     bevorzugten Pools (siehe pickRhymeStanza) und wird dort dynamisch
+     berechnet, nicht hier fix vorgegeben (unterschiedliche Sprachen haben
+     unterschiedlich große bevorzugte Pools).
+     --------------------------------------------------------------------- */
+  const USED_FAMILIES_KEY = "flowarena.usedRhymeFamilies.v1";
+
+  function loadUsedFamilies(locale) {
+    try {
+      const all = JSON.parse(localStorage.getItem(USED_FAMILIES_KEY) || "{}");
+      return Array.isArray(all[locale]) ? all[locale] : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveUsedFamilies(locale, list) {
+    try {
+      const all = JSON.parse(localStorage.getItem(USED_FAMILIES_KEY) || "{}");
+      all[locale] = list;
+      localStorage.setItem(USED_FAMILIES_KEY, JSON.stringify(all));
+    } catch (e) {
+      /* localStorage evtl. nicht verfügbar — Anti-Wiederholung lebt dann nur für die Session */
+    }
+  }
+
   /**
    * Wählt bis zu `count` Wörter aus einer Familie, bevorzugt exakte
    * Thema+Schwierigkeit-Treffer, füllt bei Bedarf mit dem nächstbesten
@@ -777,21 +816,44 @@
       if (topicMatches(word, topic)) score += 2;
       if (word.diff === difficulty) score += 1;
 
-      // "Energie"-Bonus: Wörter mit Battle-/Street-Bezug wirken lebendiger
-      // und Rap-typischer als neutrale Alltagswörter (Anforderung: "nicht
-      // ständig harmlose Wörter wie Papier/Klavier/Garten/Fenster" — mehr
-      // Wut/Ego/Konkurrenz/Status/Straße, ohne DAUERND aggressiv zu sein).
-      // Normal-Modus bekommt dafür nur einen dezenten Schubs ("modern, aber
-      // locker"), Street-Modus deutlich mehr PLUS eine aktive Abwertung der
-      // harmlosesten Wörter — dadurch fühlt sich Street spürbar anders an,
-      // statt nur graduell.
-      const isEnergetic = word.topics.includes("battle") || word.topics.includes("street");
+      // "Energie"-Bonus: Wörter mit Battle-/Street-/Money-/Humor-Bezug
+      // wirken lebendiger und Rap-typischer als neutrale Alltagswörter
+      // (Anforderung: "nicht ständig harmlose Wörter wie Papier/Klavier/
+      // Garten/Fenster" — mehr Wut/Ego/Konkurrenz/Status/Straße/Drama, ohne
+      // DAUERND aggressiv zu sein). Zwei Stufen statt einer: "scharfe"
+      // Energie (battle/street, direkte Konfrontation) bekommt den
+      // stärkeren Bonus, "weiche" Energie (money/humor, Status/Drama/Witz
+      // ohne direkten Angriff) einen moderaten — deckt die Anforderung
+      // "nicht jede Zeile muss eine Beleidigung sein" ab, ohne komplett
+      // neutrale Füllwörter zuzulassen. WICHTIG: der Bonus muss auch im
+      // Normal-Modus stark genug sein, dass er GEZIELT tatsächlich
+      // markierte Wörter vor neutralen "Mitläufer"-Wörtern derselben
+      // Familie bevorzugt (eine Familie qualifiziert sich schon für den
+      // großen bevorzugten Pool, siehe pickRhymeStanza, wenn nur EIN Wort
+      // markiert ist — ohne ausreichend starken Wort-Bonus würden dann
+      // trotzdem oft die neutralen Geschwisterwörter gezogen, genau das
+      // ursprünglich gemeldete "Revier/Papier/Quartier"-Problem). Street-
+      // Modus bekommt zusätzlich eine aktive Abwertung der harmlosesten
+      // Wörter — dadurch fühlt sich Street spürbar anders an, statt nur
+      // graduell.
+      // Normal- und Street-Modus sollen sich WIRKLICH unterscheiden (nicht
+      // nur graduell) — deshalb unterschiedliche Gewichtung derselben
+      // beiden Stufen statt nur unterschiedlicher Stärke: Normal-Modus
+      // ("modern, frech, lustig, konkurrenzorientiert") bevorzugt "weiche"
+      // Energie (money/humor: Status, Drama, Witz) leicht VOR "scharfer"
+      // (battle/street: direkte Konfrontation); Street-Modus dreht das um
+      // und verstärkt "scharf" massiv ("aggressiv, asozial, provokant,
+      // respektlos, feindlich").
+      const isSharpEnergy = word.topics.includes("battle") || word.topics.includes("street");
+      const isSoftEnergy = !isSharpEnergy && (word.topics.includes("money") || word.topics.includes("humor"));
       if (streetMode) {
-        if (isEnergetic) score += 4;
+        if (isSharpEnergy) score += 6;
+        else if (isSoftEnergy) score += 1;
         if (word.diff !== "leicht") score += 2;
         else score -= 1;
-      } else if (isEnergetic) {
-        score += 1;
+      } else {
+        if (isSharpEnergy) score += 1.5;
+        else if (isSoftEnergy) score += 2.5;
       }
 
       const stem = wordStem(word.w, family.ending);
@@ -915,6 +977,15 @@
       used = { words: new Set(), stems: [] };
     }
 
+    // Persistente Familien-Historie über Sessions/Spiele hinweg (siehe
+    // loadUsedFamilies oben) — die Fenstergröße richtet sich auf 60% des
+    // bevorzugten Pools dieser Sprache (Punchline-Schicht + energiereiche
+    // Zusatzbank-Familien, siehe unten), mindestens aber 20 Familien, damit
+    // auch bei kleineren Sprachbänken (z.B. Englisch) genug Auswahl bleibt.
+    const preferredPoolSize = bank.filter((f) => f.punchline || familyEnergyShare(f) > 0).length;
+    const familyHistoryLimit = Math.max(20, Math.round(preferredPoolSize * 0.6));
+    let familyHistory = loadUsedFamilies(activeLocale).slice(-familyHistoryLimit);
+
     // Buchstaben des Schemas mit ihrer jeweiligen Häufigkeit (z.B. "AABBC"
     // → A:2, B:2, C:1) — jeder Buchstabe bekommt eine eigene Familie mit
     // GENAU dieser Wortanzahl (kein ganzer Stanza-`count` mehr nötig, daher
@@ -922,7 +993,12 @@
     const letterCounts = new Map();
     for (const ch of scheme) letterCounts.set(ch, (letterCounts.get(ch) || 0) + 1);
 
-    const excludedThisStanza = excludeFamilyIds.slice();
+    // excludeFamilyIds (Session-Historie, vom Aufrufer gepflegt) PLUS die
+    // persistente Familien-Historie über Sessions hinweg — beides zusammen
+    // verhindert sowohl "dieselbe Reimgruppe in anderer Reihenfolge
+    // innerhalb einer Session" als auch "dieselben Familien in der
+    // nächsten Challenge/dem nächsten Turnier".
+    const excludedThisStanza = excludeFamilyIds.concat(familyHistory);
     // Getrennt von excludedThisStanza (= ganze Session-Historie + diese
     // Strophe): NUR die Familien, die INNERHALB DIESER EINEN Strophe schon
     // vergeben wurden. Wird für den Punchline-Fallback gebraucht (siehe
@@ -938,38 +1014,38 @@
       if (viable.length === 0) viable = bank.filter((f) => f.words.length >= neededCount);
       if (viable.length === 0) viable = bank.filter((f) => f.words.length > 0);
 
-      // HARTE Vorfilterung auf die von Hand kuratierte Punchline-Schicht
-      // (rhyme-slang.js, `punchline: true`) — in BEIDEM Modi, nicht nur
-      // Street. Eine reine Gewichtung (wie zuvor) reicht nicht: die riesige
-      // neutrale Zusatzbank (>700 Familien) erdrückt eine kleine gewichtete
-      // Minderheit statistisch, selbst mit starkem Bonus — genau DAS
-      // erzeugte das gemeldete Beispiel "Dampf/Klavier/Kampf/Kavalier"
-      // (zwei Buchstaben trafen zufällig eine energetische Familie, die
-      // anderen zwei landeten bei neutralem Wörterbuch-Vokabular wie
-      // "Klavier/Kavalier"). Jetzt bekommt JEDER Buchstabe zuerst die
-      // Punchline-Schicht angeboten; erst wenn die (z.B. durch
-      // Anti-Wiederholung/Ausschluss) für diesen Buchstaben erschöpft ist,
-      // fällt es auf die bisherige Energie-Gewichtung der Zusatzbank
-      // zurück (Street-Modus bevorzugt), zuletzt auf den vollen Pool.
-      let punchlinePool = viable.filter((f) => f.punchline);
-      // Die Punchline-Schicht ist bewusst klein (siehe Kopfkommentar
-      // rhyme-slang.js) — über eine LANGE Session (viele Strophen/Runden,
-      // z.B. ein Turnier mit vielen Runden) ist sie irgendwann komplett in
-      // `excludeFamilyIds` aufgebraucht. Dann lieber eine Punchline-Familie
-      // INNERHALB DER SESSION WIEDERHOLEN (die einzelnen WÖRTER bleiben
-      // trotzdem frisch, siehe used.words/used.stems weiter unten) als für
-      // den Rest der Session auf neutrales Wörterbuch-Vokabular
-      // zurückzufallen — deshalb hier bewusst NUR gegen `stanzaOwnFamilyIds`
-      // geprüft (nur diese eine Strophe), nicht gegen die volle
-      // Session-Historie in `excludedThisStanza`.
-      if (punchlinePool.length === 0) {
-        punchlinePool = bank.filter((f) => f.punchline && f.words.length >= neededCount && !stanzaOwnFamilyIds.includes(f.id));
+      // GROSSER bevorzugter Pool statt nur der kleinen Hand-Kuration: von
+      // Hand kuratierte Punchline-Schicht (rhyme-slang.js, `punchline:
+      // true`) PLUS jede Familie mit irgendeinem Battle-/Street-/Money-/
+      // Humor-Bezug aus der riesigen Zusatzbank (familyEnergyShare > 0) —
+      // in BEIDEM Modi als STANDARD, nicht nur als Street-Fallback.
+      // Begründung: die reine ~20-45-Familien-Hand-Kuration allein war
+      // genug, um weg von neutralem Wörterbuch-Vokabular zu kommen (siehe
+      // "Dampf/Klavier/Kampf/Kavalier"-Fall), aber zu KLEIN, um über viele
+      // Runden hinweg nicht selbst repetitiv zu wirken (Anforderung: "nicht
+      // nach 3-4 Runden wieder dieselben Wörter"). Die Zusatzbank enthält
+      // deutlich mehr energiereiche Familien (dreistellig statt ~20-45) —
+      // deren Wörter sind zwar nicht alle einzeln wie rhyme-slang.js von
+      // Hand auf Punchline-Qualität geprüft, aber die Themen-Tags (battle/
+      // street/money/humor) kommen aus derselben Stichwort-Pipeline wie der
+      // Rest der Zusatzbank und sind damit inhaltlich zuverlässig genug für
+      // einen deutlich größeren, trotzdem klar nicht-neutralen Pool.
+      let preferredPool = viable.filter((f) => f.punchline || familyEnergyShare(f) > 0);
+      // Dieser große Pool ist bewusst immer noch endlich — über eine LANGE
+      // Session (viele Strophen/Runden, z.B. ein Turnier) kann er
+      // irgendwann komplett in `excludeFamilyIds` aufgebraucht sein. Dann
+      // lieber eine bevorzugte Familie INNERHALB DER SESSION WIEDERHOLEN
+      // (die einzelnen WÖRTER bleiben trotzdem frisch, siehe
+      // used.words/used.stems weiter unten) als für den Rest der Session
+      // auf rein neutrales Wörterbuch-Vokabular zurückzufallen — deshalb
+      // hier bewusst NUR gegen `stanzaOwnFamilyIds` geprüft (nur diese eine
+      // Strophe), nicht gegen die volle Session-Historie in
+      // `excludedThisStanza`.
+      if (preferredPool.length === 0) {
+        preferredPool = bank.filter((f) => (f.punchline || familyEnergyShare(f) > 0) && f.words.length >= neededCount && !stanzaOwnFamilyIds.includes(f.id));
       }
-      if (punchlinePool.length > 0) {
-        viable = punchlinePool;
-      } else if (streetMode) {
-        const energetic = viable.filter((f) => familyEnergyShare(f) > 0);
-        if (energetic.length > 0) viable = energetic;
+      if (preferredPool.length > 0) {
+        viable = preferredPool;
       }
 
       const family = pickFamilyWeighted(viable, difficulty, streetMode);
@@ -988,9 +1064,12 @@
       familyIds.push(family.id);
       excludedThisStanza.push(family.id); // andere Buchstaben derselben Strophe dürfen diese Familie nicht mehr wählen
       stanzaOwnFamilyIds.push(family.id);
+      familyHistory.push(family.id); // persistente Historie über Sessions hinweg, siehe oben
     });
 
     saveUsedWords(activeLocale, used);
+    if (familyHistory.length > familyHistoryLimit) familyHistory = familyHistory.slice(-familyHistoryLimit);
+    saveUsedFamilies(activeLocale, familyHistory);
 
     // Wörter in der tatsächlichen Zeilen-Reihenfolge des Schemas zusammen-
     // setzen — jeder Buchstabe verbraucht seine vorbereiteten Wörter der

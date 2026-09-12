@@ -455,6 +455,67 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
      für die Begründung, warum Qualitätskontrolle hier nicht übersprungen
      wird).
 
+6c. **Großer bevorzugter Pool statt kleiner Hand-Kuration + persistente
+   Familien-Historie** (3. Überarbeitung): Feedback nach 6b — die
+   ~20-45-Familien-Hand-Kuration allein hatte zwei Probleme: (1) sie ist
+   klein genug, dass sie sich SELBST nach wenigen Runden repetitiv anfühlt
+   ("nicht nach 3-4 Runden wieder dieselben Wörter"), und (2) ein Buchstabe
+   ohne freie Punchline-Familie fiel direkt auf den vollen NEUTRALEN Pool
+   zurück (z.B. "Revier"/"Quartier" statt eines nur schwach energiereichen,
+   aber echten Zusatzbank-Worts) statt auf eine Zwischenstufe.
+   - **Kombinierter Pool**: `familyEnergyShare()` (siehe 6b) wertet jetzt
+     zusätzlich `money`/`humor`-Themen mit (vorher nur `battle`/`street`) —
+     Begründung: "nicht jede Zeile muss eine Beleidigung sein", Status/
+     Drama/Witz zählen genauso als "Energie". `pickRhymeStanza()` filtert
+     PRO BUCHSTABE jetzt auf `f.punchline || familyEnergyShare(f) > 0` —
+     die kleine Hand-Kuration UND jede Zusatzbank-Familie mit irgendeinem
+     Energie-Tag zusammen als EIN bevorzugter Pool, in BEIDEM Modi als
+     Standard. Effekt: der bevorzugte Pool wuchs von ~20/15/9 auf ~130/45/75
+     Familien (DE/EN/RU) — ohne dabei komplett neutrales Wörterbuch-
+     Vokabular wieder zuzulassen.
+   - **Wort-Ebene nachgezogen**: `selectBestWords()` unterschied bisher nur
+     `battle`/`street` (nicht `money`/`humor`) und der Bonus war zu schwach,
+     um INNERHALB einer nur teilweise markierten Familie zuverlässig das
+     tatsächlich markierte Wort vor neutralen "Geschwister"-Wörtern zu
+     bevorzugen — genau das ließ "Revier"/"Quartier" trotz qualifizierender
+     Familie durchrutschen. Jetzt zwei Stufen ("scharf" battle/street,
+     "weich" money/humor) mit spürbar stärkerem, MODUS-ABHÄNGIG
+     unterschiedlichem Bonus: Normal-Modus bevorzugt "weiche" Energie
+     leicht vor "scharfer" (passt zu "modern, frech, lustig,
+     konkurrenzorientiert"), Street-Modus dreht das um und verstärkt
+     "scharf" massiv (passt zu "aggressiv, asozial, provokant, respektlos").
+     Gemessen (DE, 60 Strophen normal vs. Street): scharfer Anteil 25% →
+     42% (Normal → Street), weicher Anteil 22% → 11% (umgekehrt) — echte
+     Verschiebung des Charakters, nicht nur der Gesamt-Energie-Menge.
+   - **Persistente Familien-Historie über Sessions/Spiele hinweg**
+     (`flowarena.usedRhymeFamilies.v1` in `localStorage`, analog zu
+     `usedRhymeWords.v2`): `excludeFamilyIds` (vom Aufrufer gepflegt, siehe
+     4c) lebt nur INNERHALB einer Challenge/eines Turniers und startet bei
+     jedem neuen Seitenaufruf leer — Anforderung "auch frühere Runden/
+     Spiele" sollen zählen, nicht nur "dieselbe Reimgruppe in anderer
+     Reihenfolge" innerhalb EINER Session. Fenstergröße dynamisch: 60% des
+     bevorzugten Pools dieser Sprache, mindestens 20 Familien. Getestet:
+     zwei simulierte, aufeinanderfolgende "Sessions" (je 15 Strophen, jeweils
+     mit leerem `excludeFamilyIds` wie ein frischer Seitenaufruf) zeigen
+     0% Familien-Überlappung zwischen den beiden Sessions.
+   - **Neue Wortschicht ausgebaut** (DE 20→29, EN 15→19, RU 9→11 Familien)
+     — gezielt Lücken gefüllt, die die automatisch getaggte Zusatzbank
+     naturgemäß nicht abdeckt: Gaming-/Streamer-Slang (Skill, Kick, Lobby,
+     Troll, Ban, Clan — kommt in einer allgemeinen Frequenzwortliste kaum
+     vor), Geld-/Status-Vokabular (Knast, Schulden, Lohn/Hohn), Rage/Drama
+     (Ausraster, Niederlage, Absturz).
+   - **Bewusst NICHT umgesetzt: separates Wortpaar-/Kombinations-Tracking**
+     (Anforderung nannte auch "bereits verwendete Wortpaare/Kombinationen").
+     Begründung: die Kombination aus Wort-Historie (`used.words`),
+     Stamm-Historie (`used.stems`) und jetzt Familien-Historie deckt den
+     eigentlichen Kern der Anforderung bereits ab — zwei Familien können
+     ohnehin nicht wiederholt in derselben Zusammenstellung auftauchen,
+     solange eine von beiden noch in der Familien-Historie steht. Ein
+     zusätzlicher, expliziter Paar-Tracker hätte nur einen sehr schmalen
+     Grenzfall abgedeckt (zwei einzeln noch "frische" Familien, die genau
+     in derselben Kombination schon einmal vorkamen) bei deutlich mehr
+     Komplexität — Aufwand/Nutzen stand hier nicht im Verhältnis.
+
 5. **Themenfeld** (`topic`): `freestyle` (offen), `love`, `money`, `street`,
    `motivation`, `battle`, `humor`, `random`. Wörter der Zusatzbank bekommen
    ihre Themen zusätzlich zu `freestyle`/`random` über einen
