@@ -66,7 +66,11 @@
     beginBtn: $("#beginBtn"),
     countdownNumber: $("#countdownNumber"),
     countdownLabel: $("#countdownLabel"),
-    verseBadge: $("#verseBadge"),
+    countdownFlash: $("#countdownFlash"),
+    stageDim: $("#stageDim"),
+    beatPulseOverlay: $("#beatPulseOverlay"),
+    verseBadgeStanza: $("#verseBadgeStanza"),
+    verseBadgeLine: $("#verseBadgeLine"),
     verseChipValue: $("#verseChipValue"),
     wordRack: $("#wordRack"),
     lineTimerFill: $("#lineTimerFill"),
@@ -326,11 +330,23 @@
   }
 
   // Paint-only Klassenwechsel (siehe .word-slot-Kommentar in challenge.css) —
-  // markiert, auf welchem der 5 Kästchen der Ball gerade "steht".
+  // markiert, auf welchem der 5 Kästchen der Ball gerade "steht". Das
+  // Wort-Kästchen bekommt beim Landen zusätzlich einen kurzen "Einschlag"-
+  // Puls (.is-hit, siehe word-impact-Keyframe) — macht das eigentliche
+  // Treffen des Reimworts spürbar befriedigender statt nur eines stillen
+  // Klassenwechsels.
   function setActiveBox(boxIndex) {
     $$("#wordRack .word-slot").forEach((el, i) => {
       el.classList.toggle("is-active", i === boxIndex);
     });
+    if (boxIndex === BEATS_PER_LINE - 1) {
+      const wordEl = $("#wordRack .word-slot--word");
+      if (wordEl) {
+        wordEl.classList.remove("is-hit");
+        void wordEl.offsetWidth; // Reflow, damit die Impact-Animation zuverlässig neu abspielt
+        wordEl.classList.add("is-hit");
+      }
+    }
   }
 
   /* ---------------------------------------------------------------------
@@ -369,9 +385,13 @@
   /* ---------------------------------------------------------------------
      Word-Rack Rendering
      --------------------------------------------------------------------- */
+  // Bewusst KEIN Reimschema mehr im HUD (frühere Fassung zeigte "Strophe X
+  // von Y · Zeile A von B · Reimschema Z") — nimmt Spannung weg und ist
+  // beim Rappen mehr Text, als man im Augenwinkel braucht. Zwei knappe
+  // Zahlen-Chips statt eines langen Satzes.
   function renderVerseBadge(stanzaIndex, lineInStanza) {
-    const ending = resolvedStanzas[stanzaIndex]?.ending || "…";
-    els.verseBadge.textContent = t("challenge.verseBadge", { stanza: stanzaIndex + 1, total: totalStanzas, line: lineInStanza + 1, lines: LINES_PER_STANZA, ending });
+    if (els.verseBadgeStanza) els.verseBadgeStanza.textContent = t("challenge.verseBadgeStanza", { stanza: stanzaIndex + 1, total: totalStanzas });
+    if (els.verseBadgeLine) els.verseBadgeLine.textContent = t("challenge.verseBadgeLine", { line: lineInStanza + 1, lines: LINES_PER_STANZA });
     els.verseChipValue.textContent = `${stanzaIndex + 1}/${totalStanzas}`;
   }
 
@@ -465,12 +485,38 @@
   let globalLineIndex = 0; // 0-basiert, über die GESAMTE Challenge gezählt
   let displayedLineIndex = -1; // zuletzt gerenderte Zeile (vermeidet Doppel-Renders)
   let displayedBoxIndex = -1; // zuletzt "getroffenes" Kästchen INNERHALB der Zeile
+  let lastPulseBeat = -1; // zuletzt gepulster ganzzahliger Beat (siehe triggerBeatPulse)
   let finished = false;
+
+  // "Wenn der Beat richtig reinhaut, sollte sich die Oberfläche minimal mit
+  // dem Beat bewegen" — Hintergrund-Overlay + Ball bekommen JEDEN Beat einen
+  // kurzen Puls, exakt aus derselben BeatClock-Phase getriggert wie Ball und
+  // Zeilenwechsel (kein eigener CSS-Timer, der wegdriften könnte). Bewusst
+  // NUR paint-Eigenschaften (opacity/filter) — kein Reflow-Risiko bei jedem
+  // Beat.
+  function triggerBeatPulse() {
+    if (els.beatPulseOverlay) {
+      els.beatPulseOverlay.classList.remove("is-pulsing");
+      void els.beatPulseOverlay.offsetWidth; // Reflow, damit die Animation bei jedem Beat neu abspielt
+      els.beatPulseOverlay.classList.add("is-pulsing");
+    }
+    if (els.gameBall) {
+      els.gameBall.classList.remove("is-beat-pulse");
+      void els.gameBall.offsetWidth;
+      els.gameBall.classList.add("is-beat-pulse");
+    }
+  }
 
   function startFrameLoop() {
     function frame() {
       if (!clock || !clock.running) return;
       const phase = clock.currentBeatPhase(); // kontinuierliche Beat-Zahl seit Challenge-Start
+
+      const beatFloor = Math.floor(phase);
+      if (beatFloor !== lastPulseBeat) {
+        lastPulseBeat = beatFloor;
+        triggerBeatPulse();
+      }
 
       const lineStart = clock.lineTime(globalLineIndex);
       const lineEnd = clock.lineTime(globalLineIndex + 1);
@@ -525,10 +571,8 @@
     if (crossedIntoNewStanza) {
       const nextStanzaIndex = finishedStanzaIndex + 1;
       playIfEnabled(window.FlowSound?.playConfirm);
-      const ending = resolvedStanzas[nextStanzaIndex]?.ending;
-      flashVerseBanner(ending
-        ? t("challenge.stanzaCompleteBannerWithScheme", { n: finishedStanzaIndex + 1, ending })
-        : t("challenge.stanzaCompleteBanner", { n: finishedStanzaIndex + 1 }));
+      // Bewusst ohne Reimschema in der Banner-Meldung (siehe renderVerseBadge).
+      flashVerseBanner(t("challenge.stanzaCompleteBanner", { n: finishedStanzaIndex + 1 }));
       // Strophe übernächst schon mal anfordern, damit sie garantiert
       // rechtzeitig bereitsteht, bevor sie gebraucht wird.
       requestStanza(nextStanzaIndex + 1);
@@ -542,6 +586,15 @@
      --------------------------------------------------------------------- */
   function runCountdown(onDone) {
     showScreen("countdown");
+    screens.countdown?.classList.remove("is-leaving"); // Reset, falls der Screen schon einmal lief
+
+    // Kurzes Abdunkeln beim Start — schnell rein, etwas sanfter wieder raus
+    // (siehe .stage-dim in challenge.css).
+    if (els.stageDim) {
+      els.stageDim.classList.add("is-active");
+      setTimeout(() => els.stageDim?.classList.remove("is-active"), 180);
+    }
+
     const goValue = t("challenge.countdownGoValue");
     const sequence = ["3", "2", "1", goValue];
     let i = 0;
@@ -551,16 +604,33 @@
       const isGo = i === sequence.length - 1;
       els.countdownNumber.textContent = value;
       els.countdownNumber.style.animation = "none";
+      els.countdownNumber.classList.toggle("is-go", isGo);
       void els.countdownNumber.offsetWidth; // reflow, damit die Pop-Animation jedes Mal neu triggert
       els.countdownNumber.style.animation = "";
       playIfEnabled(() => window.FlowSound?.playCountdown(isGo));
       els.countdownLabel.textContent = isGo ? t("challenge.countdownGoLabel") : t("challenge.countdownPreLabel");
 
+      // GO!: kurzer Licht-Blitz (siehe .countdown-flash) — derselbe
+      // Reflow-Trick wie bei der Pop-Animation, damit er zuverlässig
+      // abspielt.
+      if (isGo && els.countdownFlash) {
+        els.countdownFlash.classList.remove("is-flashing");
+        void els.countdownFlash.offsetWidth;
+        els.countdownFlash.classList.add("is-flashing");
+      }
+
       i++;
       if (i < sequence.length) {
         setTimeout(step, 800);
       } else {
-        setTimeout(onDone, 550);
+        // Countdown-Screen sanft ausblenden, Beat+Ball starten praktisch im
+        // selben Moment ("Beat setzt genau am Startpunkt ein, der Ball
+        // startet gleichzeitig, danach verschwindet der Countdown
+        // komplett") — spürbar knapper als die vorherige 550ms-Pause und
+        // durch Blitz+Ausblenden jetzt visuell durchgängig statt einer
+        // reinen Wartezeit.
+        setTimeout(() => screens.countdown?.classList.add("is-leaving"), 150);
+        setTimeout(onDone, 380);
       }
     }
     step();

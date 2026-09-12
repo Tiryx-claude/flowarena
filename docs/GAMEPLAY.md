@@ -36,7 +36,9 @@ intro → countdown (3,2,1,Los!) → live (Strophen × Zeilen, beat-getaktet) �
 - **intro**: Zeigt die Modul-1-Einstellungen, fragt bei Klick auf "Los geht's"
   Mikrofonzugriff an (optional — ohne Zugriff läuft die Challenge trotzdem,
   nur ohne Aufnahme/Transkript/Bewertung der Stimme).
-- **countdown**: 3 → 2 → 1 → "Los!", danach startet die BeatClock (siehe unten).
+- **countdown**: 3 → 2 → 1 → "Los!", danach startet die BeatClock (siehe unten
+  und Abschnitt 3b für die visuelle Inszenierung — Abdunkeln, Licht-Blitz,
+  sanftes Ausblenden statt hartem Screen-Cut).
 - **live**: Strophen-Schleife mit dem 5-Wörter-Rack, siehe unten.
 - **evaluating**: kurze simulierte Ladezeit (Platzhalter-Statustexte), danach Bewertung.
 - **results**: Score, 8-dimensionale Bewertung, KI-Kommentar, Transkript, Audio-Player.
@@ -53,7 +55,9 @@ unterstützt, siehe `docs/TOURNAMENTS.md`/`docs/SOCIAL.md`). Nur die
 bleibt überall exakt gleich.
 
 - Jede Strophe hat `GAMEPLAY_CONFIG.linesPerStanza` Zeilen (Standard: **5**)
-  und damit 5 Endwörter aus derselben Reim-Familie (gleiche Endung, z.B. „-eit").
+  und damit 5 Endwörter — seit Modul 8 NICHT mehr zwingend alle aus
+  derselben Reim-Familie: ein zufälliges Reimschema (z.B. „AABBC") verteilt
+  sie auf mehrere Familien, siehe Abschnitt 7.1 Punkt 4c für die Details.
 - **Jede Zeile hat genau `GAMEPLAY_CONFIG.boxesPerLine` Kästchen (Standard: 5)**
   — unabhängig von der Strophengröße (reiner Zufall, dass beide Zahlen 5
   sind: Zeilen/Strophe und Kästchen/Zeile sind zwei getrennte Werte).
@@ -71,7 +75,9 @@ bleibt überall exakt gleich.
   - Jede neue Zeile bekommt ihre **eigene, frische Reihe** dieser
     `boxesPerLine` Kästchen (nicht alle 5 Zeilen-Wörter der Strophe
     gleichzeitig sichtbar) — Fortschritt innerhalb der Strophe zeigt
-    stattdessen der Badge „Strophe X von Y · Zeile A von 5 · Reimschema …“.
+    stattdessen ein kompaktes Badge-Paar „Strophe X/Y” + „Zeile A/B”
+    (`renderVerseBadge()`/`.badge-compact`) — bewusst **ohne** Reimschema
+    (nimmt beim Rappen Spannung weg, siehe Feedback-Historie unten).
   - **Zeilen-Vorschau** (`#linePreviewList`, `renderLinePreview()` in
     `challenge.js`/`tournament.js`): unter der aktuellen (großen) Zeile
     zeigt eine dezente Liste die nächsten bis zu 3 Zeilen dieser Strophe —
@@ -106,6 +112,48 @@ bleibt überall exakt gleich.
 - Strophenanzahl wird vor Spielstart gewählt (z.B. 3, 4 oder 5) —
   `GAMEPLAY_CONFIG.minStanzas`–`maxStanzas`, aktuell 1–10, Free-Deckel bei 5
   (`freeMaxStanzas`, siehe `docs/SHOP.md`).
+
+### 3b. Visuelles Feedback: Countdown-Inszenierung, Treffer-Impact, Beat-Puls
+
+Nutzer-Feedback nach dem ersten Spieltest: der Countdown wirkte zu statisch,
+das HUD hatte zu viel Text (inkl. Reimschema, was Spannung wegnahm), und das
+Treffen des Reimworts fühlte sich nicht "befriedigend" genug an. Reaktion
+(gilt identisch in `challenge.js`/`challenge.html` UND `tournament.js`/
+`tournament.html` — dieselbe Bühnen-Mechanik wie überall in diesem Dokument):
+
+- **Countdown-Inszenierung** (`runCountdown()`): kurzes Abdunkeln der
+  gesamten Bühne beim Start (`#stageDim`, schnell rein/sanft wieder raus),
+  bei "Los!" zusätzlich ein `.is-go`-Klassenwechsel (stärkerer Pop + Glow
+  als bei 3/2/1) plus ein radialer Licht-Blitz hinter der Zahl
+  (`#countdownFlash`/`.countdown-flash`). Der Countdown-Screen blendet
+  danach sanft aus (`.is-leaving`, 260ms) statt hart zu verschwinden — Beat
+  und Ball starten praktisch im selben Moment (`startBeatClock()` direkt in
+  `startLiveStage()`), die Gesamt-Pause nach "Los!" wurde von 550ms auf
+  380ms verkürzt und ist jetzt durchgehend animiert statt einer stillen
+  Wartezeit.
+- **Kompaktes HUD ohne Reimschema**: siehe Abschnitt 3 oben
+  (`renderVerseBadge()`/`.badge-compact`) — zwei knappe Zahlen-Chips statt
+  eines langen Satzes, auch die Strophenwechsel-Banner-Meldung
+  (`flashVerseBanner()`) zeigt seitdem keine Reim-Endung mehr
+  (`challenge.stanzaCompleteBanner` ohne "…WithScheme"-Variante).
+- **Treffer-Impact am Reimwort**: das Wort-Kästchen pulsiert bereits dezent,
+  SOLANGE der Ball noch unterwegs ist (`.word-slot--word:not(.is-active)`,
+  `@keyframes word-anticipate`) — signalisiert "hier kommt's". Landet der
+  Ball, bekommt es zusätzlich zur dauerhaften `.is-active`-Vergrößerung
+  einen kurzen "Einschlag"-Puls (`.is-hit`, `@keyframes word-impact`,
+  340ms) — gesetzt in `setActiveBox()` genau in dem Frame, in dem
+  `boxIndex` das letzte Kästchen erreicht.
+- **Beat-synchrones Mitpulsieren**: `startFrameLoop()` erkennt pro Frame,
+  wann `Math.floor(clock.currentBeatPhase())` einen neuen ganzzahligen Beat
+  überschreitet (`triggerBeatPulse()`) — exakt aus derselben BeatClock-Phase
+  wie Ball-Position und Zeilenwechsel, kein eigener CSS-Timer, der wegdriften
+  könnte. Pulst dabei kurz (a) ein eigenes fixiertes Hintergrund-Overlay
+  (`#beatPulseOverlay`, getrennt von der dauerhaften `.bg-fx`-Drift-Animation
+  in `base.css`, um Property-Konflikte zu vermeiden) und (b) den Ball selbst
+  (`.beat-ball.is-beat-pulse`, kurzer Helligkeits-Boost). Beide nutzen den
+  etablierten "Klasse entfernen + Reflow erzwingen + Klasse wieder setzen"-
+  Trick (siehe `.word-rack-wrap.is-entering` weiter oben), damit die
+  Animation bei JEDEM Beat zuverlässig neu abspielt.
 
 ## 4. Timing — strikt BPM-synchron, kein freier Modus mehr
 

@@ -67,8 +67,13 @@
     roundIntroBadge: $("#roundIntroBadge"),
     countdownNumber: $("#countdownNumber"),
     countdownLabel: $("#countdownLabel"),
+    countdownFlash: $("#countdownFlash"),
+    stageDim: $("#stageDim"),
+    beatPulseOverlay: $("#beatPulseOverlay"),
     roundProgressLive: $("#roundProgressLive"),
-    roundLiveBadge: $("#roundLiveBadge"),
+    roundLiveBadgeRound: $("#roundLiveBadgeRound"),
+    roundLiveBadgeStanza: $("#roundLiveBadgeStanza"),
+    roundLiveBadgeLine: $("#roundLiveBadgeLine"),
     wordRackWrap: $("#wordRackWrap"),
     linePreviewList: $("#linePreviewList"),
     wordRack: $("#wordRack"),
@@ -350,10 +355,20 @@
     });
   }
 
+  // Identisches Prinzip wie challenge.js: das Wort-Kästchen bekommt beim
+  // Landen zusätzlich einen kurzen "Einschlag"-Puls (.is-hit).
   function setActiveBox(boxIndex) {
     $$("#wordRack .word-slot").forEach((el, i) => {
       el.classList.toggle("is-active", i === boxIndex);
     });
+    if (boxIndex === BEATS_PER_LINE - 1) {
+      const wordEl = $("#wordRack .word-slot--word");
+      if (wordEl) {
+        wordEl.classList.remove("is-hit");
+        void wordEl.offsetWidth;
+        wordEl.classList.add("is-hit");
+      }
+    }
   }
 
   // Position INNERHALB der Runde in (Strophe, Zeile-in-Strophe) aufgelöst —
@@ -394,12 +409,12 @@
       }
     }
     els.wordRack.innerHTML = boxes.join("");
-    if (els.roundLiveBadge && tournament) {
-      els.roundLiveBadge.textContent = t("tournament.roundLiveBadgeFull", {
-        round: currentRoundIdx + 1, total: tournament.rounds.length,
-        stanza: stanzaIdx + 1, stanzaTotal: STANZAS_PER_ROUND,
-        line: lineInStanza + 1, lines: LINES_PER_STANZA, ending: stanza.ending,
-      });
+    // Kompaktes HUD statt eines langen Satzes mit Reimschema — identisches
+    // Prinzip wie challenge.js (siehe renderVerseBadge() dort).
+    if (tournament) {
+      if (els.roundLiveBadgeRound) els.roundLiveBadgeRound.textContent = t("tournament.roundLiveBadgeRound", { round: currentRoundIdx + 1, total: tournament.rounds.length });
+      if (els.roundLiveBadgeStanza) els.roundLiveBadgeStanza.textContent = t("challenge.verseBadgeStanza", { stanza: stanzaIdx + 1, total: STANZAS_PER_ROUND });
+      if (els.roundLiveBadgeLine) els.roundLiveBadgeLine.textContent = t("challenge.verseBadgeLine", { line: lineInStanza + 1, lines: LINES_PER_STANZA });
     }
 
     // "Neue Zeile rutscht sanft in Position" — identisches Prinzip wie challenge.js.
@@ -456,8 +471,16 @@
     `).join("");
   }
 
+  // Identisches Prinzip wie challenge.js: kurzes Abdunkeln beim Start,
+  // GO!-Blitz, Countdown-Screen blendet sanft aus statt hartem Cut.
   function runCountdown() {
     return new Promise((resolve) => {
+      screens.roundIntro?.classList.remove("is-leaving");
+      if (els.stageDim) {
+        els.stageDim.classList.add("is-active");
+        setTimeout(() => els.stageDim?.classList.remove("is-active"), 180);
+      }
+
       const goValue = t("challenge.countdownGoValue");
       const sequence = ["3", "2", "1", goValue];
       let i = 0;
@@ -466,13 +489,25 @@
         const isGo = i === sequence.length - 1;
         els.countdownNumber.textContent = value;
         els.countdownNumber.style.animation = "none";
+        els.countdownNumber.classList.toggle("is-go", isGo);
         void els.countdownNumber.offsetWidth;
         els.countdownNumber.style.animation = "";
         playIfEnabled(() => window.FlowSound?.playCountdown(isGo));
         els.countdownLabel.textContent = isGo ? t("tournament.countdownGoLabel") : t("challenge.countdownPreLabel");
+
+        if (isGo && els.countdownFlash) {
+          els.countdownFlash.classList.remove("is-flashing");
+          void els.countdownFlash.offsetWidth;
+          els.countdownFlash.classList.add("is-flashing");
+        }
+
         i++;
-        if (i < sequence.length) setTimeout(step, 800);
-        else setTimeout(resolve, 550);
+        if (i < sequence.length) {
+          setTimeout(step, 800);
+        } else {
+          setTimeout(() => screens.roundIntro?.classList.add("is-leaving"), 150);
+          setTimeout(resolve, 380);
+        }
       }
       step();
     });
@@ -509,10 +544,35 @@
     beatAudioSource = null;
   }
 
+  let lastPulseBeat = -1; // zuletzt gepulster ganzzahliger Beat, identisches Prinzip wie challenge.js
+
+  // "Wenn der Beat richtig reinhaut, sollte sich die Oberfläche minimal mit
+  // dem Beat bewegen" — identisches Prinzip wie challenge.js: Hintergrund-
+  // Overlay + Ball bekommen jeden Beat einen kurzen Puls, exakt aus der
+  // BeatClock-Phase getriggert.
+  function triggerBeatPulse() {
+    if (els.beatPulseOverlay) {
+      els.beatPulseOverlay.classList.remove("is-pulsing");
+      void els.beatPulseOverlay.offsetWidth;
+      els.beatPulseOverlay.classList.add("is-pulsing");
+    }
+    if (els.gameBall) {
+      els.gameBall.classList.remove("is-beat-pulse");
+      void els.gameBall.offsetWidth;
+      els.gameBall.classList.add("is-beat-pulse");
+    }
+  }
+
   function startFrameLoop() {
     function frame() {
       if (!clock || !clock.running) return;
       const phase = clock.currentBeatPhase(); // kontinuierliche Beat-Zahl seit Rundenstart
+
+      const beatFloor = Math.floor(phase);
+      if (beatFloor !== lastPulseBeat) {
+        lastPulseBeat = beatFloor;
+        triggerBeatPulse();
+      }
 
       const lineStart = clock.lineTime(lineIndexInRound);
       const lineEnd = clock.lineTime(lineIndexInRound + 1);
@@ -552,10 +612,8 @@
           const crossedIntoNewStanza = finishedLineInStanza === LINES_PER_STANZA - 1;
           if (crossedIntoNewStanza) {
             playIfEnabled(window.FlowSound?.playConfirm);
-            const nextEnding = currentRound?.stanzas[finishedStanzaIdx + 1]?.ending;
-            flashVerseBanner(nextEnding
-              ? t("challenge.stanzaCompleteBannerWithScheme", { n: finishedStanzaIdx + 1, ending: nextEnding })
-              : t("challenge.stanzaCompleteBanner", { n: finishedStanzaIdx + 1 }));
+            // Bewusst ohne Reimschema in der Banner-Meldung (siehe challenge.js).
+            flashVerseBanner(t("challenge.stanzaCompleteBanner", { n: finishedStanzaIdx + 1 }));
           } else {
             playIfEnabled(window.FlowSound?.playSelect);
           }
@@ -590,7 +648,9 @@
     displayedBoxIndex = -1;
 
     els.roundIntroBadge.textContent = t("tournament.roundBadge", { round: roundIndex + 1, total: tournament.rounds.length });
-    els.roundLiveBadge.textContent = t("tournament.roundLiveBadgeInit", { round: roundIndex + 1, total: tournament.rounds.length, stanzaTotal: STANZAS_PER_ROUND, ending: currentRound.stanzas[0].ending });
+    if (els.roundLiveBadgeRound) els.roundLiveBadgeRound.textContent = t("tournament.roundLiveBadgeRound", { round: roundIndex + 1, total: tournament.rounds.length });
+    if (els.roundLiveBadgeStanza) els.roundLiveBadgeStanza.textContent = t("challenge.verseBadgeStanza", { stanza: 1, total: STANZAS_PER_ROUND });
+    if (els.roundLiveBadgeLine) els.roundLiveBadgeLine.textContent = t("challenge.verseBadgeLine", { line: 1, lines: LINES_PER_STANZA });
     renderRoundProgress(els.roundProgressLive, roundIndex);
 
     showScreen("roundIntro");

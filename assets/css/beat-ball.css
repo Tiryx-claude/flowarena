@@ -26,10 +26,45 @@
   transition: background var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 
+/* Kurzer Glow-Boost GENAU auf jedem Beat (nicht nur beim Kästchen-Landen) —
+   "Ball leuchtet stärker beim Beat". Von JS pro Beat neu getriggert (Klasse
+   entfernen+Reflow+wieder setzen, siehe startFrameLoop() in challenge.js/
+   tournament.js), daher als einmalig ablaufende Animation statt Dauerschleife
+   — bleibt exakt im Takt der BeatClock statt einer eigenen CSS-Zeitbasis. */
+.beat-ball.is-beat-pulse {
+  animation: beat-ball-pulse 260ms var(--ease-out);
+}
+@keyframes beat-ball-pulse {
+  0% { filter: brightness(1.6) saturate(1.3); }
+  100% { filter: brightness(1) saturate(1); }
+}
+
 .spark-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+/* Ganz dezentes Mitpulsieren der Bühne mit dem Beat ("Hintergrund pulsiert
+   leicht") — ein eigenes fixiertes Overlay statt direkt auf .bg-fx (die
+   läuft seitenübergreifend/dauerhaft, siehe base.css), damit dieser Effekt
+   sauber isoliert und exakt aus der BeatClock-Phase getriggert werden kann
+   (startFrameLoop() in challenge.js/tournament.js) statt aus einer eigenen
+   CSS-Zeitbasis, die mit dem tatsächlichen Beat wegdriften würde. */
+.beat-pulse-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse 90% 70% at 50% 40%, rgba(181, 55, 245, 0.14), transparent 65%);
+}
+.beat-pulse-overlay.is-pulsing {
+  animation: beat-bg-pulse 320ms var(--ease-out);
+}
+@keyframes beat-bg-pulse {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .pv-spark {

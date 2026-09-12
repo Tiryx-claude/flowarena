@@ -23,6 +23,8 @@
 </head>
 <body>
   <div class="bg-fx" aria-hidden="true"></div>
+  <div class="beat-pulse-overlay" id="beatPulseOverlay" aria-hidden="true"></div>
+  <div class="stage-dim" id="stageDim" aria-hidden="true"></div>
 
   <div class="stage">
     <header class="stage-topbar">
@@ -65,6 +67,7 @@
 
       <!-- ============ SCREEN: COUNTDOWN ============ -->
       <section id="screenCountdown" hidden>
+        <div class="countdown-flash" id="countdownFlash" aria-hidden="true"></div>
         <div class="countdown-number" id="countdownNumber">3</div>
         <p class="countdown-label" id="countdownLabel" data-i18n="challenge.countdownPreLabel">Mikro checken, Beat kommt gleich …</p>
       </section>
@@ -72,7 +75,8 @@
       <!-- ============ SCREEN: LIVE ============ -->
       <section id="screenLive" hidden style="width:100%; max-width:760px;">
         <div class="verse-meta" style="justify-content:center;">
-          <span class="badge" id="verseBadge">Strophe 1 · Reimschema</span>
+          <span class="badge badge-compact" id="verseBadgeStanza">1/3</span>
+          <span class="badge badge-compact" id="verseBadgeLine">Zeile 2/5</span>
         </div>
 
         <p class="live-hint" data-i18n="challenge.liveHint">Rap jede Zeile frei — beende sie mit dem markierten Wort. Der Ball zeigt dir den Takt.</p>

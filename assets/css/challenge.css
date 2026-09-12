@@ -101,7 +101,27 @@
 }
 
 /* ---------- Screen: Countdown ---------- */
+/* Kurzes "Abdunkeln" beim Countdown-Start — ein fixiertes Overlay statt
+   direkt auf .bg-fx (die läuft dauerhaft/seitenübergreifend, siehe
+   base.css), damit dieser Effekt sauber isoliert per Klasse gesteuert
+   werden kann (runCountdown() in challenge.js/tournament.js). Schnell rein
+   (JS setzt .is-active), etwas sanfter wieder raus (Basis-Transition). */
+.stage-dim {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: var(--z-toast);
+  transition: opacity 320ms var(--ease-out);
+}
+.stage-dim.is-active {
+  opacity: 0.5;
+  transition: opacity 110ms var(--ease-out);
+}
+
 .countdown-number {
+  position: relative;
   font-family: var(--font-display);
   font-size: clamp(6rem, 10vw + 3rem, 11rem);
   font-weight: 700;
@@ -120,6 +140,54 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* "GO!" bekommt einen deutlich stärkeren Pop + Glow als 3/2/1 — der
+   eigentliche Startmoment soll sich spürbar von den Zahlen davor abheben. */
+.countdown-number.is-go {
+  filter: drop-shadow(0 0 70px rgba(255, 170, 60, 0.85)) drop-shadow(0 0 120px rgba(181, 55, 245, 0.5));
+  animation: count-pop-go 0.7s var(--ease-spring);
+}
+
+@keyframes count-pop-go {
+  0% { transform: scale(0.6); opacity: 0; }
+  45% { transform: scale(1.28); opacity: 1; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+/* Radialer Licht-Blitz genau im GO!-Moment — zentriert hinter der Zahl. */
+.countdown-flash {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 60vmin;
+  height: 60vmin;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.3);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(181, 55, 245, 0.45) 40%, transparent 72%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.countdown-flash.is-flashing {
+  animation: countdown-go-flash 550ms var(--ease-out);
+}
+@keyframes countdown-go-flash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.7); }
+}
+
+/* Sanftes Ausblenden, bevor auf den Live-Screen gewechselt wird (statt
+   hartem Cut) — "danach verschwindet der Countdown komplett". Gilt für
+   beide Countdown-Screens (Solo-Challenge UND Turnier-Rundenstart). */
+#screenCountdown.is-leaving,
+#screenRoundIntro.is-leaving {
+  animation: countdown-leave 260ms var(--ease-out) forwards;
+}
+@keyframes countdown-leave {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+
 .countdown-label {
   color: var(--text-muted);
   font-size: var(--fs-md);
@@ -133,6 +201,16 @@
   align-items: center;
   gap: var(--sp-3);
   margin-bottom: var(--sp-4);
+}
+
+/* Kompaktes HUD statt eines langen Satzes ("Strophe X von Y · Zeile A von
+   B · Reimschema Z") — bewusst OHNE Reimschema (nimmt sonst Spannung weg,
+   siehe renderVerseBadge() in challenge.js/tournament.js). Nur die reinen
+   Positionszahlen, knapp lesbar aus dem Augenwinkel während des Rappens. */
+.badge-compact {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .live-hint {
@@ -265,10 +343,39 @@
 .word-slot--word.is-active .word-slot__word { color: var(--magma-text); }
 .word-slot--word.is-active .word-slot__index { color: var(--magma-text); opacity: 0.85; }
 
+/* Dezentes Vorab-Pulsieren, SOLANGE der Ball noch unterwegs ist (nicht
+   aktiv) — signalisiert "hier kommt der Treffer", macht das Zielfeld
+   lebendiger statt eines rein statischen Kästchens bis zum Einschlag. */
+.word-slot--word:not(.is-active) {
+  animation: word-anticipate 1.5s ease-in-out infinite;
+}
+@keyframes word-anticipate {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 18px rgba(255, 120, 40, 0.22); }
+}
+
+/* Kurzer "Einschlag"-Puls GENAU im Landungsmoment (zusätzlich zur
+   dauerhaften .is-active-Vergrößerung/-Glut) — macht das Treffen des
+   Reimworts spürbar befriedigender. Von JS als Klasse gesetzt und nach der
+   Animation wieder entfernt (setActiveBox() in challenge.js/tournament.js). */
+.word-slot--word.is-hit {
+  animation: word-impact 340ms var(--ease-spring);
+}
+@keyframes word-impact {
+  0% { transform: scale(1.34); filter: brightness(1.6); }
+  55% { transform: scale(1.08); filter: brightness(1.1); }
+  100% { transform: scale(1.14); filter: brightness(1); }
+}
+
 @media (max-width: 640px) {
   .word-slot--word { min-width: 76px; padding: var(--sp-2) var(--sp-3); }
   .word-slot--tact { min-width: 34px; min-height: 34px; padding: var(--sp-1); }
   .word-slot--word.is-active { transform: scale(1.1); }
+  @keyframes word-impact {
+    0% { transform: scale(1.28); filter: brightness(1.6); }
+    55% { transform: scale(1.05); filter: brightness(1.1); }
+    100% { transform: scale(1.1); filter: brightness(1); }
+  }
 }
 
 /* Timer-Leiste */
