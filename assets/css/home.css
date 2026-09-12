@@ -34,10 +34,11 @@
   padding: 56px var(--sp-4) var(--sp-6);
 }
 
-/* Zeigt EINE Zeile auf einmal: 4 leere Takt-Kästchen + 1 Wort-Kästchen —
-   exakt dieselbe Mechanik wie das echte Gameplay (assets/css/challenge.css
-   .word-slot--tact/--word), damit die Vorschau in Sekunden erklärt, wie
-   sich eine echte Runde anfühlt (siehe docs/GAMEPLAY.md §3). */
+/* Zeigt EINE Zeile auf einmal: 3 leere Takt-Kästchen + 1 (größeres, deutlich
+   hervorgehobenes) Wort-Kästchen — exakt dieselbe Mechanik wie das echte
+   Gameplay (assets/css/challenge.css .word-slot--tact/--word), damit die
+   Vorschau in Sekunden erklärt, wie sich eine echte Runde anfühlt (siehe
+   docs/GAMEPLAY.md §3). */
 .preview-box {
   position: relative;
   min-width: 64px;
@@ -57,8 +58,8 @@
 }
 
 .preview-box--tact {
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 46px;
+  min-height: 46px;
   opacity: 0.5;
 }
 
@@ -70,8 +71,14 @@
   transition: background 220ms ease, transform 220ms ease, box-shadow 220ms ease;
 }
 
+/* Größer als die Takt-Kästchen und schon im Ruhezustand dezent hervorgehoben
+   (Magma-Tint) — spiegelt dieselbe Betonung wie .word-slot--word im echten
+   Gameplay (assets/css/challenge.css). */
 .preview-box--word {
-  min-width: 84px;
+  min-width: 104px;
+  font-size: var(--fs-md);
+  background: rgba(255, 106, 0, 0.06);
+  border-color: rgba(255, 138, 61, 0.4);
 }
 
 /* "glüht wie Magma", wenn der Ball auftrifft (per JS getriggert) —
@@ -108,8 +115,8 @@
 
 @media (max-width: 560px) {
   .preview-track { gap: var(--sp-2); padding: 48px var(--sp-2) var(--sp-5); }
-  .preview-box--word { min-width: 48px; font-size: var(--fs-xs); padding: var(--sp-2) 4px; }
-  .preview-box--tact { min-width: 30px; min-height: 30px; }
+  .preview-box--word { min-width: 68px; font-size: var(--fs-xs); padding: var(--sp-2) var(--sp-2); }
+  .preview-box--tact { min-width: 36px; min-height: 36px; }
 }
 
 /* ---------- Menü-Leiste ---------- */

@@ -81,7 +81,7 @@
         heroTitleAccent: "Spitze.",
         heroSubtitle: "Wähle einen Beat, stell deine Schwierigkeit ein und droppe deine Bars — live vor deinem Chat oder ganz für dich allein.",
         previewBpmTag: "100 BPM · Beispiel-Zeile",
-        previewCaption: "So läuft's: jede Zeile hat 5 Kästchen — die ersten 4 geben nur den Takt vor, im 5. wartet dein Reimwort. Der Ball hüpft im Beat mit, du rappst frei und landest das Wort genau im letzten Kästchen. 5 Zeilen pro Strophe, danach eine neue Reimfamilie.",
+        previewCaption: "So läuft's: jede Zeile hat 4 Kästchen — die ersten 3 geben nur den Takt vor, im 4. wartet dein Reimwort. Der Ball hüpft im Beat mit, du rappst frei und landest das Wort genau im letzten Kästchen. 5 Zeilen pro Strophe, danach eine neue Reimfamilie.",
         menu: {
           play: "🎤 Spielen",
           tournamentCreate: "🏆 Turnier erstellen",
@@ -704,7 +704,7 @@
         heroTitleAccent: "top.",
         heroSubtitle: "Pick a beat, set your difficulty, and drop your bars — live in front of your chat, or just for yourself.",
         previewBpmTag: "100 BPM · sample line",
-        previewCaption: "Here's how it works: every line has 5 slots — the first 4 are just the beat, and your rhyme word waits in the 5th. The ball bounces along with the beat, you freestyle, and land the word exactly on the last slot. 5 lines per verse, then a fresh rhyme family.",
+        previewCaption: "Here's how it works: every line has 4 slots — the first 3 are just the beat, and your rhyme word waits in the 4th. The ball bounces along with the beat, you freestyle, and land the word exactly on the last slot. 5 lines per verse, then a fresh rhyme family.",
         menu: {
           play: "🎤 Play",
           tournamentCreate: "🏆 Create tournament",
@@ -1327,7 +1327,7 @@
         heroTitleAccent: "вершины.",
         heroSubtitle: "Выбери бит, настрой сложность и читай свои бары — в прямом эфире перед чатом или просто для себя.",
         previewBpmTag: "100 BPM · пример строки",
-        previewCaption: "Вот как это работает: у каждой строки 5 ячеек — первые 4 просто задают такт, в 5-й ждёт твоё рифмующееся слово. Мяч прыгает в такт битой, ты читаешь свободно и попадаешь словом точно в последнюю ячейку. 5 строк на куплет, потом новая рифменная семья.",
+        previewCaption: "Вот как это работает: у каждой строки 4 ячейки — первые 3 просто задают такт, в 4-й ждёт твоё рифмующееся слово. Мяч прыгает в такт битой, ты читаешь свободно и попадаешь словом точно в последнюю ячейку. 5 строк на куплет, потом новая рифменная семья.",
         menu: {
           play: "🎤 Играть",
           tournamentCreate: "🏆 Создать турнир",

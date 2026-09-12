@@ -39,7 +39,7 @@ intro → countdown (3,2,1,Los!) → live (Strophen × Zeilen, beat-getaktet) �
 - **countdown**: 3 → 2 → 1 → "Los!", danach startet die BeatClock (siehe unten
   und Abschnitt 3b für die visuelle Inszenierung — Abdunkeln, Licht-Blitz,
   sanftes Ausblenden statt hartem Screen-Cut).
-- **live**: Strophen-Schleife mit dem 5-Wörter-Rack, siehe unten.
+- **live**: Strophen-Schleife mit dem 4-Felder-Rack, siehe unten.
 - **evaluating**: kurze simulierte Ladezeit (Platzhalter-Statustexte), danach Bewertung.
 - **results**: Score, 8-dimensionale Bewertung, KI-Kommentar, Transkript, Audio-Player.
 
@@ -58,20 +58,25 @@ bleibt überall exakt gleich.
   und damit 5 Endwörter — seit Modul 8 NICHT mehr zwingend alle aus
   derselben Reim-Familie: ein zufälliges Reimschema (z.B. „AABBC") verteilt
   sie auf mehrere Familien, siehe Abschnitt 7.1 Punkt 4c für die Details.
-- **Jede Zeile hat genau `GAMEPLAY_CONFIG.boxesPerLine` Kästchen (Standard: 5)**
-  — unabhängig von der Strophengröße (reiner Zufall, dass beide Zahlen 5
-  sind: Zeilen/Strophe und Kästchen/Zeile sind zwei getrennte Werte).
-  - Die **ersten `boxesPerLine - 1` Kästchen (Standard: 4) sind IMMER leer**
+- **Jede Zeile hat genau `GAMEPLAY_CONFIG.boxesPerLine` Kästchen (Standard: 4,
+  von 5 auf 4 reduziert — Layout-Feedback: "zu überladen")** — unabhängig
+  von der Strophengröße (`linesPerStanza` bleibt bei 5; Zeilen/Strophe und
+  Kästchen/Zeile sind zwei getrennte, unabhängig konfigurierbare Werte).
+  - Die **ersten `boxesPerLine - 1` Kästchen (Standard: 3) sind IMMER leer**
     und dienen nur als BPM-Taktanzeige — kein Text, nur ein pulsierender
     Punkt (`.word-slot--tact` in `assets/css/challenge.css`).
   - **Nur das letzte Kästchen** (Index `boxesPerLine - 1`) zeigt das
     Reimwort dieser Zeile (`.word-slot--word`) — sichtbar ab Zeilenbeginn,
-    damit genug Zeit bleibt, die Zeile darauf hin zu planen.
+    damit genug Zeit bleibt, die Zeile darauf hin zu planen. Spürbar
+    **größer** als die Takt-Kästchen und bereits im Ruhezustand (nicht
+    erst bei `.is-active`) durch einen dezenten Magma-Tint auf Rand/
+    Hintergrund + größere Schrift (`--fs-lg`) hervorgehoben — "das
+    eigentliche Ziel" soll sofort erkennbar sein, nicht erst beim Landen.
   - Der Ball springt **im BPM-Takt über alle `boxesPerLine` Kästchen** —
     ein Kästchen pro Beat, `renderWordRack()`/`updateBall()` in
     `challenge.js` (bzw. dasselbe Prinzip in `tournament.js`). Man rappt
-    frei während der ersten 4 Beats/Kästchen und landet das Reimwort exakt,
-    wenn der Ball im 5. Kästchen ankommt.
+    frei während der ersten `boxesPerLine - 1` Beats/Kästchen und landet
+    das Reimwort exakt, wenn der Ball im letzten Kästchen ankommt.
   - Jede neue Zeile bekommt ihre **eigene, frische Reihe** dieser
     `boxesPerLine` Kästchen (nicht alle 5 Zeilen-Wörter der Strophe
     gleichzeitig sichtbar) — Fortschritt innerhalb der Strophe zeigt
@@ -161,10 +166,10 @@ Es gibt **keine** "Timer-Unterstützung an/aus"-Option mehr (Modul-2-Rewrite):
 Der Zeilenwechsel ist immer exakt an den Beat gekoppelt, das ist jetzt die
 Kernmechanik selbst, nicht mehr optional.
 
-- `GAMEPLAY_CONFIG.beatsPerLine` (Standard: **5**, = `boxesPerLine`, siehe
+- `GAMEPLAY_CONFIG.beatsPerLine` (Standard: **4**, = `boxesPerLine`, siehe
   Abschnitt 3) legt fest, nach wie vielen Beats eine Zeile endet — ein Beat
   pro Kästchen, der Ball braucht also `beatsPerLine` Beats, um einmal durch
-  die ganze Zeile (4 Takt-Kästchen + 1 Wort-Kästchen) zu hüpfen.
+  die ganze Zeile (3 Takt-Kästchen + 1 Wort-Kästchen) zu hüpfen.
 - `msPerBeat = 60000 / bpm`, `lineDuration = beatsPerLine × msPerBeat`.
 - Der BPM-Wert kommt direkt vom gewählten Beat (`Beat.bpm` in `data.js`) —
   90 BPM läuft spürbar langsamer als 150 BPM, siehe Abschnitt 6.
@@ -199,13 +204,14 @@ Statt mehrerer dekorativer Figuren/Balken gibt es genau **ein** Element —
 einen weißen Ball (`assets/css/beat-ball.css`, Skin je nach Shop-Auswahl,
 siehe `docs/SHOP.md`). Er hüpft **jeden einzelnen Beat** vertikal (aus
 `currentBeatPhase() % 1`, genauer: `beatsIntoLine % 1`) UND springt dabei
-**bei jedem Beat auch horizontal zum jeweils nächsten der 5 Kästchen einer
-Zeile** (`updateBall(beatsIntoLine, boxIndex)` in `challenge.js`, wobei
-`boxIndex = floor(beatsIntoLine)`) — landet also 4× auf einem leeren
-Takt-Kästchen und beim 5. Beat exakt auf dem Wort-Kästchen. Die
-Kästchen-Positionen werden per `getBoundingClientRect()` gemessen
-(`measureBoxCenters()`), einmalig direkt nach jedem Zeilenwechsel-Render (die
-5 Kästchen werden pro Zeile komplett neu erzeugt) — `.word-slot`
+**bei jedem Beat auch horizontal zum jeweils nächsten der `boxesPerLine`
+(4) Kästchen einer Zeile** (`updateBall(beatsIntoLine, boxIndex)` in
+`challenge.js`, wobei `boxIndex = floor(beatsIntoLine)`) — landet also 3×
+auf einem leeren Takt-Kästchen und beim 4. Beat exakt auf dem (spürbar
+größeren) Wort-Kästchen. Die Kästchen-Positionen werden per
+`getBoundingClientRect()` gemessen (`measureBoxCenters()`), einmalig direkt
+nach jedem Zeilenwechsel-Render (die 4 Kästchen werden pro Zeile komplett
+neu erzeugt) — `.word-slot`
 transitioniert deshalb bewusst **nur** paint-Eigenschaften (Farbe/Schatten/
 Transform), nie layoutverändernde wie `font-size`/`padding`, damit die
 gemessene Position stabil bleibt und die Reihe nicht "hüpft". Bei **jeder**

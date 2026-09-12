@@ -52,7 +52,7 @@
      Kästchen glühen wie Magma bei Kontakt, Funken beim Aufprall. Rein
      dekorativ (keine Audio-Wiedergabe nötig), läuft sofort beim Laden.
      --------------------------------------------------------------------- */
-  // Zeigt IMMER genau EINE Zeile: boxesPerLine (5) Kästchen, die ersten 4
+  // Zeigt IMMER genau EINE Zeile: boxesPerLine (4) Kästchen, die ersten 3
   // leer (nur Taktanzeige), das letzte mit dem Reimwort — identische
   // Mechanik wie das echte Gameplay (challenge.js), damit die Vorschau
   // wortwörtlich vorführt, wie sich eine echte Zeile anfühlt (siehe
@@ -71,7 +71,7 @@
     ball.style.setProperty("--ball-gradient", equippedDesign.gradient);
     ball.style.setProperty("--ball-glow", equippedDesign.glow);
 
-    const BOXES_PER_LINE = window.FlowData.GAMEPLAY_CONFIG.boxesPerLine; // 5 — identisch zum echten Gameplay
+    const BOXES_PER_LINE = window.FlowData.GAMEPLAY_CONFIG.boxesPerLine; // 4 — identisch zum echten Gameplay
     // Rein dekorative Demo-Wörter (kein echtes Gameplay) — richten sich nach
     // der UI-Sprache, damit die Vorschau nicht wie ein unübersetzter Rest
     // wirkt. Echte Wortauswahl fürs Gameplay kommt aus rhyme-engine.js

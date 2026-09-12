@@ -380,8 +380,8 @@
     return currentRound.stanzas[stanzaIdx];
   }
 
-  // JEDE Zeile bekommt ihre eigene frische Reihe von BEATS_PER_LINE (5)
-  // Kästchen: die ersten 4 sind reine Takt-Kästchen (immer leer), nur das
+  // JEDE Zeile bekommt ihre eigene frische Reihe von BEATS_PER_LINE (4)
+  // Kästchen: die ersten 3 sind reine Takt-Kästchen (immer leer), nur das
   // letzte zeigt das Reimwort dieser Zeile — identisches Prinzip wie
   // challenge.js, siehe docs/GAMEPLAY.md §3 ("gilt für alle Spielmodi").
   function renderWordRack() {

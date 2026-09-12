@@ -25,8 +25,13 @@
     // BPM-Takt durch alle Kästchen einer Zeile (1 Kästchen pro Beat), landet
     // exakt im letzten Kästchen auf dem Reimwort. Gilt identisch in JEDEM
     // Spielmodus (Solo, Turnier, Freundes-Duell — siehe docs/GAMEPLAY.md §3).
-    boxesPerLine: 5,
-    beatsPerLine: 5, // = boxesPerLine: 1 Beat pro Kästchen, siehe oben
+    // Von 5 auf 4 reduziert (Layout-Feedback: "zu überladen") — 3 reine
+    // Takt-Kästchen + 1 (jetzt größer/deutlicher hervorgehobenes) Reimwort-
+    // Kästchen. linesPerStanza/stanzasPerTournamentRound bleiben bewusst
+    // unangetastet (nur die Feld-ANZAHL pro Zeile ändert sich, nicht die
+    // Strophen-/Rundenstruktur).
+    boxesPerLine: 4,
+    beatsPerLine: 4, // = boxesPerLine: 1 Beat pro Kästchen, siehe oben
     minStanzas: 1,
     maxStanzas: 10,
     freeMaxStanzas: 5, // Modul 4: ohne Premium bei 5 Strophen gedeckelt

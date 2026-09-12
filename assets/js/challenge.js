@@ -330,8 +330,8 @@
   }
 
   // Paint-only Klassenwechsel (siehe .word-slot-Kommentar in challenge.css) —
-  // markiert, auf welchem der 5 Kästchen der Ball gerade "steht". Das
-  // Wort-Kästchen bekommt beim Landen zusätzlich einen kurzen "Einschlag"-
+  // markiert, auf welchem der BEATS_PER_LINE Kästchen der Ball gerade
+  // "steht". Das Wort-Kästchen bekommt beim Landen zusätzlich einen kurzen "Einschlag"-
   // Puls (.is-hit, siehe word-impact-Keyframe) — macht das eigentliche
   // Treffen des Reimworts spürbar befriedigender statt nur eines stillen
   // Klassenwechsels.
@@ -395,8 +395,8 @@
     els.verseChipValue.textContent = `${stanzaIndex + 1}/${totalStanzas}`;
   }
 
-  // JEDE Zeile bekommt ihre eigene frische Reihe von BEATS_PER_LINE (5)
-  // Kästchen: die ersten 4 sind reine Takt-Kästchen (immer leer), nur das
+  // JEDE Zeile bekommt ihre eigene frische Reihe von BEATS_PER_LINE (4)
+  // Kästchen: die ersten 3 sind reine Takt-Kästchen (immer leer), nur das
   // letzte zeigt das Reimwort dieser Zeile — von Zeilenbeginn an sichtbar
   // (der Ball "landet" später nur noch beat-genau darauf, siehe
   // docs/GAMEPLAY.md §3/§4). Gilt identisch in jedem Spielmodus.

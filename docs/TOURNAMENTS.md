@@ -68,7 +68,7 @@ index.html (erstellen/beitreten)
 - **Runden**: `FlowTournament.startTournament()` generiert **alle** Runden
   im Voraus über `FlowAI.rhyme.generateStanza()`. **Eine Runde besteht aus
   `GAMEPLAY_CONFIG.stanzasPerTournamentRound` (3) Strophen hintereinander**
-  (`round.stanzas[]`, je 5 Zeilen à 5 Kästchen — identische Kästchen-/
+  (`round.stanzas[]`, je 5 Zeilen à 4 Kästchen — identische Kästchen-/
   Ball-Mechanik wie die Solo-Challenge, siehe `docs/GAMEPLAY.md` §3) — der
   Beat läuft dabei **ohne Unterbrechung** durch, eine einzige BeatClock/
   Aufnahme für die ganze Runde. Nach jeder abgeschlossenen Strophe werden

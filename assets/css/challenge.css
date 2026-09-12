@@ -219,7 +219,7 @@
   margin-bottom: var(--sp-6);
 }
 
-/* ---------- Word-Rack: die 5 Kästchen der aktuellen Zeile ---------- */
+/* ---------- Word-Rack: die 4 Kästchen der aktuellen Zeile ---------- */
 /* Umhüllt Word-Rack + Ball + Funken — der Ball wird absolut relativ zu
    diesem Wrapper positioniert (challenge.js), nicht relativ zum Rack selbst,
    damit er über Kästchen-Ränder hinaus frei "fliegen" kann. */
@@ -254,10 +254,11 @@
   padding-top: 40px; /* Platz für den hüpfenden Ball über den Kästchen */
 }
 
-/* Jede Zeile bekommt ihre eigene Reihe von boxesPerLine (5) Kästchen: die
-   ersten 4 sind reine Takt-Kästchen (.word-slot--tact, immer leer), nur das
-   letzte zeigt das Reimwort (.word-slot--word) — siehe docs/GAMEPLAY.md §3.
-   Frisch gerendert bei jedem Zeilenwechsel (renderWordRack() in challenge.js). */
+/* Jede Zeile bekommt ihre eigene Reihe von boxesPerLine (4) Kästchen: die
+   ersten 3 sind reine Takt-Kästchen (.word-slot--tact, immer leer), nur das
+   letzte (größere, deutlich hervorgehobene) zeigt das Reimwort
+   (.word-slot--word) — siehe docs/GAMEPLAY.md §3. Frisch gerendert bei
+   jedem Zeilenwechsel (renderWordRack() in challenge.js). */
 .word-slot {
   display: flex;
   flex-direction: column;
@@ -296,11 +297,13 @@
   letter-spacing: 0.01em;
 }
 
-/* Takt-Kästchen (die ersten 4): reine Beat-Anzeige, kein Wort — sagen nur
-   "hier ist gerade ein Beat", dezenter als das Wort-Kästchen. */
+/* Takt-Kästchen (die ersten 3): reine Beat-Anzeige, kein Wort — sagen nur
+   "hier ist gerade ein Beat", dezenter als das Wort-Kästchen. Etwas größer
+   als früher (46px) — bei nur noch 3 statt 4 Takt-Kästchen ist mehr Platz
+   pro Kästchen, das Layout soll den Raum nutzen statt kleinlich zu wirken. */
 .word-slot--tact {
-  min-width: 46px;
-  min-height: 46px;
+  min-width: 54px;
+  min-height: 54px;
   opacity: 0.5;
 }
 
@@ -324,14 +327,27 @@
   box-shadow: 0 0 10px rgba(41, 211, 255, 0.85);
 }
 
-/* Wort-Kästchen (das 5.): zeigt das Reimwort ab Zeilenbeginn — der Ball
-   landet hier zuletzt und genau dann muss das Wort fallen. Glüht wie Magma,
-   dieselben Farbwerte wie die Homepage-Vorschau (assets/css/beat-ball.css),
-   damit Vorschau und echtes Gameplay optisch identisch wirken. Bewusst KEIN
-   font-size-Wechsel (siehe .word-slot-Kommentar) — nur paint-Eigenschaften,
-   damit die Zeile lesbar bleibt und die Reihe nicht reflowt. */
+/* Wort-Kästchen (das letzte, 4.): zeigt das Reimwort ab Zeilenbeginn — der
+   Ball landet hier zuletzt und genau dann muss das Wort fallen. Glüht wie
+   Magma, dieselben Farbwerte wie die Homepage-Vorschau
+   (assets/css/beat-ball.css), damit Vorschau und echtes Gameplay optisch
+   identisch wirken. Deutlich größer als die Takt-Kästchen UND bereits im
+   Ruhezustand (nicht erst bei .is-active) sichtbar hervorgehoben — ein
+   dezenter Magma-Tint auf Rand/Hintergrund + größere Schrift signalisieren
+   schon von Weitem "hier ist das eigentliche Ziel". Bewusst weiterhin KEIN
+   font-size-Wechsel BEIM Aktivieren selbst (siehe .word-slot-Kommentar) —
+   die größere Schrift gilt fix für die ganze Zeit, damit die Box beim
+   Aktivieren nicht reflowt. */
 .word-slot--word {
-  min-width: 104px;
+  min-width: 148px;
+  min-height: 64px;
+  padding: var(--sp-4) var(--sp-5);
+  background: rgba(255, 106, 0, 0.06);
+  border-color: rgba(255, 138, 61, 0.4);
+}
+
+.word-slot--word .word-slot__word {
+  font-size: var(--fs-lg);
 }
 
 .word-slot--word.is-active {
@@ -367,15 +383,27 @@
   100% { transform: scale(1.14); filter: brightness(1); }
 }
 
+/* Nur noch 4 statt 5 Kästchen pro Zeile — auf dem Smartphone ist dadurch
+   spürbar mehr Platz pro Kästchen frei, den das Wort-Kästchen bewusst nutzt
+   (deutlich größer als die alten 76px), damit es auch auf kleinen Screens
+   "groß und gut lesbar" bleibt (Anforderung). */
 @media (max-width: 640px) {
-  .word-slot--word { min-width: 76px; padding: var(--sp-2) var(--sp-3); }
-  .word-slot--tact { min-width: 34px; min-height: 34px; padding: var(--sp-1); }
+  .word-slot--word { min-width: 116px; min-height: 56px; padding: var(--sp-3) var(--sp-4); }
+  .word-slot--word .word-slot__word { font-size: var(--fs-md); }
+  .word-slot--tact { min-width: 42px; min-height: 42px; padding: var(--sp-1); }
   .word-slot--word.is-active { transform: scale(1.1); }
   @keyframes word-impact {
     0% { transform: scale(1.28); filter: brightness(1.6); }
     55% { transform: scale(1.05); filter: brightness(1.1); }
     100% { transform: scale(1.1); filter: brightness(1); }
   }
+}
+
+/* Sehr schmale Screens (kleine Phones im Hochformat): Wort-Kästchen bleibt
+   priorisiert groß, Takt-Kästchen dürfen dafür etwas kompakter werden. */
+@media (max-width: 380px) {
+  .word-slot--word { min-width: 100px; }
+  .word-slot--tact { min-width: 36px; min-height: 36px; }
 }
 
 /* Timer-Leiste */
