@@ -396,6 +396,65 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
    mehrere Strophen/Runden hinweg gepflegt wird (`challenge.js`,
    `tournament.js`, `tournament-data.js`).
 
+4d. **Max. 2 Wiederholungen je Buchstabe + Familien-Sperrliste** (4. Runde
+   Reimqualität): Feedback nach 4c — Muster wie `AAABB`/`AABAB`/`AABBA`/
+   `AAAAA` (3–5× derselbe Buchstabe) waren zwar nur EINE von zehn
+   Möglichkeiten, kamen aber trotzdem noch oft genug vor, um weiterhin
+   Ketten wie "Revier/Papier/Quartier/Klavier" zu erzeugen — der Kern-Fehler
+   war laut Feedback nicht (nur) die Wortqualität, sondern dass MEHRERE
+   Zeilen überhaupt auf denselben Klang laufen: "Nicht alle 5 Wörter müssen
+   sich reimen" wurde als zentrale Anforderung genannt. `SCHEME_PATTERNS_BY_COUNT`
+   enthält deshalb jetzt AUSSCHLIESSLICH Muster mit max. 2 Wiederholungen je
+   Buchstabe (bei 5 Zeilen z.B. `ABCCB`, `ABCAB`, `ABCBA`, `AABCB`,
+   `ABACB` statt der alten 3+-Muster) — rechnerisch erzwingt das bei 5
+   Zeilen automatisch MINDESTENS 3 verschiedene Familien pro Strophe
+   (2+2+1 ist die einzig mögliche Aufteilung ohne 3er-Wiederholung).
+   - **Konkrete Ursache gefunden und behoben**: die Kernbank-Familie "-ier"
+     (`Tier/Bier/Papier/Quartier/Revier/Klavier/Kavalier`) — genau das
+     wiederholt gemeldete Beispiel — hatte vier von sieben Wörtern
+     (Bier/Papier/Quartier/Revier) mit `street`/`money`/`battle`-Tags,
+     weil sie inhaltlich tatsächlich mit Straße/Geld/Territorium zu tun
+     haben (Revier=Territorium, Quartier=Viertel, Bier=Straßenkultur,
+     Papier=Geld-Slang) — das machte die Familie für den bevorzugten Pool
+     "qualifiziert", obwohl die Wörter selbst wie aus einem Reimlexikon
+     klingen, nicht wie gesprochene Rap-Sprache. Neue Sperrliste
+     `AVOID_FAMILY_ENDINGS` (aktuell: `-ier`) schließt so eine Familie HART
+     aus `buildMergedBank()` aus — nicht nur aus dem bevorzugten Pool,
+     sondern komplett aus der nutzbaren Bank, für jeden Modus. Stichprobe
+     der ~25 kleinsten bevorzugten Familien (DE/EN/RU) ergab **keinen
+     zweiten, ebenso eindeutigen Fall** — "-ier" scheint ein isolierter
+     Ausreißer zu sein, kein systemisches Muster über die ganze Bank. Die
+     Sperrliste ist bewusst als erweiterbarer Mechanismus angelegt (nicht
+     nur als Einmal-Fix), falls künftig weitere Fälle gemeldet werden.
+   - **Bekannte Grenze, ehrlich benannt**: die ~25-Familien-Stichprobe ist
+     NICHT erschöpfend für alle ~700+ Zusatzbank-Familien pro Sprache —
+     es ist plausibel, dass weitere, seltener gezogene "-ier"-artige Fälle
+     existieren, die (noch) nicht aufgefallen sind.
+
+4e. **Zur technischen Anforderung "Kandidaten generieren → mehrstufig
+   filtern → erst dann auswählen"**: die bestehende Pipeline entspricht
+   diesem Prinzip bereits strukturell, auch wenn sie als EIN gewichtetes
+   Scoring statt als neun getrennte sequenzielle Schritte implementiert ist
+   — funktional deckt sie ab: (1) Kandidaten = alle Wörter der gewählten
+   Familie (echte Wörter, nie erfunden), (2) phonetische Reimqualität =
+   Familienmitgliedschaft + Sperrliste (4d), (3)/(4) Natürlichkeit/moderne
+   Verwendbarkeit = Energie-Tags + `rhyme-slang.js` (Abschnitt 6b/6c),
+   (5) Punchline-Potenzial = "scharfer"/"weicher" Energie-Bonus je Modus
+   (6c), (6) Wiederholung = `used.words`/`used.stems` (Punkt 4), (7)
+   Vergleich mit vorherigen Strophen = `excludeFamilyIds` + persistente
+   Familien-Historie (6c), (8) schlechteste Kandidaten aussortieren =
+   Scoring + Sperrliste, (9) finale Wörter = die besten `count` je
+   Buchstabe. **Bewusst NICHT umgesetzt**: echte phonetische
+   Slant-/Near-Rhyme-Erkennung (Wörter, die sich ÄHNLICH, aber nicht exakt
+   gleich anhören, als zusätzliche gültige Reimoption). Das würde entweder
+   eine IPA-basierte Aussprache-Distanzfunktion oder ein von Hand
+   kuratiertes Nah-Reim-Netz über hunderte Familien pro Sprache brauchen —
+   beides ein deutlich größeres Vorhaben als die bisherigen Erweiterungen.
+   Der pragmatische Ersatz dafür: jeder Buchstabe eines Schemas bekommt
+   ohnehin schon eine KOMPLETT ANDERE Familie (4c) — dadurch klingen die
+   5 Endwörter einer Strophe nie alle gleich, auch ohne dass zwei
+   VERSCHIEDENE Familien als "verwandt klingend" erkannt werden müssten.
+
 6b. **Moderne Jugend-/Rap-Sprache + Energie-Gewichtung** (Modul 8):
    Anforderung war "nicht wie aus einem Schulbuch" und "mehr Energie, nicht
    ständig harmlose Wörter wie Papier/Klavier/Garten/Fenster".

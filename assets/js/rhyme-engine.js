@@ -392,6 +392,30 @@
   const CORE_BANKS = { de: RHYME_BANK_DE, en: RHYME_BANK_EN, ru: RHYME_BANK_RU };
 
   /* ---------------------------------------------------------------------
+     Bekannte "Wörterbuch-Reim"-Familien: Endungen, deren Wortbestand fast
+     ausschließlich aus formellen/veralteten Lehnwörtern besteht — selbst
+     wenn einzelne Mitglieder zufällig ein Themen-Tag tragen (die
+     automatische Stichwort-Pipeline UND die Kernbank kennen keinen
+     Unterschied zwischen "inhaltlich verwandt" und "klingt wie gesprochene
+     Rap-Sprache"). Konkret gemeldeter Fall: die Kernbank-Familie "-ier"
+     (Tier/Bier/Papier/Quartier/Revier/Klavier/Kavalier) — "Revier"/
+     "Quartier"/"Papier"/"Bier" trugen battle-/street-/money-Tags
+     (inhaltlich ja tatsächlich verwandt: Revier=Territorium, Quartier=
+     Viertel, Bier=Straßenkultur), wirkten als Endwörter aber trotzdem wie
+     aus einem Reimlexikon statt wie echte Rap-Sprache — genau die
+     wiederholt gemeldete Kette "Revier/Papier/Quartier/Klavier". HART
+     ausgeschlossen (nicht nur abgewertet) — bei hunderten Familien pro
+     Sprache besteht keine Gefahr, dass dem Spiel dadurch die Auswahl
+     ausgeht. Explizite Sperrliste statt einer automatischen "klingt das
+     natürlich?"-Erkennung (nicht zuverlässig automatisierbar) — siehe
+     docs/GAMEPLAY.md für die Begründung und die bekannte Grenze: NICHT
+     erschöpfend für alle ~700+ Zusatzbank-Familien geprüft, nur gezielt
+     für den konkret gemeldeten Fall und eine Stichprobe der kleinsten
+     bevorzugten Familien.
+     --------------------------------------------------------------------- */
+  const AVOID_FAMILY_ENDINGS = ["-ier"];
+
+  /* ---------------------------------------------------------------------
      Bank-Zusammenführung: Kernbank (von Hand, oben) + Zusatzbank
      (assets/js/rhyme-data-generated.js, siehe Kopfkommentar dort) + für
      Deutsch zusätzlich prozedural erzeugte Komposita (rhyme-generator.js).
@@ -443,8 +467,14 @@
     const slang = slangByLocale[locale] || [];
     slang.forEach((f) => bank.push(f));
 
-    mergedBankCache[locale] = bank;
-    return bank;
+    // Bekannte "Wörterbuch-Reim"-Familien hart entfernen (siehe
+    // AVOID_FAMILY_ENDINGS oben) — EINMALIG hier, damit der Ausschluss
+    // überall gilt (nicht nur im bevorzugten Pool), unabhängig davon, aus
+    // welcher Schicht die Familie kam.
+    const filtered = bank.filter((f) => !AVOID_FAMILY_ENDINGS.includes(f.ending));
+
+    mergedBankCache[locale] = filtered;
+    return filtered;
   }
 
   function topicMatches(word, topic) {
@@ -909,14 +939,22 @@
      EIGENE Reim-Familie). Kuratierte Muster pro Zeilenzahl statt freier
      Zufallsgenerierung, damit garantiert sinnvolle Formen herauskommen
      (Paarreime, Kreuzreime, Klammerreime — keine Einzelzeilen-Inseln ohne
-     jeden Reimpartner). "AAAAA" bleibt bewusst mit im Topf (klassischer
-     Monoreim kommt in echtem Rap auch vor), aber eben nur als EINE von
-     mehreren Möglichkeiten statt der einzigen.
+     jeden Reimpartner). WICHTIG (Feedback, 4. Runde): "Nicht alle 5 Wörter
+     müssen auf denselben Klang reimen" — jeder Buchstabe darf höchstens
+     ZWEIMAL vorkommen (max. Paarreim, nie Dreier-/Fünferkette). Frühere
+     Muster wie "AAABB"/"AABAB"/"AABBA"/"AAAAA" (3-5× derselbe Buchstabe)
+     sind deshalb komplett entfernt, nicht nur seltener gemacht — genau
+     solche Ketten waren der gemeldete Kern-Fehler ("Revier/Papier/
+     Quartier/Klavier" wirkt künstlich, WEIL vier Zeilen auf denselben Klang
+     laufen, unabhängig davon, wie gut die einzelnen Wörter sind). Bei 5
+     Zeilen braucht ein Muster mit max. 2 Wiederholungen je Buchstabe
+     rechnerisch MINDESTENS 3 verschiedene Familien (2+2+1) — das erzwingt
+     also automatisch echte Abwechslung pro Strophe.
      --------------------------------------------------------------------- */
   const SCHEME_PATTERNS_BY_COUNT = {
-    5: ["AABBC", "ABABC", "AABCC", "ABBAC", "AABAB", "ABCCB", "AAABB", "ABABB", "AABBA", "AAAAA"],
-    4: ["AABB", "ABAB", "AABC", "ABBA", "AAAA"],
-    3: ["AAB", "ABA", "AAA"],
+    5: ["AABBC", "ABABC", "AABCC", "ABBAC", "ABCCB", "ABCAB", "ABCBA", "AABCB", "ABACB"],
+    4: ["AABB", "ABAB", "ABBA", "AABC", "ABAC", "ABCA", "ABCB", "ABBC"],
+    3: ["AAB", "ABA", "ABB", "ABC"],
     2: ["AA", "AB"],
     1: ["A"],
   };
