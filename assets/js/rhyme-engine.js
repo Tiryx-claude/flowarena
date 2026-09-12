@@ -1,16 +1,26 @@
 /* =========================================================================
-   FlowArena — Rhyme Engine (Modul 3, generalüberholt in Modul 7)
+   FlowArena — Rhyme Engine (Modul 3, generalüberholt in Modul 7 + 8)
    -------------------------------------------------------------------------
    KERNREGEL: Die KI liefert NIEMALS Rapzeilen oder ganze Strophen — nur die
    Endwörter. pro Strophe werden GAMEPLAY_CONFIG.linesPerStanza (Standard: 5)
-   Wörter auf einmal geliefert, EINS pro Zeile, alle aus derselben Reim-
-   Familie (gleiche Endung). Modul 3 ersetzt generateStanzaWords() 1:1 durch
-   einen echten API-Call mit demselben Rückgabeformat — siehe
-   docs/AI_ARCHITECTURE.md.
+   Wörter auf einmal geliefert, EINS pro Zeile.
 
-   "Reimschema" = welche Reim-Familie (Endung, z.B. "-eit") diese Strophe
-   nutzt. Jede neue Strophe bekommt garantiert eine andere Familie als die
-   vorherigen (bis der Vorrat erschöpft ist, dann Reset) — siehe
+   MODUL-8-ÄNDERUNG — echte REIMSCHEMATA statt reinem Monoreim: früher kam
+   jede Strophe aus EINER EINZIGEN Reim-Familie für ALLE Zeilen (Monoreim,
+   "AAAAA") — das erzeugte Ketten wie "Revier/Papier/Quartier/Klavier/...",
+   die nur schriftlich dieselbe Endung teilen, sich aber wie künstliches
+   Aneinanderreihen anfühlten, statt wie ein echtes Reimschema. Jetzt bekommt
+   jede Strophe ein zufälliges Buchstaben-Muster (z.B. "AABBC" — Zeile 1+2
+   reimen sich auf Familie A, Zeile 3+4 auf eine ANDERE Familie B, Zeile 5
+   steht für sich auf Familie C), siehe SCHEME_PATTERNS_BY_COUNT/pickScheme().
+   Jeder Buchstabe bekommt eine eigene, garantiert andere Reim-Familie als
+   alle anderen Buchstaben derselben Strophe — echte Paar-/Kreuz-/
+   Klammerreime statt reinem Endungs-Aneinanderreihen. Modul 3 ersetzt
+   generateStanzaWords() 1:1 durch einen echten API-Call mit demselben
+   Rückgabeformat — siehe docs/AI_ARCHITECTURE.md.
+
+   Jede neue Strophe bekommt garantiert andere Familien als die vorherigen
+   (bis der Vorrat erschöpft ist, dann Reset) — siehe
    pickRhymeStanza()/excludeFamilyIds.
 
    MEHRSPRACHIGKEIT (siehe docs/I18N.md): RHYME_BANKS enthält eine komplett
@@ -425,6 +435,14 @@
     // und gegen die Kernbank abgeglichen — siehe rhyme-data-generated.js).
     generated.forEach((f) => bank.push(f));
 
+    // Moderne Jugend-/Rap-Sprache anhängen (assets/js/rhyme-slang.js, von
+    // Hand geprüfte Familien, siehe Kopfkommentar dort) — eigene Schicht
+    // statt in die Kernbank gemischt, damit ihr Umfang/ihre Herkunft klar
+    // nachvollziehbar bleibt (gleiches Prinzip wie bei der Zusatzbank).
+    const slangByLocale = window.FlowRhymeSlang || {};
+    const slang = slangByLocale[locale] || [];
+    slang.forEach((f) => bank.push(f));
+
     mergedBankCache[locale] = bank;
     return bank;
   }
@@ -482,15 +500,40 @@
     return share;
   }
 
-  function pickFamilyWeighted(families, difficulty) {
+  // Anteil der Wörter einer Familie mit Battle-/Street-Bezug — nicht mit
+  // `topic` zu verwechseln (das ist DAS gewählte Thema der Runde), sondern
+  // eine grobe "wie viel Energie steckt hier drin"-Kennzahl (Anforderung:
+  // "mehr Wut/Konkurrenz/Status/Straße, nicht ständig harmlose Wörter wie
+  // Papier/Klavier/Garten"). Wirkt bereits auf FAMILIEN-Ebene, nicht nur
+  // bei der Wortauswahl INNERHALB einer Familie (siehe selectBestWords) —
+  // sonst würden die wenigen neuen Slang-Familien (rhyme-slang.js) in der
+  // riesigen Gesamtbank kaum je zum Zug kommen.
+  const familyEnergyCache = new Map();
+  function familyEnergyShare(family) {
+    if (familyEnergyCache.has(family.id)) return familyEnergyCache.get(family.id);
+    let n = 0;
+    family.words.forEach((w) => { if (w.topics.includes("battle") || w.topics.includes("street")) n++; });
+    const share = n / family.words.length;
+    familyEnergyCache.set(family.id, share);
+    return share;
+  }
+
+  function pickFamilyWeighted(families, difficulty, streetMode) {
     const weights = families.map((f) => {
       const base = countDiffMatches(f, difficulty) + 1;
       const share = familyMaxRootShare(f);
       // Über 50% Anteil einer einzigen Wurzel: deutlich abwerten. Über 30%:
       // leicht abwerten. Darunter: keine Strafe (gesunde Vielfalt).
-      if (share > 0.5) return base * 0.15;
-      if (share > 0.3) return base * 0.5;
-      return base;
+      let weight = base;
+      if (share > 0.5) weight = base * 0.15;
+      else if (share > 0.3) weight = base * 0.5;
+
+      // Energie-Bonus: im Street-Modus stark, im Normal-Modus dezent — die
+      // "Standard bleibt modern, aber locker; Street geht deutlich weiter"-
+      // Anforderung gilt hier genauso wie bei der Wortauswahl selbst.
+      const energy = familyEnergyShare(f);
+      const boost = streetMode ? 1 + energy * 9 : 1 + energy * 0.6;
+      return weight * boost;
     });
     const total = weights.reduce((a, b) => a + b, 0);
     let r = Math.random() * total;
@@ -566,8 +609,15 @@
     "zu", "bei",
     // Untrennbare Vorsilben (be-, ge-, er-, ver-, zer-, ent-, emp-, miss-)
     "ver", "ent", "emp", "zer", "miss", "be", "er", "ge",
-    // Englisch
-    "over", "under", "mis", "re", "un", "out", "pre", "up",
+    // Verneinungs-/Verstärkungs-Vorsilben vor Adjektiven — genau der Fall
+    // aus der Anforderung: "gewöhnlich/ungewöhnlich/außergewöhnlich" sind
+    // dasselbe Basiswort, nur mit Negation bzw. Verstärkung davor, keine
+    // drei verschiedenen Reimwörter. ("unter"/"über" stehen schon oben bei
+    // den trennbaren Vorsilben, hier nur die neuen: außer-, ur-, erz-,
+    // super-, mega-, hyper-, extra-, un-.)
+    "außer", "ur", "erz", "super", "mega", "hyper", "extra", "un",
+    // Englisch (un- deckt Deutsch/Englisch gemeinsam ab, oben schon gelistet)
+    "over", "under", "mis", "re", "out", "pre", "up",
     // Russisch (Aspekt-/Richtungspräfixe)
     "пере", "про", "при", "под", "над", "раз", "воз", "из", "до",
     "по", "за", "вы", "от", "на", "об", "у", "в", "с",
@@ -726,10 +776,24 @@
       let score = 0;
       if (topicMatches(word, topic)) score += 2;
       if (word.diff === difficulty) score += 1;
+
+      // "Energie"-Bonus: Wörter mit Battle-/Street-Bezug wirken lebendiger
+      // und Rap-typischer als neutrale Alltagswörter (Anforderung: "nicht
+      // ständig harmlose Wörter wie Papier/Klavier/Garten/Fenster" — mehr
+      // Wut/Ego/Konkurrenz/Status/Straße, ohne DAUERND aggressiv zu sein).
+      // Normal-Modus bekommt dafür nur einen dezenten Schubs ("modern, aber
+      // locker"), Street-Modus deutlich mehr PLUS eine aktive Abwertung der
+      // harmlosesten Wörter — dadurch fühlt sich Street spürbar anders an,
+      // statt nur graduell.
+      const isEnergetic = word.topics.includes("battle") || word.topics.includes("street");
       if (streetMode) {
-        if (word.topics.includes("battle")) score += 3;
+        if (isEnergetic) score += 4;
         if (word.diff !== "leicht") score += 2;
+        else score -= 1;
+      } else if (isEnergetic) {
+        score += 1;
       }
+
       const stem = wordStem(word.w, family.ending);
       if (used?.words?.has(word.w.toLowerCase())) score -= 5;
       else if (usedCoreStems.has(coreStem(stem))) score -= 3;
@@ -777,30 +841,71 @@
     return picked.slice(0, count).map((s) => ({ w: s.word.w, stem: s.stem }));
   }
 
+  /* ---------------------------------------------------------------------
+     Reimschema: welches Buchstaben-Muster eine Strophe bekommt (z.B.
+     "AABBC" = Paarreim + Paarreim + Einzelzeile, jeder Buchstabe = eine
+     EIGENE Reim-Familie). Kuratierte Muster pro Zeilenzahl statt freier
+     Zufallsgenerierung, damit garantiert sinnvolle Formen herauskommen
+     (Paarreime, Kreuzreime, Klammerreime — keine Einzelzeilen-Inseln ohne
+     jeden Reimpartner). "AAAAA" bleibt bewusst mit im Topf (klassischer
+     Monoreim kommt in echtem Rap auch vor), aber eben nur als EINE von
+     mehreren Möglichkeiten statt der einzigen.
+     --------------------------------------------------------------------- */
+  const SCHEME_PATTERNS_BY_COUNT = {
+    5: ["AABBC", "ABABC", "AABCC", "ABBAC", "AABAB", "ABCCB", "AAABB", "ABABB", "AABBA", "AAAAA"],
+    4: ["AABB", "ABAB", "AABC", "ABBA", "AAAA"],
+    3: ["AAB", "ABA", "AAA"],
+    2: ["AA", "AB"],
+    1: ["A"],
+  };
+
+  // Modul-weites "zuletzt benutztes Schema" pro Sprache — rein kosmetisch,
+  // verhindert nur, dass zwei Strophen HINTEREINANDER zufällig dasselbe
+  // Muster bekommen (geht bei Reload einfach verloren, kein localStorage
+  // nötig für so eine kleine Abwechslungs-Politur).
+  const lastSchemeByLocale = {};
+
+  function pickScheme(count, locale) {
+    const patterns = SCHEME_PATTERNS_BY_COUNT[count];
+    if (!patterns || patterns.length === 0) {
+      // Genereller Fallback für unübliche Zeilenzahlen: Zeilen paarweise zu
+      // Paarreimen gruppieren, eine übrig bleibende letzte Zeile bekommt
+      // ihre eigene Familie.
+      let scheme = "";
+      let letterCode = 65; // "A"
+      for (let i = 0; i < count; i += 2) {
+        const L = String.fromCharCode(letterCode);
+        scheme += L;
+        if (i + 1 < count) scheme += L;
+        letterCode++;
+      }
+      return scheme;
+    }
+    const last = lastSchemeByLocale[locale];
+    const choices = patterns.length > 1 ? patterns.filter((p) => p !== last) : patterns;
+    const scheme = choices[Math.floor(Math.random() * choices.length)];
+    lastSchemeByLocale[locale] = scheme;
+    return scheme;
+  }
+
   /**
    * Liefert `count` Endwörter (Standard: GAMEPLAY_CONFIG.linesPerStanza) für
-   * eine komplette Strophe — eine Familie, ein Wort pro Zeile. `locale`
-   * wählt die Sprach-Wortbank (de/en/ru); ohne Angabe wird die aktuell
-   * aktive UI-Sprache verwendet (siehe assets/js/i18n.js). `streetMode`
-   * schaltet härtere Battle-Rap-Reimwörter/-Themen frei (siehe
-   * selectBestWords) — Standardmodus bleibt neutral/allgemein.
-   * @returns {{ words: string[], ending: string, familyId: string }}
+   * eine komplette Strophe, verteilt nach einem zufälligen REIMSCHEMA
+   * (siehe pickScheme/SCHEME_PATTERNS_BY_COUNT oben) — jeder Buchstabe des
+   * Schemas bekommt seine EIGENE Reim-Familie, garantiert verschieden von
+   * allen anderen Buchstaben derselben Strophe. `locale` wählt die
+   * Sprach-Wortbank (de/en/ru); ohne Angabe wird die aktuell aktive
+   * UI-Sprache verwendet (siehe assets/js/i18n.js). `streetMode` schaltet
+   * härtere Battle-Rap-Reimwörter/-Themen frei (siehe selectBestWords) —
+   * Standardmodus bleibt modern, aber allgemein/locker.
+   * @returns {{ words: string[], scheme: string, ending: string,
+   *   endingsByLetter: Object<string,string>, familyId: string,
+   *   familyIds: string[] }}
    */
   function pickRhymeStanza({ difficulty = "mittel", topic = "freestyle", excludeFamilyIds = [], count = 5, locale, streetMode = false } = {}) {
     const activeLocale = locale || window.FlowI18n?.getLocale() || "de";
     const bank = buildMergedBank(activeLocale);
-
-    // Nur Familien, die überhaupt genug ECHTE Wörter besitzen, sind wählbar.
-    let viable = bank.filter((f) => f.words.length >= count && !excludeFamilyIds.includes(f.id));
-
-    // Vorrat erschöpft (alle nutzbaren Familien schon dran) → Reset erlauben
-    if (viable.length === 0) {
-      viable = bank.filter((f) => f.words.length >= count);
-    }
-    // Absoluter Fallback (sollte bei einer gepflegten Bank nie eintreten)
-    if (viable.length === 0) {
-      viable = bank.filter((f) => f.words.length > 0);
-    }
+    const scheme = pickScheme(count, activeLocale);
 
     // Anti-Wiederholung: bei Bedarf zurücksetzen, wenn der Großteil des
     // Sprach-Wortschatzes schon "verbraucht" ist (siehe USED_RESET_THRESHOLD).
@@ -810,17 +915,76 @@
       used = { words: new Set(), stems: [] };
     }
 
-    const family = pickFamilyWeighted(viable, difficulty);
-    const picked = shuffle(selectBestWords(family, difficulty, topic, count, used, streetMode));
-    const words = picked.map((p) => p.w);
+    // Buchstaben des Schemas mit ihrer jeweiligen Häufigkeit (z.B. "AABBC"
+    // → A:2, B:2, C:1) — jeder Buchstabe bekommt eine eigene Familie mit
+    // GENAU dieser Wortanzahl (kein ganzer Stanza-`count` mehr nötig, daher
+    // sind hier auch kleinere/seltenere Familien wählbar als vorher).
+    const letterCounts = new Map();
+    for (const ch of scheme) letterCounts.set(ch, (letterCounts.get(ch) || 0) + 1);
 
-    picked.forEach((p) => {
-      used.words.add(p.w.toLowerCase());
-      pushRecentStem(used.stems, p.stem);
+    const excludedThisStanza = excludeFamilyIds.slice();
+    const wordsByLetter = {};
+    const endingsByLetter = {};
+    const familyIds = [];
+
+    letterCounts.forEach((neededCount, letter) => {
+      let viable = bank.filter((f) => f.words.length >= neededCount && !excludedThisStanza.includes(f.id));
+      if (viable.length === 0) viable = bank.filter((f) => f.words.length >= neededCount);
+      if (viable.length === 0) viable = bank.filter((f) => f.words.length > 0);
+
+      // Street-Modus: harte Vorfilterung auf Familien mit ÜBERHAUPT Battle-/
+      // Street-Bezug, bevor überhaupt gewichtet wird. Reine Gewichtung
+      // (siehe pickFamilyWeighted/familyEnergyShare) reicht allein nicht —
+      // bei >700 Familien insgesamt, aber nur rund 70 mit irgendeinem
+      // Energie-Bezug, geht ein reiner Gewichtungs-Bonus in der Masse der
+      // neutralen Familien unter. Die Vorfilterung stellt sicher, dass
+      // Street-Strophen sich WIRKLICH anders anfühlen (Anforderung), nicht
+      // nur statistisch leicht verschoben. Fällt auf den vollen Pool
+      // zurück, falls (seltener Fall) gar keine energetische Familie mit
+      // genug Wörtern für dieses Thema/diese Schwierigkeit übrig bleibt.
+      if (streetMode) {
+        const energetic = viable.filter((f) => familyEnergyShare(f) > 0);
+        if (energetic.length > 0) viable = energetic;
+      }
+
+      const family = pickFamilyWeighted(viable, difficulty, streetMode);
+      // `used` wird HIER SOFORT aktualisiert (nicht erst am Ende) — dadurch
+      // "sieht" die Auswahl für den NÄCHSTEN Buchstaben bereits die Wörter/
+      // Stämme dieses Buchstabens und vermeidet zusätzlich Wurzel-Dopplungen
+      // ÜBER Familien hinweg innerhalb derselben Strophe.
+      const picked = selectBestWords(family, difficulty, topic, neededCount, used, streetMode);
+      picked.forEach((p) => {
+        used.words.add(p.w.toLowerCase());
+        pushRecentStem(used.stems, p.stem);
+      });
+
+      wordsByLetter[letter] = shuffle(picked).map((p) => p.w);
+      endingsByLetter[letter] = family.ending;
+      familyIds.push(family.id);
+      excludedThisStanza.push(family.id); // andere Buchstaben derselben Strophe dürfen diese Familie nicht mehr wählen
     });
+
     saveUsedWords(activeLocale, used);
 
-    return { words, ending: family.ending, familyId: family.id };
+    // Wörter in der tatsächlichen Zeilen-Reihenfolge des Schemas zusammen-
+    // setzen — jeder Buchstabe verbraucht seine vorbereiteten Wörter der
+    // Reihe nach (z.B. "AABBC": erstes "A" → wordsByLetter.A[0], zweites
+    // "A" → wordsByLetter.A[1], usw.).
+    const cursor = {};
+    const words = scheme.split("").map((letter) => {
+      const idx = cursor[letter] || 0;
+      cursor[letter] = idx + 1;
+      return wordsByLetter[letter][idx];
+    });
+
+    return {
+      words,
+      scheme,
+      ending: scheme, // Anzeige im "Reimschema {{ending}}"-Badge (challenge.js/tournament.js) — jetzt das Buchstaben-Muster statt einer einzelnen Endung
+      endingsByLetter,
+      familyId: familyIds[0],
+      familyIds,
+    };
   }
 
   window.FlowRhyme = {

@@ -170,8 +170,8 @@
           count: gameplayConfig.linesPerStanza,
           streetMode: t.settings.streetMode,
         });
-        usedFamilyIds.push(result.familyId);
-        stanzas.push({ words: result.words, ending: result.ending, familyId: result.familyId });
+        usedFamilyIds.push(...(result.familyIds || [result.familyId]));
+        stanzas.push({ words: result.words, ending: result.ending, familyId: result.familyId, familyIds: result.familyIds });
       }
       rounds.push({ roundIndex: i, stanzas, submissions: {} });
     }

@@ -355,7 +355,7 @@
         streetMode: settings.streetMode,
       }))
       .then((result) => {
-        usedFamilyIds.push(result.familyId);
+        usedFamilyIds.push(...(result.familyIds || [result.familyId]));
         resolvedStanzas[stanzaIndex] = result;
       })
       .catch(() => {

@@ -309,6 +309,79 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
      die Wiederholung ist dort ohnehin milder (unterschiedliche, echte
      Wörter statt Flexionsformen desselben Lemmas — ein Stilmittel, das
      auch in echten Rap-Texten vorkommt).
+   - **Erweiterung (Modul 8)**: `KNOWN_PREFIXES` deckt inzwischen auch
+     Verneinungs-/Verstärkungs-Vorsilben vor Adjektiven ab (außer-/ur-/erz-/
+     super-/mega-/hyper-/extra-/un-) — genau der ursprünglich gemeldete Fall
+     "gewöhnlich/ungewöhnlich/außergewöhnlich" wird dadurch jetzt korrekt als
+     EINE Wurzel erkannt statt als drei verschiedene Reimwörter.
+
+4c. **Echte Reimschemata statt Monoreim** (Modul 8): früher kam eine
+   komplette Strophe immer aus EINER Familie für ALLE Zeilen ("AAAAA") —
+   das erzeugte genau die gemeldeten Ketten wie "Revier/Papier/Quartier/
+   Klavier/…", die nur schriftlich dieselbe Endung teilen, sich aber wie
+   willkürliches Aneinanderreihen anfühlten. `pickRhymeStanza()` würfelt
+   jetzt zuerst ein **Buchstaben-Schema** aus einer kuratierten Liste
+   (`SCHEME_PATTERNS_BY_COUNT`, z.B. bei 5 Zeilen: `AABBC`, `ABABC`,
+   `AABCC`, `ABBAC`, `AABAB`, `ABCCB`, `AAABB`, `ABABB`, `AABBA` — plus
+   `AAAAA` als klassischer Monoreim, aber nur noch EINE von zehn
+   Möglichkeiten statt der einzigen). Jeder Buchstabe des Schemas bekommt
+   danach eine **eigene** Reim-Familie, garantiert verschieden von allen
+   anderen Buchstaben derselben Strophe (`excludedThisStanza` schließt
+   bereits gewählte Familien für die restlichen Buchstaben aus) — echte
+   Paar-/Kreuz-/Klammerreime statt reinem Endungs-Aneinanderreihen.
+   Zusätzlich: zwei Strophen HINTEREINANDER bekommen nie zufällig dasselbe
+   Schema (`lastSchemeByLocale`). Die einzelne Familie muss dadurch auch nur
+   noch so viele Wörter liefern, wie ihr Buchstabe in der Strophe vorkommt
+   (oft nur 1–2 statt aller `count` Zeilen) — dadurch werden automatisch
+   auch kleinere/seltenere Familien wählbar, die vorher wegen `f.words.length
+   < count` gar nicht erst in Frage kamen. Rückgabeformat entsprechend
+   erweitert: `{ words, scheme, ending, endingsByLetter, familyId,
+   familyIds }` — `ending` zeigt jetzt das Schema selbst an (z.B. "AABBC"),
+   passend zum Badge-Text "Reimschema {{ending}}"; `familyIds` (Mehrzahl)
+   ersetzt das frühere `familyId` überall dort, wo Anti-Wiederholung über
+   mehrere Strophen/Runden hinweg gepflegt wird (`challenge.js`,
+   `tournament.js`, `tournament-data.js`).
+
+6b. **Moderne Jugend-/Rap-Sprache + Energie-Gewichtung** (Modul 8):
+   Anforderung war "nicht wie aus einem Schulbuch" und "mehr Energie, nicht
+   ständig harmlose Wörter wie Papier/Klavier/Garten/Fenster".
+   - **Neue Wortschicht** [`assets/js/rhyme-slang.js`](../assets/js/rhyme-slang.js)
+     (`window.FlowRhymeSlang`, dritte Schicht in `buildMergedBank()` nach
+     Kernbank + Zusatzbank): von Hand geprüfte moderne Reimfamilien pro
+     Sprache (DE 9, EN 8, RU 5 Familien) — bewusst **begrenzt statt
+     massenhaft**, siehe ausführlichen Kopfkommentar der Datei für die
+     Begründung (Qualität vor Menge) und dokumentierte, bewusst verworfene
+     Kandidaten (z.B. deutsche Lehnwort-Slangs wie "Vibe"/"Cringe"/"Grind"
+     haben im Deutschen keine echten Reimpartner — englische Aussprache
+     passt phonetisch nicht zu gleich geschriebenen deutschen Wörtern,
+     deshalb nicht erzwungen).
+   - **Energie-Gewichtung statt nur Wort-Bonus**: eine reine Bewertung
+     einzelner Wörter reicht nicht, wenn die neue Vokabel-Schicht nur ein
+     kleiner Bruchteil der riesigen Gesamtbank ist (9 von 776 Familien bei
+     Deutsch) — sie würde in der Masse praktisch nie gewählt. Deshalb wirkt
+     die Energie (Anteil an Wörtern mit `battle`/`street`-Thema) schon bei
+     der FAMILIEN-Auswahl:
+     - **Street-Modus**: harte Vorfilterung auf Familien mit ÜBERHAUPT
+       Battle-/Street-Bezug (`familyEnergyShare(f) > 0`, deutsch ~71 von 776
+       Familien qualifizieren — genug für Vielfalt, aber spürbar anders als
+       neutral), erst danach greift die gewichtete Zufallsauswahl
+       (zusätzlicher Faktor `1 + energie × 9`). Gemessen: Anteil
+       Battle-/Street-Wörter in echten Strophen steigt von ~3–5% (normal)
+       auf ~14–52% (Street, je nach Sprache) — spürbar anderer Charakter,
+       wie gefordert ("Street-Modus soll sich wirklich anders anfühlen").
+     - **Normal-Modus**: nur ein dezenter Faktor (`1 + energie × 0.6`) plus
+       ein kleiner Wort-Bonus (+1 in `selectBestWords`) — bleibt "modern,
+       aber locker" statt dauerhaft aggressiv.
+     - Zusätzlich in `selectBestWords()`: Street-Modus wertet die
+       einfachsten Wörter (`diff === "leicht"`) jetzt aktiv ab (-1) statt sie
+       nur nicht zu bonusieren — meidet aktiv die harmlosesten Wörter.
+   - **Umfang ehrlich benannt**: das ist KEIN Ersatz für die riesige
+     Zusatzbank, sondern eine gezielte Ergänzung. Für einen deutlich
+     größeren modernen Wortschatz wäre — wie schon bei der Zusatzbank
+     — eine eigene, dediziert geprüfte Mining-Pipeline sinnvoll, keine
+     ungeprüfte Massengenerierung (siehe Kopfkommentar von
+     `rhyme-data-generated.js` für die Begründung, warum Qualitätskontrolle
+     hier nicht übersprungen wird).
 
 5. **Themenfeld** (`topic`): `freestyle` (offen), `love`, `money`, `street`,
    `motivation`, `battle`, `humor`, `random`. Wörter der Zusatzbank bekommen
@@ -319,12 +392,16 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
 
 6. **Street-Modus** (`settings.streetMode`, unabhängiger Ein/Aus-Schalter vor
    Spielbeginn, siehe Einstellungs-Drawer bzw. Turnier-erstellen-Panel):
-   verändert **nur** die Wortauswahl-Gewichtung in `selectBestWords()` — Battle-
-   Themen-Treffer und nicht-"leicht"-Schwierigkeit bekommen einen deutlichen
-   Punktebonus, wodurch Strophen im Street-Modus spürbar härter/
-   konfrontativer ausfallen (mehr "Gegner"/"Sieg"/"Krone"/"Niederlage"-Vokabular,
-   seltener die einfachsten Wörter). Ausgeschaltet bleibt die Auswahl neutral
-   und themenoffen wie zuvor. **Beide Modi nutzen exakt dasselbe Spielsystem**
+   verändert die Wortauswahl auf **zwei Ebenen** — sowohl welche FAMILIE
+   pro Strophe gewählt wird (harte Vorfilterung + Gewichtung auf Battle-/
+   Street-Energie, siehe 6b) als auch welche Wörter INNERHALB der Familie
+   gewinnen (`selectBestWords()`: Battle-/Street-Themen-Treffer bekommen
+   einen deutlichen Punktebonus, "leicht"-Schwierigkeit wird aktiv
+   abgewertet statt nur nicht bonusiert), wodurch Strophen im Street-Modus
+   spürbar härter/konfrontativer ausfallen (mehr "Gegner"/"Sieg"/"Krone"/
+   "Niederlage"-Vokabular, seltener die einfachsten Wörter). Ausgeschaltet
+   bleibt die Auswahl neutral, modern und themenoffen wie zuvor ("locker"
+   statt dauerhaft aggressiv). **Beide Modi nutzen exakt dasselbe Spielsystem**
    (Timing, Bewertung, Strophen-/Zeilenregeln) — nur welche Wörter
    ausgewählt werden, unterscheidet sich. Bewusst keine Freischaltung von
    Obszönitäten/Slurs — die Zusatzbank-Sperrliste gilt in JEDEM Modus

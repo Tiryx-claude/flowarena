@@ -629,7 +629,7 @@
       difficulty: tournament.settings.difficulty,
       topic: tournament.settings.topic,
       totalVerses: STANZAS_PER_ROUND,
-      usedFamilyIds: currentRound.stanzas.map((s) => s.familyId),
+      usedFamilyIds: currentRound.stanzas.flatMap((s) => s.familyIds || [s.familyId]),
       allEndWords: currentRound.stanzas.flatMap((s) => s.words),
       roastMode: false,
     });
