@@ -544,6 +544,47 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
      900-Strophen-Stresstest (vorher 4), Merge-Kosten einmalig ~3–6ms pro
      Sprache beim ersten Bankaufbau (gecacht danach, siehe `buildMergedBank`).
 
+4g. **Explizite Qualitätsprüfung pro Buchstabe + HUD-Trennung** (6. Runde):
+   gemeldeter Fall "DEKORATION/UNTERBOSS/NIEDERGESCHLAGEN/POLIZEISTATION"
+   als vermeintlich EINE Reimgruppe. Untersuchung mit 10 annotierten
+   Test-Strophen (Wort + zugehöriger Schema-Buchstabe sichtbar gemacht)
+   ergab: die Familien-Zuordnung selbst war in 14 von 15 stichprobenartig
+   geprüften Buchstaben-Paaren bereits ein echter, klar erkennbarer Reim
+   (z.B. "inspiration/polizeistation", "crown/clown", "Kaufmann/
+   Ehrenmann") — der gemeldete Fall war höchstwahrscheinlich eine
+   **Anzeige-Verwechslung**: das aktuelle Zeilen-Wort und die "Als
+   Nächstes"-Vorschau standen ohne klare Trennung nebeneinander, dazu
+   trugen die Vorschau-Items bisher eine Zeilen-NUMMER (z.B. "3","4","5"),
+   die leicht mit den 1-4-Feld-Nummern des Word-Racks verwechselt werden
+   konnte — genau das im Feedback beschriebene Symptom. Zwei Fixes:
+   - **HUD**: `#linePreviewList`-Items zeigen keine Zahl mehr, stattdessen
+     eine eigene Überschrift `#linePreviewHeading` ("Als Nächstes")
+     oberhalb der Vorschau-Liste (`challenge.js`/`tournament.js`,
+     identisches Prinzip in beiden Modi). Das Word-Rack selbst war schon
+     korrekt (`[1][2][3][4/WORT]`, siehe Abschnitt 3) und blieb
+     unverändert.
+   - **Explizite Qualitätsprüfung, trotzdem ergänzt** (Anforderung:
+     "REIMSCHEMA → REIMGRUPPEN → WORTAUSWAHL → QUALITÄTSPRÜFUNG →
+     AUSGABE", nicht nur implizit über `selectBestWords()`): neue Funktion
+     `hasWeakPairing()` prüft nach der Wortauswahl explizit, ob irgendein
+     Wortpaar DESSELBEN Buchstabens trotz unterschiedlicher Schreibweise
+     stammverwandt ist (`stemsAreSimilar()`, siehe Abschnitt 4b). Schlägt
+     die Prüfung fehl, probiert `pickFamilyAndWords()` bis zu
+     `MAX_FAMILY_ATTEMPTS` (4) ANDERE Familien für denselben Buchstaben,
+     bevor als letzter Ausweg die erste (beste bisherige) Wahl doch
+     verwendet wird — nie eine unvollständige Strophe, aber eine echte
+     "verwerfen und neu versuchen"-Schleife statt reinem Vertrauen auf die
+     Auswahl-Heuristik. Konkreter Fund dabei: `bezahlen`/`heimzahlen`
+     (dieselbe Verbwurzel "zahlen", Vorsilbe "heim-" fehlte in
+     `KNOWN_PREFIXES`) — ergänzt, zusammen mit den bisher fehlenden
+     Vollformen `heraus-`/`herein-`/`herauf-` (nur die umgangssprachlichen
+     Kurzformen `raus-`/`rein-`/`rauf-` waren vorher erfasst).
+   - **Verifiziert**: 240 Kombinationen weiterhin fehlerfrei, 200-Strophen-
+     Stresstest ~1ms/Strophe (Retry-Schleife kostet praktisch nichts, da
+     sie nur bei tatsächlich erkannter schwacher Paarung überhaupt zusätzlich
+     probiert), erneute 15-Buchstabenpaar-Stichprobe nach dem Fix zeigt
+     durchgehend gute Paare.
+
 6b. **Moderne Jugend-/Rap-Sprache + Energie-Gewichtung** (Modul 8):
    Anforderung war "nicht wie aus einem Schulbuch" und "mehr Energie, nicht
    ständig harmlose Wörter wie Papier/Klavier/Garten/Fenster".

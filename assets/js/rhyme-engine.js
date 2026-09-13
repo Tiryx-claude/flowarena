@@ -726,6 +726,7 @@
     // rein=herein, raus=heraus, rüber=herüber, rauf=herauf, runter=herunter)
     "herum", "zurück", "zusammen", "entgegen", "empor", "weiter", "wieder",
     "kaputt", "hierher", "dorthin", "dahinter", "herunter", "herüber",
+    "heraus", "herein", "herauf", "heim",
     "hinüber", "hinunter", "hinauf", "zwischen", "gegenüber", "mit", "rum",
     "rein", "raus", "rüber", "nüber", "rauf", "runter", "nauf", "nunter",
     "auf", "aus", "ein", "vor", "nach", "über", "unter", "durch", "weg",
@@ -1078,6 +1079,63 @@
     return scheme;
   }
 
+  // Explizite Qualitätsprüfung PRO BUCHSTABE (Feedback, 6. Runde):
+  // "REIMSCHEMA → REIMGRUPPEN → WORTAUSWAHL → QUALITÄTSPRÜFUNG → AUSGABE"
+  // statt "einfach anzeigen". selectBestWords() versucht innerhalb EINER
+  // Familie bereits aktiv, Flexions-/Präfix-Varianten desselben Worts nicht
+  // gemeinsam auszuwählen (siehe dort) — bei einer zu kleinen/wurzelarmen
+  // Familie kann sie aber auf den Auffüll-Fallback zurückfallen müssen und
+  // liefert dann zwei Wörter, die zwar verschieden aussehen, aber am Ende
+  // dieselbe Wortwurzel teilen (z.B. "bezahlen"/"heimzahlen" — dieselbe
+  // Verbwurzel "zahlen", nur andere Vorsilbe). `hasWeakPairing()` erkennt
+  // genau das: irgendein PAAR innerhalb desselben Buchstabens, das trotz
+  // unterschiedlicher Schreibweise stammverwandt ist statt ein "echtes"
+  // zweites Reimwort zu sein.
+  function hasWeakPairing(picked) {
+    for (let i = 0; i < picked.length; i++) {
+      for (let j = i + 1; j < picked.length; j++) {
+        if (stemsAreSimilar(picked[i].stem, picked[j].stem)) return true;
+      }
+    }
+    return false;
+  }
+
+  // Bei erkannter schwacher Paarung: bis zu MAX_FAMILY_ATTEMPTS andere
+  // Familien für denselben Buchstaben durchprobieren (nie dieselbe Familie
+  // zweimal), bevor als letzter Ausweg doch die erste (beste bisherige)
+  // Wahl verwendet wird — "komplette Wortauswahl verwerfen, neue Wörter
+  // generieren", aber mit einer Obergrenze, damit eine sehr kleine Sprach-
+  // bank (z.B. bei seltenen Themen/Schwierigkeiten) nicht in eine
+  // Endlosschleife läuft und die Strophe trotzdem garantiert vollständig
+  // bleibt.
+  const MAX_FAMILY_ATTEMPTS = 4;
+
+  function pickFamilyAndWords(viable, neededCount, difficulty, topic, used, streetMode) {
+    let bestFamily = null;
+    let bestPicked = null;
+    const triedFamilyIds = [];
+    for (let attempt = 0; attempt < MAX_FAMILY_ATTEMPTS; attempt++) {
+      const candidates = viable.filter((f) => !triedFamilyIds.includes(f.id));
+      if (candidates.length === 0) break;
+      const family = pickFamilyWeighted(candidates, difficulty, streetMode);
+      triedFamilyIds.push(family.id);
+      const picked = selectBestWords(family, difficulty, topic, neededCount, used, streetMode);
+      if (!bestFamily) {
+        bestFamily = family;
+        bestPicked = picked;
+      }
+      // Bei nur einem benötigten Wort gibt es kein Paar zu prüfen — sofort
+      // übernehmen. Sonst nur akzeptieren, wenn WIRKLICH kein Wortpaar
+      // dieses Buchstabens stammverwandt ist.
+      if (neededCount < 2 || !hasWeakPairing(picked)) {
+        return { family, picked };
+      }
+    }
+    // Kein Versuch war perfekt — die erste (beste) Wahl bleibt der
+    // garantierte Ausweg, damit die Strophe nie unvollständig bleibt.
+    return { family: bestFamily, picked: bestPicked };
+  }
+
   /**
    * Liefert `count` Endwörter (Standard: GAMEPLAY_CONFIG.linesPerStanza) für
    * eine komplette Strophe, verteilt nach einem zufälligen REIMSCHEMA
@@ -1176,12 +1234,14 @@
         viable = preferredPool;
       }
 
-      const family = pickFamilyWeighted(viable, difficulty, streetMode);
+      // REIMSCHEMA (Buchstabe) → REIMGRUPPE (Familie) → WORTAUSWAHL →
+      // QUALITÄTSPRÜFUNG (hasWeakPairing) → ggf. andere Familie versuchen —
+      // siehe pickFamilyAndWords() oben.
+      const { family, picked } = pickFamilyAndWords(viable, neededCount, difficulty, topic, used, streetMode);
       // `used` wird HIER SOFORT aktualisiert (nicht erst am Ende) — dadurch
       // "sieht" die Auswahl für den NÄCHSTEN Buchstaben bereits die Wörter/
       // Stämme dieses Buchstabens und vermeidet zusätzlich Wurzel-Dopplungen
       // ÜBER Familien hinweg innerhalb derselben Strophe.
-      const picked = selectBestWords(family, difficulty, topic, neededCount, used, streetMode);
       picked.forEach((p) => {
         used.words.add(p.w.toLowerCase());
         pushRecentStem(used.stems, p.stem);

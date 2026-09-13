@@ -76,6 +76,7 @@
     roundLiveBadgeLine: $("#roundLiveBadgeLine"),
     wordRackWrap: $("#wordRackWrap"),
     linePreviewList: $("#linePreviewList"),
+    linePreviewHeading: $("#linePreviewHeading"),
     wordRack: $("#wordRack"),
     gameBall: $("#gameBall"),
     gameSparkLayer: $("#gameSparkLayer"),
@@ -428,11 +429,17 @@
   // Zeigt die nächsten bis zu 3 Zeilen DIESER Strophe leicht transparent an
   // — identisches Prinzip wie challenge.js (rein dekorativ, nie für die
   // Ball-Positionierung genutzt, bewusst nur innerhalb der aktuellen
-  // Strophe, siehe docs/GAMEPLAY.md §3).
+  // Strophe, siehe docs/GAMEPLAY.md §3). Keine Zahlen-Labels mehr an den
+  // Items (Verwechslungsgefahr mit den 1-4-Feld-Nummern des Word-Racks) —
+  // stattdessen eigene Überschrift, siehe challenge.js.
   function renderLinePreview() {
     if (!els.linePreviewList) return;
     const stanza = currentStanza();
-    if (!stanza) { els.linePreviewList.innerHTML = ""; return; }
+    if (!stanza) {
+      els.linePreviewList.innerHTML = "";
+      if (els.linePreviewHeading) els.linePreviewHeading.hidden = true;
+      return;
+    }
     const lineInStanza = lineIndexInRound % LINES_PER_STANZA;
     const upcoming = [];
     for (let offset = 1; offset <= 3; offset++) {
@@ -440,12 +447,12 @@
       if (idx >= LINES_PER_STANZA) break;
       upcoming.push({ idx, word: stanza.words[idx] });
     }
+    if (els.linePreviewHeading) els.linePreviewHeading.hidden = upcoming.length === 0;
     els.linePreviewList.innerHTML = upcoming.map((u, depth) => {
       const opacity = (0.55 - depth * 0.15).toFixed(2);
       const scale = (1 - depth * 0.04).toFixed(2);
       return `
         <div class="line-preview__item" style="--preview-depth:${depth}; --preview-opacity:${opacity}; --preview-scale:${scale};">
-          <span class="line-preview__index">${u.idx + 1}</span>
           <span>${escapeHtml(u.word.toUpperCase())}</span>
         </div>
       `;

@@ -100,6 +100,7 @@
     toast: $("#toast"),
     wordRackWrap: $("#wordRackWrap"),
     linePreviewList: $("#linePreviewList"),
+    linePreviewHeading: $("#linePreviewHeading"),
     gameBall: $("#gameBall"),
     gameSparkLayer: $("#gameSparkLayer"),
   };
@@ -442,10 +443,19 @@
   // nächsten Strophe stehen erst kurz vor deren Beginn sicher fest, siehe
   // requestStanza()) — der Strophenwechsel hat ohnehin sein eigenes
   // Banner (flashVerseBanner), das den Cut deutlich macht.
+  // WICHTIG (Feedback): KEINE Zahlen-Labels mehr an den Vorschau-Items —
+  // die sahen wie weitere Feld-/Kästchen-Nummern aus und ließen sich leicht
+  // mit den "1-4"-Labels des aktuellen Word-Racks verwechseln, obwohl sie
+  // eigentlich Zeilennummern der Strophe waren. Stattdessen eine eigene
+  // Überschrift ("Als Nächstes") + reine Wort-Chips ohne Zahl.
   function renderLinePreview(stanzaIndex, lineInStanza) {
     if (!els.linePreviewList) return;
     const stanza = resolvedStanzas[stanzaIndex];
-    if (!stanza) { els.linePreviewList.innerHTML = ""; return; }
+    if (!stanza) {
+      els.linePreviewList.innerHTML = "";
+      if (els.linePreviewHeading) els.linePreviewHeading.hidden = true;
+      return;
+    }
 
     const upcoming = [];
     for (let offset = 1; offset <= 3; offset++) {
@@ -454,12 +464,12 @@
       upcoming.push({ idx, word: stanza.words[idx] });
     }
 
+    if (els.linePreviewHeading) els.linePreviewHeading.hidden = upcoming.length === 0;
     els.linePreviewList.innerHTML = upcoming.map((u, depth) => {
       const opacity = (0.55 - depth * 0.15).toFixed(2);
       const scale = (1 - depth * 0.04).toFixed(2);
       return `
         <div class="line-preview__item" style="--preview-depth:${depth}; --preview-opacity:${opacity}; --preview-scale:${scale};">
-          <span class="line-preview__index">${u.idx + 1}</span>
           <span>${u.word.toUpperCase()}</span>
         </div>
       `;

@@ -192,6 +192,7 @@
         verseBadgeStanza: "Strophe {{stanza}}/{{total}}",
         verseBadgeLine: "Zeile {{line}}/{{lines}}",
         liveHint: "Rap jede Zeile frei — beende sie mit dem markierten Wort. Der Ball zeigt dir den Takt.",
+        upcomingHeading: "Als Nächstes",
         abortBtn: "Challenge abbrechen",
         stanzaCompleteBanner: "✓ Strophe {{n}} geschafft",
         evaluatingSteps: [
@@ -811,6 +812,7 @@
         verseBadgeStanza: "Verse {{stanza}}/{{total}}",
         verseBadgeLine: "Line {{line}}/{{lines}}",
         liveHint: "Freestyle each line — finish it with the highlighted word. The ball shows you the beat.",
+        upcomingHeading: "Up next",
         abortBtn: "Cancel challenge",
         stanzaCompleteBanner: "✓ Verse {{n}} done",
         evaluatingSteps: [
@@ -1430,6 +1432,7 @@
         verseBadgeStanza: "Куплет {{stanza}}/{{total}}",
         verseBadgeLine: "Строка {{line}}/{{lines}}",
         liveHint: "Читай каждую строку свободно — заверши её выделенным словом. Мяч показывает такт.",
+        upcomingHeading: "Дальше",
         abortBtn: "Прервать челлендж",
         stanzaCompleteBanner: "✓ Куплет {{n}} завершён",
         evaluatingSteps: [

@@ -431,6 +431,20 @@
    Zeilenwechsel ein frisch eingefügter DOM-Knoten, die CSS-Animation
    spielt deshalb automatisch bei jedem Rendern neu ab (kein JS-Timing
    nötig). Blasser mit wachsendem Abstand zur aktuellen Zeile. */
+/* Eigene, kleine Überschrift — macht auf einen Blick klar, dass hier eine
+   ANDERE Sache als das aktuelle Word-Rack gezeigt wird (Feedback: Zahlen an
+   den Vorschau-Items sahen wie weitere Feld-Nummern aus, ließen sich mit
+   den 1-4-Labels des Word-Racks verwechseln — deshalb jetzt gar keine
+   Zahlen mehr an den Items, siehe .line-preview__item unten). */
+.line-preview-heading {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 var(--sp-2);
+}
+
 .line-preview-list {
   display: flex;
   flex-direction: column;
@@ -443,7 +457,7 @@
 .line-preview__item {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+  justify-content: center;
   padding: 6px var(--sp-4);
   border-radius: var(--r-pill);
   background: var(--surface);
@@ -456,13 +470,6 @@
   transform: scale(var(--preview-scale, 0.94));
   animation: preview-item-in 360ms var(--ease-out) both;
   animation-delay: calc(var(--preview-depth, 0) * 50ms);
-}
-
-.line-preview__index {
-  font-family: var(--font-body);
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
-  font-weight: 700;
 }
 
 @keyframes preview-item-in {
