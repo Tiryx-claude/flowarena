@@ -54,11 +54,13 @@
 
       <h1 class="hero__title"><span data-i18n="home.heroTitlePre">Reim dich an die </span><span class="accent" data-i18n="home.heroTitleAccent">Spitze.</span></h1>
       <p class="hero__subtitle" data-i18n="home.heroSubtitle">
-        Wähle einen Beat, stell deine Schwierigkeit ein und droppe deine Bars —
-        live vor deinem Chat oder ganz für dich allein.
+        Wähl deinen Beat. Bekomm deine Wörter. Beweis, was du kannst.
       </p>
 
       <!-- ============ GAMEPLAY-VORSCHAU ============ -->
+      <!-- Bewusst knapp gehalten (Anforderung: "Startscreen soll nach GAME
+           aussehen, nicht nach Tutorial-Seite") — die ausführliche Erklärung
+           steckt jetzt hinter <details>, nicht mehr fest sichtbar. -->
       <div class="gameplay-preview">
         <span class="preview-bpm-tag" data-i18n="home.previewBpmTag">100 BPM · Beispiel-Zeile</span>
         <!-- Kästchen werden per JS erzeugt (home.js) — 3 leere Takt-Kästchen
@@ -67,11 +69,15 @@
           <div class="beat-ball" id="previewBall" aria-hidden="true"></div>
           <div class="spark-layer" id="previewSparkLayer" aria-hidden="true"></div>
         </div>
-        <p class="preview-caption" data-i18n="home.previewCaption">
-          So läuft's: jede Zeile hat 4 Kästchen — die ersten 3 geben nur den Takt vor, im 4. wartet
-          dein Reimwort. Der Ball hüpft im Beat mit, du rappst frei und landest das Wort genau im
-          letzten Kästchen. 5 Zeilen pro Strophe, danach eine neue Reimfamilie.
-        </p>
+        <p class="preview-caption-short" data-i18n="home.previewCaptionShort">4 Beats → Reimwort → nächste Line</p>
+        <details class="preview-details">
+          <summary data-i18n="home.previewCaptionMoreLabel">Wie genau?</summary>
+          <p class="preview-caption" data-i18n="home.previewCaption">
+            Jede Zeile hat 4 Kästchen — die ersten 3 geben nur den Takt vor, im 4. wartet
+            dein Reimwort. Der Ball hüpft im Beat mit, du rappst frei und landest das Wort genau im
+            letzten Kästchen. 5 Zeilen pro Strophe, danach eine neue Reimfamilie.
+          </p>
+        </details>
       </div>
     </section>
 
@@ -89,15 +95,75 @@
     <!-- ============ PANELS (Akkordeon) ============ -->
     <div class="menu-panels">
       <!-- ---- Spielen ---- -->
+      <!-- Konfiguration DIREKT auf der Seite statt hinter einem Chip-Klick
+           in der Einstellungs-Drawer (Anforderung: "direkt die Challenge-
+           Konfiguration", "moderne interaktive Cards", "weniger Text, mehr
+           Fokus"). #beatList/#topicSelect/.js-difficulty-opt/#streetModeToggle/
+           #streamerToggle sind dieselben IDs/Klassen wie zuvor in der Drawer —
+           app.js' bestehende Render-/Klick-Logik funktioniert dadurch
+           unverändert, nur die Position im DOM hat sich geändert. Die Drawer
+           (⚙️ Einstellungen) bleibt für Sprache/Sound/Roast-Modus bestehen,
+           siehe dort. -->
       <div class="menu-panel is-open" data-panel="play">
         <div class="menu-panel__inner">
-          <div class="card-glass menu-panel__card">
-            <h2 class="menu-panel__title" data-i18n="home.play.title">🎤 Bereit für deine Challenge?</h2>
-            <div class="play-summary" id="quickSettingsChips" aria-label="Aktuelle Einstellungen">
-              <!-- wird per JS befüllt -->
+          <div class="card-glass menu-panel__card menu-panel__card--play">
+            <div class="config-grid">
+              <div class="config-card">
+                <div class="config-card__head">
+                  <span class="config-card__icon" aria-hidden="true">🎚</span>
+                  <span class="config-card__label" data-i18n="settings.difficultyLabel">Schwierigkeitsgrad</span>
+                </div>
+                <div class="segmented segmented--block" role="group" aria-label="Schwierigkeitsgrad">
+                  <button class="segmented__opt js-difficulty-opt" data-value="leicht" type="button" data-i18n="common.difficulty.leicht">Leicht</button>
+                  <button class="segmented__opt js-difficulty-opt" data-value="mittel" type="button" data-i18n="common.difficulty.mittel">Mittel</button>
+                  <button class="segmented__opt js-difficulty-opt" data-value="schwer" type="button" data-i18n="common.difficulty.schwer">Schwer</button>
+                </div>
+              </div>
+
+              <div class="config-card config-card--beat">
+                <div class="config-card__head">
+                  <span class="config-card__icon" aria-hidden="true">🎵</span>
+                  <span class="config-card__label" data-i18n="settings.beatLabel">Beat-Auswahl</span>
+                </div>
+                <div class="beat-list beat-list--compact" id="beatList"></div>
+              </div>
+
+              <div class="config-card">
+                <div class="config-card__head">
+                  <span class="config-card__icon" aria-hidden="true">🔥</span>
+                  <span class="config-card__label" data-i18n="settings.topicLabel">Themenfeld</span>
+                </div>
+                <select class="select" id="topicSelect">
+                  <option value="freestyle" data-i18n="common.topics.freestyle">Freestyle (offen)</option>
+                  <option value="love" data-i18n="common.topics.love">Liebe &amp; Beziehungen</option>
+                  <option value="money" data-i18n="common.topics.money">Money &amp; Grind</option>
+                  <option value="street" data-i18n="common.topics.street">Streetlife</option>
+                  <option value="motivation" data-i18n="common.topics.motivation">Motivation &amp; Aufstieg</option>
+                  <option value="battle" data-i18n="common.topics.battle">Battle / Diss</option>
+                  <option value="humor" data-i18n="common.topics.humor">Humor</option>
+                  <option value="random" data-i18n="common.topics.random">Zufällig</option>
+                </select>
+              </div>
+
+              <label class="config-card config-card--toggle toggle" id="streetModeToggle" role="switch" aria-checked="false">
+                <span class="config-card__head">
+                  <span class="config-card__icon" aria-hidden="true">🎤</span>
+                  <span class="config-card__label" data-i18n="settings.streetModeLabel">Street-Modus</span>
+                </span>
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
+
+              <label class="config-card config-card--toggle toggle" id="streamerToggle" role="switch" aria-checked="false">
+                <span class="config-card__head">
+                  <span class="config-card__icon" aria-hidden="true">🎥</span>
+                  <span class="config-card__label" data-i18n="settings.streamerLabel">Streamer-Modus</span>
+                </span>
+                <span class="toggle__track"><span class="toggle__thumb"></span></span>
+              </label>
             </div>
+
             <div class="play-cta">
-              <button class="btn btn-primary btn-hero" id="startChallengeBtn" type="button" data-i18n="home.play.startBtn">🎤 Challenge starten</button>
+              <button class="btn btn-primary btn-hero btn-mega" id="startChallengeBtn" type="button" data-i18n="home.play.startBtn">🎤 Challenge starten</button>
             </div>
           </div>
         </div>
@@ -240,6 +306,9 @@
       <button class="btn-icon" id="closeSettingsBtn" type="button" data-i18n-attr="aria-label:common.close">✕</button>
     </div>
 
+    <!-- Schwierigkeit/Beat/Thema/Street-Modus/Streamer-Modus stehen jetzt
+         DIREKT im "Spielen"-Panel als Cards (siehe oben) — diese Drawer
+         bündelt nur noch, was seltener geändert wird. -->
     <div class="settings-drawer__body">
       <div class="field">
         <div class="field__head">
@@ -251,80 +320,12 @@
 
       <div class="field">
         <div class="field__head">
-          <span class="field__label" data-i18n="settings.difficultyLabel">Schwierigkeitsgrad</span>
-        </div>
-        <div class="segmented" role="group" aria-label="Schwierigkeitsgrad">
-          <button class="segmented__opt js-difficulty-opt" data-value="leicht" type="button" data-i18n="common.difficulty.leicht">Leicht</button>
-          <button class="segmented__opt js-difficulty-opt" data-value="mittel" type="button" data-i18n="common.difficulty.mittel">Mittel</button>
-          <button class="segmented__opt js-difficulty-opt" data-value="schwer" type="button" data-i18n="common.difficulty.schwer">Schwer</button>
-        </div>
-        <span class="field__hint" data-i18n="settings.difficultyHint">Bestimmt Reimzeit, Wortschatz-Vorgaben und Bewertungsmaßstab.</span>
-      </div>
-
-      <div class="field">
-        <div class="field__head">
-          <span class="field__label" data-i18n="settings.beatLabel">Beat-Auswahl</span>
-        </div>
-        <div class="beat-list" id="beatList"></div>
-        <span class="field__hint" data-i18n="settings.beatHint">BPM bestimmt exakt das Timing der Challenge — Ball und Zeilenwechsel laufen synchron zum Beat.</span>
-      </div>
-
-      <div class="field">
-        <div class="field__head">
-          <span class="field__label" data-i18n="settings.versesLabel">Strophenanzahl</span>
-        </div>
-        <div class="stepper">
-          <button class="stepper__btn" id="versesMinus" type="button" data-i18n-attr="aria-label:settings.versesLess">−</button>
-          <span class="stepper__value" id="versesValue">2</span>
-          <button class="stepper__btn" id="versesPlus" type="button" data-i18n-attr="aria-label:settings.versesMore">+</button>
-        </div>
-        <span class="field__hint" data-i18n="settings.versesHint">Bis 5 Strophen kostenlos, mehr (bis 10) mit Premium.</span>
-      </div>
-
-      <div class="field">
-        <div class="field__head">
-          <span class="field__label" data-i18n="settings.topicLabel">Themenfeld</span>
-        </div>
-        <select class="select" id="topicSelect">
-          <option value="freestyle" data-i18n="common.topics.freestyle">Freestyle (offen)</option>
-          <option value="love" data-i18n="common.topics.love">Liebe &amp; Beziehungen</option>
-          <option value="money" data-i18n="common.topics.money">Money &amp; Grind</option>
-          <option value="street" data-i18n="common.topics.street">Streetlife</option>
-          <option value="motivation" data-i18n="common.topics.motivation">Motivation &amp; Aufstieg</option>
-          <option value="battle" data-i18n="common.topics.battle">Battle / Diss</option>
-          <option value="humor" data-i18n="common.topics.humor">Humor</option>
-          <option value="random" data-i18n="common.topics.random">Zufällig</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <div class="field__head">
-          <label class="toggle" id="streamerToggle" role="switch" aria-checked="false">
-            <span class="toggle__track"><span class="toggle__thumb"></span></span>
-            <span class="toggle__label" data-i18n="settings.streamerLabel">Streamer-Modus</span>
-          </label>
-        </div>
-        <span class="field__hint" data-i18n="settings.streamerHint">Großer Text, Overlay-Layout &amp; Chat-freundliche Ansicht.</span>
-      </div>
-
-      <div class="field">
-        <div class="field__head">
           <label class="toggle" id="roastToggle" role="switch" aria-checked="false">
             <span class="toggle__track"><span class="toggle__thumb"></span></span>
             <span class="toggle__label" data-i18n="settings.roastLabel">Roast-Modus</span>
           </label>
         </div>
         <span class="field__hint" data-i18n="settings.roastHint">Der KI-Kommentar nach der Challenge wird frecher — bleibt aber immer respektvoll und bezieht sich nur auf deine Performance.</span>
-      </div>
-
-      <div class="field">
-        <div class="field__head">
-          <label class="toggle" id="streetModeToggle" role="switch" aria-checked="false">
-            <span class="toggle__track"><span class="toggle__thumb"></span></span>
-            <span class="toggle__label" data-i18n="settings.streetModeLabel">Street-Modus</span>
-          </label>
-        </div>
-        <span class="field__hint" data-i18n="settings.streetModeHint">Härtere, direktere Battle-Rap-Reimwörter und -Themen. Aus: neutrale, allgemeine Reimwörter.</span>
       </div>
 
       <div class="field" style="margin-bottom:0;">

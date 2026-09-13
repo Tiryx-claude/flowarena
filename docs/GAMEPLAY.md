@@ -114,9 +114,14 @@ bleibt überall exakt gleich.
   garantiert andere Reim-Familie** samt neuem Reimschema generiert
   (`excludeFamilyIds` in [`rhyme-engine.js`](../assets/js/rhyme-engine.js)),
   bis der Wortvorrat erschöpft ist — dann Reset.
-- Strophenanzahl wird vor Spielstart gewählt (z.B. 3, 4 oder 5) —
-  `GAMEPLAY_CONFIG.minStanzas`–`maxStanzas`, aktuell 1–10, Free-Deckel bei 5
-  (`freeMaxStanzas`, siehe `docs/SHOP.md`).
+- Strophenanzahl ist **keine Einstellung mehr** (Feedback: "wirkte wie eine
+  unnötige Vor-Entscheidung, ein Game hat feste Runden") — jede Solo-
+  Challenge läuft fest über `GAMEPLAY_CONFIG.stanzasPerChallenge` (3),
+  identisch zur Länge einer einzelnen Turnier-Runde
+  (`stanzasPerTournamentRound`, ebenfalls 3, siehe `docs/TOURNAMENTS.md`).
+  Premium schaltet dafür **unbegrenzt Challenges pro Tag** frei (Free:
+  `FREE_DAILY_CHALLENGE_LIMIT`, siehe `docs/SHOP.md`) statt wie früher mehr
+  Strophen pro Challenge.
 
 ### 3b. Visuelles Feedback: Countdown-Inszenierung, Treffer-Impact, Beat-Puls
 
@@ -159,6 +164,56 @@ Treffen des Reimworts fühlte sich nicht "befriedigend" genug an. Reaktion
   etablierten "Klasse entfernen + Reflow erzwingen + Klasse wieder setzen"-
   Trick (siehe `.word-rack-wrap.is-entering` weiter oben), damit die
   Animation bei JEDEM Beat zuverlässig neu abspielt.
+
+### 3c. Startscreen: Konfiguration direkt als Cards, feste 3 Strophen
+
+Feedback: der Startscreen ("Bereit für deine Challenge?" auf `index.html`)
+wirkte "zu leer und gleichzeitig zu erklärend" — langer Erklärungstext, die
+eigentliche Konfiguration versteckt hinter Chips, die erst eine Drawer
+öffnen mussten, "Strophenanzahl" als Vor-Entscheidung, die sich wie ein
+unnötiger Umweg anfühlte.
+
+- **Konfiguration DIREKT auf der Seite** statt hinter einem Chip-Klick:
+  Schwierigkeitsgrad, Beat-Auswahl, Themenfeld, Street-Modus, Streamer-
+  Modus stehen jetzt als `.config-card`-Grid im "Spielen"-Panel selbst
+  (`index.html`, `assets/css/home.css`). Technisch eine reine
+  DOM-Verschiebung: `#beatList`/`#topicSelect`/`.js-difficulty-opt`/
+  `#streetModeToggle`/`#streamerToggle` behalten dieselben IDs/Klassen wie
+  zuvor in der Settings-Drawer — `assets/js/app.js`s bestehende Render-/
+  Klick-Logik (`renderBeatList()`, `renderDifficulty()` usw.) läuft
+  unverändert weiter, nur die Position im Dokument hat sich geändert. Die
+  Drawer (⚙️ Einstellungen) bleibt bestehen, aber nur noch für Sprache/
+  Sound/Roast-Modus — `renderQuickChips()` (der alte Chip-Zusammenfassung-
+  Mechanismus) entfällt komplett.
+- **Kürzerer Text**: `home.heroSubtitle` von zwei Sätzen auf einen knappen
+  Dreiklang ("Wähl deinen Beat. Bekomm deine Wörter. Beweis, was du
+  kannst."). Die Gameplay-Erklärung steckt jetzt in einem eingeklappten
+  `<details>` (`home.previewCaptionShort` als sichtbarer Kurzhinweis "4
+  Beats → Reimwort → nächste Line", volle Erklärung erst nach Klick auf
+  "Wie genau?") — natives HTML-Element, kein eigenes JS nötig.
+- **`#startChallengeBtn` als dominantester Button** (`.btn-mega`):
+  deutlich größer/mehr Glow als der normale `.btn-hero`, volle Card-Breite
+  bis 480px. Die Cards selbst sind großzügiger dimensioniert
+  (`.config-grid`, `repeat(auto-fit, minmax(220px, 1fr))`) als die alten
+  Chips, damit "weniger leerer Raum" nicht durch kleinere Elemente,
+  sondern durch bewusst genutzten Raum erreicht wird.
+- **Strophenanzahl fest auf 3 statt einstellbar 1–10**: siehe
+  `GAMEPLAY_CONFIG.stanzasPerChallenge` (Abschnitt 4 unten) — der
+  komplette Stepper (`#versesMinus`/`#versesPlus`/`#versesValue`),
+  die zugehörigen `app.js`-Handler und alle Texte, die "Strophenanzahl"
+  als Einstellung oder Premium-Perk nannten (u.a. `shop.html`,
+  `docs/SHOP.md`, `docs/COMMUNITY.md`, `agb.html`, `datenschutz.html`,
+  README) wurden entfernt bzw. durch "unbegrenzt Challenges pro Tag" als
+  Premium-Perk ersetzt — das war der bisherige zweite Premium-Komfort-
+  Vorteil und bleibt unverändert real.
+- **Nebeneffekt auf Achievements**: das "Marathoner"-Abzeichen
+  (`profile-data.js`) prüfte bisher "5+ Strophen in einem Lauf" — mit
+  fester Strophenzahl 3 nie mehr erreichbar. Umdefiniert auf "15
+  Challenges abgeschlossen" (Ausdauer über viele Sessions statt Länge
+  einer einzelnen, passt besser zum 🏃-Symbol) — als nächste Stufe über
+  "Vielspieler" (5). `stats.maxStanzasInOneRun` wird weiterhin
+  mitgeführt (liegt jetzt immer bei 3), hängt aber an keinem Abzeichen
+  mehr.
 
 ## 4. Timing — strikt BPM-synchron, kein freier Modus mehr
 
@@ -454,6 +509,40 @@ Das Reimwort-System besteht seit Modul 7 aus drei Schichten, alle in
    ohnehin schon eine KOMPLETT ANDERE Familie (4c) — dadurch klingen die
    5 Endwörter einer Strophe nie alle gleich, auch ohne dass zwei
    VERSCHIEDENE Familien als "verwandt klingend" erkannt werden müssten.
+
+4f. **Familien-Merge gegen doppelte Wörter über Familien-IDs hinweg** (5.
+   Runde): gemeldeter Fall "PERSÖNLICHEN → PERSÖNLICHEN → TEICH → GNADE" —
+   dasselbe Wort erschien zweimal in einer Strophe. Ursache: Kernbank,
+   Zusatzbank und `rhyme-slang.js` kennen sich beim Anlegen ihrer Familien
+   NICHT gegenseitig (die Zusatzbank ist nur "gegen die Kernbank"
+   abgeglichen, `rhyme-slang.js` wurde nachträglich ergänzt und gegen KEINE
+   der beiden geprüft) — dadurch konnten zwei VERSCHIEDENE Familien-IDs mit
+   demselben Klang nebeneinander existieren (z.B. Kernbank `"ame"` und
+   `rhyme-slang.js`s `"s-ame"`, beide `-ame`, beide u.a. mit "shame").
+   `excludedThisStanza` in `pickRhymeStanza()` schließt nur FAMILIEN-IDs
+   aus, nicht Endungen — zwei verschiedene Buchstaben eines Schemas konnten
+   dadurch beide Familien wählen und lieferten dasselbe Wort. Reproduziert
+   per Stresstest: `["shame","lame","alight","tame","shame"]` (Familien
+   `"ame"` + `"s-ame"`), `["behind","grind","might","mind","behind"]`
+   (Familien `"s-ind"` + `"ind"`).
+   - **Fix — zwei Merge-Durchgänge in `buildMergedBank()`**: (1) Familien
+     mit EXAKT gleicher Endungs-Schreibweise werden zu einer Familie
+     zusammengeführt (Wörter dedupliziert nach Text, Themen-Tags vereinigt,
+     `punchline`-Flag bleibt erhalten, falls eine der Quellen es hatte).
+     (2) Union-Find über verbleibende Familien, die sich trotz
+     UNTERSCHIEDLICHER Endungs-Schreibweise mindestens ein Wort teilen —
+     bekannte Grenze der rein schreibungsbasierten Endungs-Erkennung, z.B.
+     "-on" vs. "-ohn" durch stummes 'h' lässt "Sohn"/"Lohn" in beiden
+     Familien landen, obwohl die Endungs-STRINGS verschieden sind und
+     Durchgang 1 sie deshalb nicht fängt. Nach beiden Durchgängen ist
+     garantiert: JEDES Wort liegt in GENAU einer Familie — die ID der
+     JEWEILS ERSTEN Quelle (Kernbank vor Zusatzbank vor `rhyme-slang.js`)
+     bleibt als Familien-ID erhalten, damit bestehende `excludeFamilyIds`/
+     Familien-Historie nicht plötzlich auf eine verschwundene ID zeigen.
+   - **Verifiziert**: 0 wortübergreifende Familien-Duplikate mehr in
+     DE/EN/RU (vorher 52 in DE allein), 0 Duplikat-Strophen in einem
+     900-Strophen-Stresstest (vorher 4), Merge-Kosten einmalig ~3–6ms pro
+     Sprache beim ersten Bankaufbau (gecacht danach, siehe `buildMergedBank`).
 
 6b. **Moderne Jugend-/Rap-Sprache + Energie-Gewichtung** (Modul 8):
    Anforderung war "nicht wie aus einem Schulbuch" und "mehr Energie, nicht

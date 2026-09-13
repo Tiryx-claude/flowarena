@@ -19,10 +19,6 @@
   let state = loadSettings();
   let profile = FlowProfile.load();
 
-  function maxStanzasAllowed() {
-    return profile.premium ? GAMEPLAY_CONFIG.maxStanzas : GAMEPLAY_CONFIG.freeMaxStanzas;
-  }
-
   function playIfEnabled(fn) {
     if (state.soundEnabled && typeof fn === "function") fn();
   }
@@ -36,9 +32,6 @@
   const els = {
     difficultyOpts: $$(".js-difficulty-opt"),
     beatList: $("#beatList"),
-    versesValue: $("#versesValue"),
-    versesMinus: $("#versesMinus"),
-    versesPlus: $("#versesPlus"),
     topicSelect: $("#topicSelect"),
     streamerToggle: $("#streamerToggle"),
     soundToggle: $("#soundToggle"),
@@ -50,7 +43,6 @@
     closeSettingsBtn: $("#closeSettingsBtn"),
     saveSettingsBtn: $("#saveSettingsBtn"),
     startChallengeBtn: $("#startChallengeBtn"),
-    quickChips: $("#quickSettingsChips"),
     toast: $("#toast"),
     creditsValue: $("#creditsValue"),
     profileAvatarLink: $("#profileAvatarLink"),
@@ -90,10 +82,6 @@
   /* ---------------------------------------------------------------------
      Rendering
      --------------------------------------------------------------------- */
-  function currentBeat() {
-    return BEATS.find((b) => b.id === state.beatId) || BEATS[0];
-  }
-
   function renderDifficulty() {
     els.difficultyOpts.forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.value === state.difficulty);
@@ -118,16 +106,6 @@
     }).join("");
   }
 
-  function renderVerses() {
-    const max = maxStanzasAllowed();
-    if (state.verses > max) state.verses = max;
-    if (els.versesValue) els.versesValue.textContent = String(state.verses);
-    if (els.versesMinus) els.versesMinus.disabled = state.verses <= GAMEPLAY_CONFIG.minStanzas;
-    // Am absoluten Maximum (auch für Premium) wirklich deaktivieren; am
-    // Free-Deckel bleibt "+" klickbar, damit der Premium-Hinweis erscheint.
-    if (els.versesPlus) els.versesPlus.disabled = state.verses >= GAMEPLAY_CONFIG.maxStanzas;
-  }
-
   function renderProfileBits() {
     if (els.creditsValue) els.creditsValue.textContent = String(profile.credits);
     if (els.profileAvatarLink) els.profileAvatarLink.textContent = profile.avatar;
@@ -150,30 +128,11 @@
     renderToggle(els.streetModeToggle, state.streetMode);
   }
 
-  function renderQuickChips() {
-    if (!els.quickChips) return;
-    const beat = currentBeat();
-    const difficultyLabel = t(`common.difficulty.${state.difficulty}`);
-    const topicLabel = t(`common.topics.${state.topic}`);
-
-    els.quickChips.innerHTML = `
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.difficultyLabel")}</span><span class="chip__value">${difficultyLabel}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("home.tournamentCreate.beatLabel")}</span><span class="chip__value">${beat.name}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.versesLabel")}</span><span class="chip__value">${state.verses}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.topicLabel")}</span><span class="chip__value">${topicLabel}</span></button>
-      <button class="chip js-open-settings" type="button"><span class="chip__dot"></span><span class="chip__label">${t("settings.streamerLabel")}</span><span class="chip__value">${state.streamerMode ? t("common.on") : t("common.off")}</span></button>
-    `;
-    // Re-bind, da innerHTML neue Elemente erzeugt hat
-    $$(".js-open-settings", els.quickChips).forEach((btn) => btn.addEventListener("click", openDrawer));
-  }
-
   function renderAll() {
     renderDifficulty();
     renderBeatList();
-    renderVerses();
     renderTopic();
     renderToggles();
-    renderQuickChips();
     renderProfileBits();
     renderLanguageSwitch();
   }
@@ -182,11 +141,11 @@
      Drawer
      --------------------------------------------------------------------- */
   function openDrawer() {
-    // Profil frisch laden (z.B. falls im Shop-Panel gerade ein Beat per
-    // Credits freigeschaltet wurde) und Beat-Liste/Strophen-Deckel neu rendern.
+    // Profil frisch laden (z.B. falls im Shop-Panel gerade Credits
+    // verdient wurden) — Beat-Liste/Schwierigkeit/Thema/Street-/Streamer-
+    // Modus sind jetzt direkt im "Spielen"-Panel und brauchen kein Öffnen
+    // der Drawer mehr, siehe dort.
     profile = FlowProfile.load();
-    renderBeatList();
-    renderVerses();
     renderProfileBits();
 
     els.drawer?.classList.add("is-open");
@@ -221,7 +180,6 @@
       state.difficulty = btn.dataset.value;
       playIfEnabled(window.FlowSound?.playSelect);
       renderDifficulty();
-      renderQuickChips();
     });
   });
 
@@ -247,42 +205,17 @@
     state.beatId = beat.id;
     playIfEnabled(window.FlowSound?.playSelect);
     renderBeatList();
-    renderQuickChips();
-  });
-
-  els.versesMinus?.addEventListener("click", () => {
-    if (state.verses <= GAMEPLAY_CONFIG.minStanzas) return;
-    state.verses -= 1;
-    playIfEnabled(window.FlowSound?.playClick);
-    renderVerses();
-    renderQuickChips();
-  });
-
-  els.versesPlus?.addEventListener("click", () => {
-    const max = maxStanzasAllowed();
-    if (state.verses >= max) {
-      if (!profile.premium && max < GAMEPLAY_CONFIG.maxStanzas) {
-        showToast(t("toast.premiumNeeded", { n: GAMEPLAY_CONFIG.freeMaxStanzas + 1 }));
-      }
-      return;
-    }
-    state.verses += 1;
-    playIfEnabled(window.FlowSound?.playClick);
-    renderVerses();
-    renderQuickChips();
   });
 
   els.topicSelect?.addEventListener("change", (e) => {
     state.topic = e.target.value;
     playIfEnabled(window.FlowSound?.playSelect);
-    renderQuickChips();
   });
 
   els.streamerToggle?.addEventListener("click", () => {
     state.streamerMode = !state.streamerMode;
     playIfEnabled(() => window.FlowSound?.playToggle(state.streamerMode));
     renderToggles();
-    renderQuickChips();
   });
 
   els.roastToggle?.addEventListener("click", () => {

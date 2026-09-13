@@ -64,7 +64,7 @@ tatsächlich kaufen:
 
 | Kategorie | Was es bringt | Wettbewerbsrelevant? |
 |---|---|---|
-| Komfort | Bis zu 10 statt 5 Strophen/Challenge, unbegrenzt Challenges/Tag (Free: 5) | Nein — jede Challenge wird identisch bewertet, unabhängig von Strophenzahl/Tageslimit |
+| Komfort | Unbegrenzt Challenges/Tag (Free: 5) | Nein — jede Challenge wird identisch bewertet, unabhängig vom Tageslimit |
 | Zugriff | Premium-Beats, Premium-Challenges, Early Access | Nein — andere Beats/Themen/Vorschauen ändern nichts an der Bewertungslogik |
 | Kosmetik | Ball-Designs, Ergebnis-Animationen, Profil-Designs | Nein — rein visuell, exakt gleiche Mechanik/Timing/Bewertung |
 | Werbefreiheit | Keine Promo-Karten mehr zwischen Menüs | Nein — betrifft nur Free-Accounts, nie das Gameplay selbst |
@@ -78,8 +78,8 @@ alle Teilnehmenden.
 
 6,99 €/Monat (Demo). Perks: keine Werbung, unbegrenzt Challenges (Abschnitt
 13), alle Premium-Beats, alle Premium-Ball-Designs/-Animationen/-Profil-
-Designs, alle Premium-Challenges, Early Access (Abschnitt 12), bis zu 10
-statt 5 Strophen/Challenge, 👑-Badge auf dem Profil.
+Designs, alle Premium-Challenges, Early Access (Abschnitt 12), 👑-Badge auf
+dem Profil.
 
 Aktivierung/Kündigung laufen **zentral über [`shop.html`](../shop.html)**
 (`#premium`) — `profile.html` zeigt nur noch den Status und verlinkt dorthin,

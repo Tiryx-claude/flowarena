@@ -32,9 +32,12 @@
     // Strophen-/Rundenstruktur).
     boxesPerLine: 4,
     beatsPerLine: 4, // = boxesPerLine: 1 Beat pro Kästchen, siehe oben
-    minStanzas: 1,
-    maxStanzas: 10,
-    freeMaxStanzas: 5, // Modul 4: ohne Premium bei 5 Strophen gedeckelt
+    // Strophenanzahl pro Solo-Challenge: FEST auf 3 verdrahtet (keine
+    // Einstellung mehr, siehe Anforderung "Strophenanzahl 5 entfernen,
+    // feste Regel 3 Strophen à 5 Zeilen") — bewusst identisch zu
+    // `stanzasPerTournamentRound`, damit Solo-Challenge und eine einzelne
+    // Turnier-Runde exakt dieselbe Länge haben.
+    stanzasPerChallenge: 3,
     // Turnier-Runden (tournament-data.js/tournament.js): EINE Runde besteht
     // aus stanzasPerTournamentRound (3) Strophen hintereinander, beat-genau
     // OHNE Unterbrechung (eine einzige BeatClock/Aufnahme pro Runde). Nach
@@ -89,7 +92,8 @@
   const DEFAULT_SETTINGS = {
     difficulty: "mittel", // leicht | mittel | schwer
     beatId: "b2",
-    verses: 2, // Strophenanzahl, GAMEPLAY_CONFIG.minStanzas..maxStanzas
+    // Strophenanzahl ist KEINE Einstellung mehr — immer
+    // GAMEPLAY_CONFIG.stanzasPerChallenge (3), siehe dort.
     topic: "freestyle",
     streamerMode: false,
     soundEnabled: true,
@@ -178,13 +182,15 @@
   ];
 
   // Kuratierte Preset-Challenges, nur mit Premium spielbar — reiner
-  // INHALTS-Zugriff (Beat/Thema/Strophenzahl-Kombination), KEIN leichterer
+  // INHALTS-Zugriff (Beat/Thema-Kombination), KEIN leichterer
   // Schwierigkeitsgrad und keine andere Bewertungslogik als jede normale
   // Challenge (siehe docs/SHOP.md, Abschnitt "Niemals Pay-to-Win").
+  // Kein `verses`-Feld mehr — jede Challenge (auch Premium-Presets) läuft
+  // fest über GAMEPLAY_CONFIG.stanzasPerChallenge (3 Strophen).
   const PREMIUM_CHALLENGES = [
-    { id: "pc1", name: "Neon Cypher", desc: "Battle-Vibes auf Dark Trap Wave — hart, schnell, kompromisslos.", difficulty: "schwer", beatId: "b1", topic: "battle", verses: 4 },
-    { id: "pc2", name: "Midnight Grind", desc: "Money-Talk auf Midnight Cypher — spät, ruhig, treffsicher.", difficulty: "mittel", beatId: "b6", topic: "money", verses: 3 },
-    { id: "pc3", name: "Aufstiegs-Story", desc: "Motivation in 5 Strophen — die volle Distanz.", difficulty: "leicht", beatId: "b1", topic: "motivation", verses: 5 },
+    { id: "pc1", name: "Neon Cypher", desc: "Battle-Vibes auf Dark Trap Wave — hart, schnell, kompromisslos.", difficulty: "schwer", beatId: "b1", topic: "battle" },
+    { id: "pc2", name: "Midnight Grind", desc: "Money-Talk auf Midnight Cypher — spät, ruhig, treffsicher.", difficulty: "mittel", beatId: "b6", topic: "money" },
+    { id: "pc3", name: "Aufstiegs-Story", desc: "Motivation pur — 3 Strophen, volle Attacke.", difficulty: "leicht", beatId: "b1", topic: "motivation" },
   ];
 
   // Tages-Login-Belohnung, 7-Tage-Zyklus (danach beginnt er von vorn).

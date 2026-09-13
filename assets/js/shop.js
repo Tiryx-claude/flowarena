@@ -181,7 +181,6 @@
           <li>${t("shop.allCosmeticsPerk")}</li>
           <li>${t("shop.allChallengesPerk")}</li>
           <li>${t("shop.earlyAccessPerk")}</li>
-          <li>${t("shop.moreVersesPerk")}</li>
           <li>${t("shop.premiumBadgePerk")}</li>
         </ul>
         <p class="premium-hero__no-advantage">${t("shop.noAdvantageNote")}</p>
@@ -467,7 +466,6 @@
     els.premiumChallengeCatalog.innerHTML = PREMIUM_CHALLENGES.map((raw) => {
       const pc = findPremiumChallenge(raw.id);
       const beat = BEATS.find((b) => b.id === pc.beatId);
-      const verseWord = tPlural("challenge.verse", pc.verses);
       return `
         <div class="shop-card">
           <div class="shop-card__head">
@@ -475,7 +473,7 @@
             <span class="shop-card__meta">${t(`common.difficulty.${pc.difficulty}`)}</span>
           </div>
           <span class="shop-card__meta">${escapeHtml(pc.desc)}</span>
-          <span class="shop-card__meta">${beat?.name || pc.beatId} · ${findTopicLabel(pc.topic)} · ${pc.verses} ${verseWord}</span>
+          <span class="shop-card__meta">${beat?.name || pc.beatId} · ${findTopicLabel(pc.topic)}</span>
           <div class="shop-card__action">
             ${profile.premium
               ? `<button class="btn btn-primary btn-sm" type="button" data-play-challenge="${pc.id}">${t("shop.playChallengeBtn")}</button>`
@@ -489,7 +487,7 @@
       btn.addEventListener("click", () => {
         const pc = findPremiumChallenge(btn.dataset.playChallenge);
         const settings = window.FlowData.loadSettings();
-        window.FlowData.saveSettings({ ...settings, difficulty: pc.difficulty, beatId: pc.beatId, topic: pc.topic, verses: pc.verses });
+        window.FlowData.saveSettings({ ...settings, difficulty: pc.difficulty, beatId: pc.beatId, topic: pc.topic });
         window.FlowSound?.playConfirm?.();
         showToast(t("shop.challengePreparingToast", { name: pc.name }));
         setTimeout(() => { window.location.href = "challenge.html"; }, 350);

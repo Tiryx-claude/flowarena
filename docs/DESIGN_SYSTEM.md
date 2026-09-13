@@ -104,7 +104,8 @@ Alle in [`assets/css/components.css`](../assets/css/components.css):
 | Icon-Button | `.btn-icon` | Runde 44px Buttons (z.B. Settings-Gear) |
 | Segmented Control | `.segmented` | z.B. Schwierigkeitsgrad |
 | Toggle-Switch | `.toggle` | An/Aus-Einstellungen |
-| Stepper | `.stepper` | Numerische Werte (Strophenanzahl) |
+| Stepper | `.stepper` | Numerische Werte (z.B. Turnier-Rundenzahl) |
+| Config-Card | `.config-card` | Direkt editierbare Challenge-Einstellung (Startscreen) |
 | Beat-Karte | `.beat-card` | Auswahl-Liste mit BPM-Badge |
 | Chip | `.chip` | Kompakte Status-/Einstellungsanzeige |
 | Settings-Drawer | `.settings-drawer` | Seitliches Panel (Desktop) / Bottom-Sheet (Mobile) |

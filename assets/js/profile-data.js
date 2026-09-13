@@ -24,7 +24,12 @@
 
   const BADGES = [
     { id: "first_flow", name: "Erster Flow", icon: "🎤", desc: "Deine erste Challenge abgeschlossen." },
-    { id: "marathon", name: "Marathoner", icon: "🏃", desc: "Eine Challenge mit 5+ Strophen durchgezogen." },
+    // "5+ Strophen in einem Lauf" ging nicht mehr, seit die Strophenanzahl
+    // fest auf 3 verdrahtet ist (siehe GAMEPLAY_CONFIG.stanzasPerChallenge
+    // in data.js) — umdefiniert auf Ausdauer über VIELE Sessions hinweg
+    // statt Länge einer einzelnen (passt besser zum 🏃-Symbol), als nächste
+    // Stufe über "Vielspieler" (5).
+    { id: "marathon", name: "Marathoner", icon: "🏃", desc: "15 Challenges abgeschlossen." },
     { id: "veteran", name: "Vielspieler", icon: "🔥", desc: "5 Challenges abgeschlossen." },
     { id: "century", name: "Century", icon: "💯", desc: "Eine Challenge mit 85+ Gesamtpunkten beendet." },
     { id: "wordsmith", name: "Wortakrobat", icon: "✍️", desc: "85+ Punkte bei Kreativität erreicht." },
@@ -52,6 +57,10 @@
         bestScore: 0,
         bestKreativitaet: 0,
         bestEndwortNutzung: 0,
+        // Seit die Strophenanzahl fest auf 3 verdrahtet ist (siehe
+        // GAMEPLAY_CONFIG.stanzasPerChallenge in data.js) landet hier immer
+        // 3 — kein Abzeichen hängt mehr davon ab (siehe "marathon" unten),
+        // weiterhin harmlos mitgeführt statt eines Datenmodell-Umbaus.
         maxStanzasInOneRun: 0,
         roastCompleted: false,
         topicsUsed: [],
@@ -383,7 +392,7 @@
     const s = profile.stats;
     const checks = {
       first_flow: s.challengesCompleted >= 1,
-      marathon: s.maxStanzasInOneRun >= 5,
+      marathon: s.challengesCompleted >= 15,
       veteran: s.challengesCompleted >= 5,
       century: s.bestScore >= 85,
       wordsmith: s.bestKreativitaet >= 85,

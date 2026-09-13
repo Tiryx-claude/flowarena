@@ -113,6 +113,35 @@
   color: var(--text-muted);
 }
 
+/* Kurzhinweis statt Dauertext (Anforderung: "Startscreen soll nach GAME
+   aussehen, nicht nach Tutorial-Seite") — die ausführliche Erklärung
+   (.preview-caption) steckt in <details>, standardmäßig eingeklappt. */
+.preview-caption-short {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+}
+
+.preview-details {
+  margin-top: var(--sp-1);
+}
+
+.preview-details summary {
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  list-style: none;
+  display: inline-block;
+}
+.preview-details summary::-webkit-details-marker { display: none; }
+.preview-details summary:hover { color: var(--text-muted); }
+.preview-details[open] summary { margin-bottom: var(--sp-2); }
+.preview-details .preview-caption { margin: 0 auto; }
+
 @media (max-width: 560px) {
   .preview-track { gap: var(--sp-2); padding: 48px var(--sp-2) var(--sp-5); }
   .preview-box--word { min-width: 68px; font-size: var(--fs-xs); padding: var(--sp-2) var(--sp-2); }
@@ -190,18 +219,108 @@
   gap: var(--sp-2);
 }
 
-/* "Spielen"-Panel: Zusammenfassung + CTA */
-.play-summary {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--sp-2);
+/* "Spielen"-Panel: Konfiguration direkt als Cards + CTA (Anforderung:
+   "direkt die Challenge-Konfiguration", "moderne interaktive Cards",
+   "weniger leerer Raum, mehr Fokus auf die Konfiguration"). Etwas mehr
+   Innenabstand als der Standard-.menu-panel__card, damit die Cards Luft
+   haben. */
+.menu-panel__card--play {
+  padding: var(--sp-6) var(--sp-6) var(--sp-8);
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-3);
   margin-bottom: var(--sp-6);
 }
 
-.play-cta {
+.config-card {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: left;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.config-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.config-card__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.config-card__label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+/* Schwierigkeit/Thema: schmalere Segmented-/Select-Variante, die die volle
+   Card-Breite ausfüllt statt der sonst inline-kompakten Standardgröße. */
+.segmented--block {
+  display: flex;
+  width: 100%;
+}
+.segmented--block .segmented__opt {
+  flex: 1;
+  text-align: center;
+  padding: 0.55em 0.4em;
+}
+
+/* Beat-Card: kompakter/niedriger als die alte Drawer-Liste, damit sie
+   neben den anderen Cards nicht dominiert — bleibt scrollbar bei vielen
+   Beats. */
+.config-card--beat .beat-list--compact {
+  max-height: 168px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Street-/Streamer-Modus: die GANZE Card ist klickbar (Anforderung:
+   "wie moderne interaktive Cards") — .toggle liefert bereits is-on-
+   Zustand/Klick-Verhalten (siehe assets/js/app.js), hier nur das Layout
+   auf Card-Breite gebracht (Track rechtsbündig statt direkt neben dem
+   Label) und ein aktiver Rahmen/Glow ergänzt. */
+.config-card--toggle {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.config-card--toggle .config-card__head { flex: 1; }
+.config-card--toggle.is-on {
+  border-color: var(--neon-purple);
+  background: linear-gradient(90deg, rgba(181, 55, 245, 0.12), rgba(41, 211, 255, 0.06));
+}
+.config-card--toggle.is-on .config-card__label { color: var(--text); }
+
+/* Dominantester Button auf der Seite (Anforderung: "CHALLENGE STARTEN soll
+   der mit Abstand wichtigste Button sein") — spürbar größer/mehr Glow als
+   der normale .btn-hero. */
+.btn-mega {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.3em 2.4em;
+  font-size: var(--fs-xl);
+  box-shadow: var(--glow-mixed);
+}
+
+@media (max-width: 640px) {
+  .config-grid { grid-template-columns: 1fr; }
+  .menu-panel__card--play { padding: var(--sp-5) var(--sp-4) var(--sp-6); }
+  .btn-mega { font-size: var(--fs-lg); padding: 1.1em 1.6em; }
 }
 
 /* ---------- Coming-Soon (Turniere) ---------- */

@@ -471,7 +471,97 @@
     // AVOID_FAMILY_ENDINGS oben) — EINMALIG hier, damit der Ausschluss
     // überall gilt (nicht nur im bevorzugten Pool), unabhängig davon, aus
     // welcher Schicht die Familie kam.
-    const filtered = bank.filter((f) => !AVOID_FAMILY_ENDINGS.includes(f.ending));
+    const denylisted = bank.filter((f) => !AVOID_FAMILY_ENDINGS.includes(f.ending));
+
+    // Kernbank/Zusatzbank/rhyme-slang.js kennen sich beim Anlegen ihrer
+    // jeweiligen Familien nicht gegenseitig (die Zusatzbank ist nur "gegen
+    // die Kernbank" abgeglichen, rhyme-slang.js wurde nachträglich ergänzt
+    // und gegen KEINE der beiden geprüft). Ohne einen Merge können zwei
+    // VERSCHIEDENE Familien-IDs mit demselben Klang nebeneinander existieren
+    // (z.B. Kernbank "ame" und rhyme-slang.js "s-ame", beide "-ame") —
+    // `excludedThisStanza` in pickRhymeStanza() schließt nur FAMILIEN-IDs
+    // aus, nicht Endungen, wodurch zwei verschiedene Buchstaben eines
+    // Schemas beide Familien wählen konnten und dabei DASSELBE WORT
+    // lieferten. Konkret beobachtet und mit einem Stresstest reproduziert:
+    // "shame/lame/alight/tame/shame" — "shame" kam einmal aus "ame", einmal
+    // aus "s-ame". Zwei Merge-Durchgänge beheben das:
+    function mergeFamilyGroup(families) {
+      const wordMap = new Map(); // lowercase Wort -> zusammengeführtes Wort-Objekt
+      families.forEach((f) => {
+        f.words.forEach((w) => {
+          const key = w.w.toLowerCase();
+          if (wordMap.has(key)) {
+            // Themen vereinigen, falls dasselbe Wort in beiden Quellen mit
+            // unterschiedlichen Tags vorkam.
+            const existing = wordMap.get(key);
+            existing.topics = [...new Set([...existing.topics, ...w.topics])];
+          } else {
+            wordMap.set(key, { ...w, topics: w.topics.slice() });
+          }
+        });
+      });
+      return {
+        id: families[0].id, // erste Familie (Kernbank vor Zusatzbank vor rhyme-slang.js,
+        // siehe Reihenfolge oben) bleibt als ID erhalten, damit bestehende
+        // `excludeFamilyIds`/Familien-Historie nicht plötzlich auf eine
+        // verschwundene ID zeigen.
+        ending: families[0].ending,
+        punchline: families.some((f) => f.punchline),
+        words: [...wordMap.values()],
+      };
+    }
+
+    // Durchgang 1: exakt gleiche Endungs-SCHREIBWEISE zusammenführen.
+    const byEnding = new Map();
+    denylisted.forEach((f) => {
+      if (!byEnding.has(f.ending)) byEnding.set(f.ending, []);
+      byEnding.get(f.ending).push(f);
+    });
+    const passOne = [];
+    byEnding.forEach((families) => {
+      passOne.push(families.length === 1 ? families[0] : mergeFamilyGroup(families));
+    });
+
+    // Durchgang 2: Familien mit UNTERSCHIEDLICHER Endungs-Schreibweise, die
+    // sich trotzdem mindestens ein Wort teilen — bekannte Grenze der rein
+    // schreibungsbasierten Endungs-Erkennung, z.B. "-on" vs "-ohn" durch
+    // stummes 'h' (siehe wordStem-Kommentar) lässt "Sohn"/"Lohn" in BEIDEN
+    // Familien landen, obwohl die Endungs-STRINGS verschieden sind und
+    // Durchgang 1 sie deshalb nicht zusammenführt. Union-Find über
+    // gemeinsame Wörter fängt das ab — garantiert, dass am Ende JEDES Wort
+    // in GENAU einer Familie liegt.
+    const parent = new Map();
+    passOne.forEach((f) => parent.set(f.id, f.id));
+    function find(x) {
+      while (parent.get(x) !== x) {
+        parent.set(x, parent.get(parent.get(x)));
+        x = parent.get(x);
+      }
+      return x;
+    }
+    function union(a, b) {
+      const ra = find(a);
+      const rb = find(b);
+      if (ra !== rb) parent.set(ra, rb);
+    }
+    const wordOwner = new Map(); // lowercase Wort -> erste gefundene Familien-ID
+    passOne.forEach((f) => {
+      f.words.forEach((w) => {
+        const key = w.w.toLowerCase();
+        if (wordOwner.has(key)) union(f.id, wordOwner.get(key));
+        else wordOwner.set(key, f.id);
+      });
+    });
+    const groups = new Map();
+    passOne.forEach((f) => {
+      const root = find(f.id);
+      if (!groups.has(root)) groups.set(root, []);
+      groups.get(root).push(f);
+    });
+    const filtered = [];
+    groups.forEach((families) => {
+      filtered.push(families.length === 1 ? families[0] : mergeFamilyGroup(families));
+    });
 
     mergedBankCache[locale] = filtered;
     return filtered;

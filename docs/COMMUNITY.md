@@ -56,17 +56,17 @@ Challenge aufgerufen: schreibt Stats fort, vergibt Credits
 
 ## 4. Premium
 
-Perks (`GAMEPLAY_CONFIG.freeMaxStanzas` vs. `maxStanzas` in `data.js`):
+Perks:
 
 | | Free | Premium (Demo) |
 |---|---|---|
-| Strophen pro Challenge | bis 5 | bis 10 |
+| Challenges pro Tag | bis 5 (`profile.canStartChallenge()`) | unbegrenzt |
 | Premium-Beats | einzeln per Credits | alle sofort |
 | Profil-Badge | — | 👑 Premium-Pill |
 
-Der "+"-Stepper bei den Strophen bleibt am Free-Deckel bewusst klickbar
-(nicht deaktiviert), damit der Premium-Hinweis-Toast überhaupt angezeigt
-werden kann — erst am echten Maximum (10) wird er hart deaktiviert.
+Strophenanzahl ist seit der Layout-Überarbeitung KEIN Premium-Perk mehr —
+jede Challenge (Free wie Premium) läuft fest über
+`GAMEPLAY_CONFIG.stanzasPerChallenge` (3), siehe `docs/GAMEPLAY.md`.
 
 ## 5. Abzeichen (Badges)
 

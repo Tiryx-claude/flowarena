@@ -39,7 +39,9 @@
 
   const LINES_PER_STANZA = GAMEPLAY_CONFIG.linesPerStanza;
   const BEATS_PER_LINE = GAMEPLAY_CONFIG.beatsPerLine;
-  const totalStanzas = Math.min(Math.max(settings.verses || 1, GAMEPLAY_CONFIG.minStanzas), GAMEPLAY_CONFIG.maxStanzas);
+  // Strophenanzahl ist keine Einstellung mehr — feste Regel: JEDE Challenge
+  // läuft über GAMEPLAY_CONFIG.stanzasPerChallenge (3) Strophen.
+  const totalStanzas = GAMEPLAY_CONFIG.stanzasPerChallenge;
   const totalLines = totalStanzas * LINES_PER_STANZA;
 
   /* ---------------------------------------------------------------------
@@ -156,7 +158,6 @@
     els.introSummary.innerHTML = `
       <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.difficultyLabel")}</span><span class="chip__value">${difficultyLabel()}</span></span>
       <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("home.tournamentCreate.beatLabel")}</span><span class="chip__value">${beat.name} · ${beat.bpm} BPM</span></span>
-      <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.versesLabel")}</span><span class="chip__value">${totalStanzas}</span></span>
       <span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("settings.topicLabel")}</span><span class="chip__value">${findTopicLabel(settings.topic)}</span></span>
       ${settings.roastMode ? `<span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("challenge.modeLabel")}</span><span class="chip__value">${t("challenge.roastModeValue")}</span></span>` : ""}
       ${settings.streetMode ? `<span class="chip" style="cursor:default;"><span class="chip__dot"></span><span class="chip__label">${t("challenge.modeLabel")}</span><span class="chip__value">${t("challenge.streetModeValue")}</span></span>` : ""}
